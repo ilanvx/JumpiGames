@@ -2240,7 +2240,7 @@
             }
             function drawEquipped() {
                 // 3. Draw all other equipped items in order (except sk, hd)
-                for (const cat of ["ps", "st", "nk", "hr", "gs", "ht", "sk"]) {
+                for (const cat of ["ps", "st", "nk", "hr", "gs", "ht"]) {
                 const itemId = currentEquipped[cat];
                     if (!itemId) continue;
                     const img = new Image();
@@ -2868,7 +2868,7 @@
 
                 // 3. Draw other equipped items AFTER the base character
                 if (p.equipped && window.itemsMetadata) {
-                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht"]) {
+                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht", "sk"]) {
                         if (cat === "hd") continue;
                         const itemId = p.equipped[cat];
                         if (!itemId) continue;
@@ -3152,6 +3152,11 @@
         }
         function updateActivityTime() { window.lastActivityTime = Date.now(); }
         document.addEventListener('mousemove', updateActivityTime);
+        
+        // Canvas activity detection
+        window.canvas.addEventListener('mousemove', function(e) {
+            resetAFKTimer();
+        });
 
         function gameLoop() {
             checkIdleDisconnect();
@@ -3163,6 +3168,7 @@
         // ---- אירועים על קנבס ----
         window.canvas.addEventListener('click', (e) => {
             window.lastActivityTime = Date.now();
+            resetAFKTimer();
             const rect = window.canvas.getBoundingClientRect();
             
             // Convert screen coordinates to canvas coordinates
@@ -3919,18 +3925,50 @@
         }
     });
 
-    // AFK Event Listeners
-    document.addEventListener('keydown', function(e) {
-        resetAFKTimer();
-    });
-    
-    document.addEventListener('mousedown', function(e) {
-        resetAFKTimer();
-    });
-    
-    document.addEventListener('mousemove', function(e) {
-        resetAFKTimer();
-    });
+            // AFK Event Listeners
+        document.addEventListener('keydown', function(e) {
+            resetAFKTimer();
+        });
+        
+        document.addEventListener('mousedown', function(e) {
+            resetAFKTimer();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            resetAFKTimer();
+        });
+
+        // Window focus/blur events for AFK detection
+        window.addEventListener('blur', function() {
+            // User switched to another window/tab
+            setTimeout(() => {
+                if (!document.hasFocus()) {
+                    window.isAFK = true;
+                    window.socket.emit('afkStatus', { isAFK: true });
+                }
+            }, 1000); // Wait 1 second to see if they come back
+        });
+
+        window.addEventListener('focus', function() {
+            // User returned to the game window
+            resetAFKTimer();
+        });
+
+        // Page visibility API for tab switching
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Page is hidden (user switched tabs)
+                setTimeout(() => {
+                    if (document.hidden) {
+                        window.isAFK = true;
+                        window.socket.emit('afkStatus', { isAFK: true });
+                    }
+                }, 1000);
+            } else {
+                // Page is visible again
+                resetAFKTimer();
+            }
+        });
 
     // Responsive canvas resizing
     function resizeCanvas() {
