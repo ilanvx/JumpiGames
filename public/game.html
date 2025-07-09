@@ -1979,6 +1979,10 @@
         const idleDisconnectTimeout = 20 * 60 * 1000;
         window.lastActivityTime = Date.now();
 
+        // AFK System
+        window.isAFK = false;
+        window.afkTimeout = 30000; // 30 seconds
+
         window.isInventoryOpen = false;
         window.isChatHistoryOpen = false;
         let inventoryWindowElement;
@@ -2031,6 +2035,28 @@
         let currentCategory = 'ht';
         let currentInventory = {};
         let currentEquipped = {};
+
+        // ==================== AFK System ====================
+        function updateAFKStatus() {
+            const now = Date.now();
+            const timeSinceLastActivity = now - window.lastActivityTime;
+            
+            if (timeSinceLastActivity > window.afkTimeout && !window.isAFK) {
+                window.isAFK = true;
+                window.socket.emit('afkStatus', { isAFK: true });
+            } else if (timeSinceLastActivity <= window.afkTimeout && window.isAFK) {
+                window.isAFK = false;
+                window.socket.emit('afkStatus', { isAFK: false });
+            }
+        }
+
+        function resetAFKTimer() {
+            window.lastActivityTime = Date.now();
+            if (window.isAFK) {
+                window.isAFK = false;
+                window.socket.emit('afkStatus', { isAFK: false });
+            }
+        }
 
         // ==================== UI - סל חפצים ====================
         function showCategoryTabs() {
@@ -2531,6 +2557,7 @@
                 if (window.players && window.players[id]) {
                     serverPlayers[id].currentEmoji = window.players[id].currentEmoji;
                     serverPlayers[id].emojiStartTime = window.players[id].emojiStartTime;
+                    serverPlayers[id].isAFK = window.players[id].isAFK;
                 }
             });
             
@@ -2576,6 +2603,7 @@
                     currentPlayer.coins = serverPlayer.coins;
                     currentPlayer.room = serverPlayer.room;
                     currentPlayer.isAdmin = serverPlayer.isAdmin;
+                    currentPlayer.isAFK = serverPlayer.isAFK;
                 }
             });
             
@@ -2608,6 +2636,12 @@
         window.socket.on('roomJoinResponse', (data) => {
             if (window.mapNavigation) {
                 window.mapNavigation.handleRoomJoinResponse(data);
+            }
+        });
+
+        window.socket.on('playerAFKUpdate', (data) => {
+            if (window.players[data.playerId]) {
+                window.players[data.playerId].isAFK = data.isAFK;
             }
         });
         window.socket.on('updateInventory', inventory => {
@@ -2758,7 +2792,7 @@
                     window.ctx.restore();
                 }
 
-                // 1. Draw skateboard (sk) BEFORE the base character
+                // 1. Draw skateboard (sk) BEFORE the base character - at the very back
                 if (p.equipped && p.equipped.sk) {
                     const skateboardItemId = p.equipped.sk;
                     // Always map up->back, down->front for items
@@ -2834,7 +2868,7 @@
 
                 // 3. Draw other equipped items AFTER the base character
                 if (p.equipped && window.itemsMetadata) {
-                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht", "sk"]) {
+                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht"]) {
                         if (cat === "hd") continue;
                         const itemId = p.equipped[cat];
                         if (!itemId) continue;
@@ -2847,8 +2881,8 @@
                         if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
                             availableDirection = 'front';
                         }
-                        // For glasses (gs), don't show if direction is back (up) since there's no back image
-                        if (cat === "gs" && direction === "back") {
+                        // For glasses (gs), don't show if direction is back (up) or up_left/up_right since there's no back image
+                        if (cat === "gs" && (direction === "back" || direction === "up_left" || direction === "up_right")) {
                             continue;
                         }
                         const key = `${cat}_${itemId}_${availableDirection}`;
@@ -3005,6 +3039,20 @@
                 window.ctx.strokeText(p.username, p.x, p.y + 55);
                 window.ctx.fillStyle = 'white';
                 window.ctx.fillText(p.username, p.x, p.y + 55);
+
+                // Draw AFK indicator
+                if (p.isAFK) {
+                    // Draw white circle background
+                    window.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    window.ctx.beginPath();
+                    window.ctx.arc(p.x, p.y - 70, 15, 0, 2 * Math.PI);
+                    window.ctx.fill();
+                    
+                    // Draw emoji (sleeping face)
+                    window.ctx.font = '20px Arial';
+                    window.ctx.textAlign = 'center';
+                    window.ctx.fillText('😴', p.x, p.y - 65);
+                }
             });
         }
 
@@ -3107,6 +3155,7 @@
 
         function gameLoop() {
             checkIdleDisconnect();
+            updateAFKStatus();
             animateMovement();
             drawGame();
             requestAnimationFrame(gameLoop);
@@ -3868,6 +3917,19 @@
                 }
             });
         }
+    });
+
+    // AFK Event Listeners
+    document.addEventListener('keydown', function(e) {
+        resetAFKTimer();
+    });
+    
+    document.addEventListener('mousedown', function(e) {
+        resetAFKTimer();
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        resetAFKTimer();
     });
 
     // Responsive canvas resizing

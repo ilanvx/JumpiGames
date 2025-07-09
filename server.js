@@ -90,7 +90,8 @@ function initializePlayerData(dbUser) {
         inventory: initialInventory,
         equipped: initialEquipped,
         id: '', // Will be set to socket.id
-        isAdmin: !!dbUser.isAdmin
+        isAdmin: !!dbUser.isAdmin,
+        isAFK: false
     };
 }
 
@@ -183,6 +184,27 @@ io.on('connection', async (socket) => {
      socket.emit('updateCoins', freshPlayerData.coins);
      // No need to emit updatePlayers here unless other properties changed globally
    } else if (!userFromDb) {
+   }
+ });
+
+ socket.on('afkStatus', (data) => {
+   const currentPlayer = players[socket.id];
+   if (!currentPlayer || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
+       console.log('SERVER: Unauthorized AFK status update from socket:', socket.id);
+       return;
+   }
+   
+   if (players[socket.id]) {
+     players[socket.id].isAFK = data.isAFK;
+     // Broadcast AFK status to all players in the same room
+     const playerRoom = playerRooms[socket.id];
+     if (playerRoom) {
+       io.to(playerRoom).emit('playerAFKUpdate', { 
+         playerId: socket.id, 
+         isAFK: data.isAFK,
+         username: players[socket.id].username 
+       });
+     }
    }
  });
 
