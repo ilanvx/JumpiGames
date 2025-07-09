@@ -298,15 +298,18 @@ io.on('connection', async (socket) => {
      //   return;
      // }
      
-     // Update both current and target position for smooth movement
-     p.x = pos.x;
-     p.y = pos.y;
+     // Update target position for smooth movement (keep current position)
      p.targetX = pos.x;
      p.targetY = pos.y;
      p.direction = direction;
      
-     // Emit updates immediately for real-time synchronization
-     emitPlayersWithRooms();
+     // Emit updates at regular intervals for smooth animation
+     const currentTime = Date.now();
+     if (!p.lastEmitTime) p.lastEmitTime = 0;
+     if (currentTime - p.lastEmitTime > 100) { // Emit every 100ms
+       p.lastEmitTime = currentTime;
+       emitPlayersWithRooms();
+     }
    }
  });
 
@@ -1424,7 +1427,12 @@ function handleSecurityViolation(socketId, violationType, details = '') {
 function emitPlayersWithRooms() {
     const playersWithRooms = {};
     for (const [id, player] of Object.entries(players)) {
-        playersWithRooms[id] = { ...player, room: playerRooms[id] };
+        playersWithRooms[id] = { 
+            ...player, 
+            room: playerRooms[id],
+            targetX: player.targetX,
+            targetY: player.targetY
+        };
     }
     io.emit('updatePlayers', playersWithRooms);
 }

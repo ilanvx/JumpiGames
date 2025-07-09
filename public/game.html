@@ -2583,13 +2583,17 @@ Object.keys(serverPlayers).forEach(id => {
     const serverPlayer = serverPlayers[id];
     let currentPlayer = window.players[id];
     if (!currentPlayer) {
-        // New player
+        // New player - initialize with current position
         window.players[id] = serverPlayer;
         currentPlayer = window.players[id];
+        currentPlayer.targetX = currentPlayer.x;
+        currentPlayer.targetY = currentPlayer.y;
     } else {
-        // Always update position and direction
-        currentPlayer.x = serverPlayer.x;
-        currentPlayer.y = serverPlayer.y;
+        // Update target for smooth movement
+        if (serverPlayer.targetX !== undefined && serverPlayer.targetY !== undefined) {
+            currentPlayer.targetX = serverPlayer.targetX;
+            currentPlayer.targetY = serverPlayer.targetY;
+        }
         currentPlayer.direction = serverPlayer.direction;
         // Update other properties
         currentPlayer.username = serverPlayer.username;
@@ -3121,12 +3125,27 @@ Object.keys(serverPlayers).forEach(id => {
                 }
             }
             
-            // Handle other players' movement - now using real-time positions
+            // Handle other players' smooth movement to targets
             Object.values(window.players).forEach(otherPlayer => {
                 if (otherPlayer.id === window.socket.id) return; // Skip local player
                 
-                // Players now move in real-time, no need for interpolation
-                // The server sends actual positions immediately
+                // Smooth interpolation to target
+                if (otherPlayer.targetX !== undefined && otherPlayer.targetY !== undefined) {
+                    const dx = otherPlayer.targetX - otherPlayer.x;
+                    const dy = otherPlayer.targetY - otherPlayer.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 1) {
+                        // Smooth interpolation factor
+                        const speed = 0.1;
+                        otherPlayer.x += dx * speed;
+                        otherPlayer.y += dy * speed;
+                    } else {
+                        // Close enough, snap to target
+                        otherPlayer.x = otherPlayer.targetX;
+                        otherPlayer.y = otherPlayer.targetY;
+                    }
+                }
             });
         }
         CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
