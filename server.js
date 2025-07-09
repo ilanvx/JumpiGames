@@ -81,6 +81,8 @@ function initializePlayerData(dbUser) {
         username: dbUser.username,
         x: 300,
         y: 300,
+        targetX: 300,
+        targetY: 300,
         direction: 'front',
         message: '',
         messageTime: 0,
@@ -237,16 +239,24 @@ io.on('connection', async (socket) => {
      const validDirections = ['front', 'back', 'left', 'right', 'up_left', 'up_right', 'down_left', 'down_right', 'up', 'down'];
      const direction = validDirections.includes(pos.direction) ? pos.direction : 'front';
      
-     // Security: Final validation before updating position
+     // Security: Final validation before updating target
      if (Math.abs(pos.x - p.x) > maxSpeed || Math.abs(pos.y - p.y) > maxSpeed) {
        console.log('SERVER: Position change too large from socket:', socket.id, 'dx:', Math.abs(pos.x - p.x), 'dy:', Math.abs(pos.y - p.y));
        return;
      }
      
-     p.x = pos.x;
-     p.y = pos.y;
+     // Update target position instead of current position
+     p.targetX = pos.x;
+     p.targetY = pos.y;
      p.direction = direction;
-     emitPlayersWithRooms();
+     
+     // Only emit updates every 500ms to reduce network traffic
+     const currentTime = Date.now();
+     if (!p.lastEmitTime) p.lastEmitTime = 0;
+     if (currentTime - p.lastEmitTime > 500) {
+       p.lastEmitTime = currentTime;
+       emitPlayersWithRooms();
+     }
    }
  });
 

@@ -2546,7 +2546,53 @@
                 }
             });
             
-            window.players = serverPlayers;
+            // Update players with smooth movement handling
+            Object.keys(serverPlayers).forEach(id => {
+                const serverPlayer = serverPlayers[id];
+                const currentPlayer = window.players[id];
+                
+                if (currentPlayer && serverPlayer.targetX !== undefined && serverPlayer.targetY !== undefined) {
+                    // Update target for smooth movement
+                    currentPlayer.targetX = serverPlayer.targetX;
+                    currentPlayer.targetY = serverPlayer.targetY;
+                    currentPlayer.direction = serverPlayer.direction;
+                } else {
+                    // New player or no target - use current position
+                    if (currentPlayer) {
+                        currentPlayer.x = serverPlayer.x;
+                        currentPlayer.y = serverPlayer.y;
+                        currentPlayer.targetX = serverPlayer.x;
+                        currentPlayer.targetY = serverPlayer.y;
+                    }
+                }
+                
+                // Update other properties
+                if (currentPlayer) {
+                    currentPlayer.username = serverPlayer.username;
+                    currentPlayer.message = serverPlayer.message;
+                    currentPlayer.messageTime = serverPlayer.messageTime;
+                    currentPlayer.inventory = serverPlayer.inventory;
+                    currentPlayer.equipped = serverPlayer.equipped;
+                    currentPlayer.coins = serverPlayer.coins;
+                    currentPlayer.room = serverPlayer.room;
+                    currentPlayer.isAdmin = serverPlayer.isAdmin;
+                }
+            });
+            
+            // Add new players
+            Object.keys(serverPlayers).forEach(id => {
+                if (!window.players[id]) {
+                    window.players[id] = serverPlayers[id];
+                }
+            });
+            
+            // Remove disconnected players
+            Object.keys(window.players).forEach(id => {
+                if (!serverPlayers[id]) {
+                    delete window.players[id];
+                }
+            });
+            
             if (window.isInventoryOpen) {
                 updateInventoryInfo();
             }
@@ -2987,32 +3033,59 @@
         function inButton(x, y, btn) { return btn && x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h; }
         function animateMovement() {
             const player = window.players[window.socket.id];
-            if (!player || !window.target) return;
-            const dx = window.target.x - player.x, dy = window.target.y - player.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const speed = 6;
-            if (dist < speed) {
-                player.x = window.target.x;
-                player.y = window.target.y;
-                // אל תשנה את player.direction כאן! תשאיר את הכיוון האחרון
-                window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
-                window.target = null;
-            } else {
-                const angle = Math.atan2(dy, dx);
-                player.x += Math.cos(angle) * speed;
-                player.y += Math.sin(angle) * speed;
-                let angleDeg = angle * (180 / Math.PI);
-                if (angleDeg < 0) angleDeg += 360;
-                if (angleDeg >= 337.5 || angleDeg < 22.5) player.direction = 'right';
-                else if (angleDeg < 67.5) player.direction = 'down_right';
-                else if (angleDeg < 112.5) player.direction = 'down';
-                else if (angleDeg < 157.5) player.direction = 'down_left';
-                else if (angleDeg < 202.5) player.direction = 'left';
-                else if (angleDeg < 247.5) player.direction = 'up_left';
-                else if (angleDeg < 292.5) player.direction = 'up';
-                else if (angleDeg < 337.5) player.direction = 'up_right';
-                window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
+            if (!player) return;
+            
+            // Handle local player movement to target
+            if (window.target) {
+                const dx = window.target.x - player.x, dy = window.target.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const speed = 6;
+                
+                if (dist < speed) {
+                    player.x = window.target.x;
+                    player.y = window.target.y;
+                    window.target = null;
+                    // Send final position to server
+                    window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
+                } else {
+                    const angle = Math.atan2(dy, dx);
+                    player.x += Math.cos(angle) * speed;
+                    player.y += Math.sin(angle) * speed;
+                    
+                    // Update direction based on movement
+                    let angleDeg = angle * (180 / Math.PI);
+                    if (angleDeg < 0) angleDeg += 360;
+                    if (angleDeg >= 337.5 || angleDeg < 22.5) player.direction = 'right';
+                    else if (angleDeg < 67.5) player.direction = 'down_right';
+                    else if (angleDeg < 112.5) player.direction = 'down';
+                    else if (angleDeg < 157.5) player.direction = 'down_left';
+                    else if (angleDeg < 202.5) player.direction = 'left';
+                    else if (angleDeg < 247.5) player.direction = 'up_left';
+                    else if (angleDeg < 292.5) player.direction = 'up';
+                    else if (angleDeg < 337.5) player.direction = 'up_right';
+                }
             }
+            
+            // Handle other players' smooth movement
+            Object.values(window.players).forEach(otherPlayer => {
+                if (otherPlayer.id === window.socket.id) return; // Skip local player
+                
+                if (otherPlayer.targetX !== undefined && otherPlayer.targetY !== undefined) {
+                    const dx = otherPlayer.targetX - otherPlayer.x;
+                    const dy = otherPlayer.targetY - otherPlayer.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const speed = 0.1; // Smooth interpolation factor
+                    
+                    if (dist > 1) {
+                        otherPlayer.x += dx * speed;
+                        otherPlayer.y += dy * speed;
+                    } else {
+                        // Close enough, snap to target
+                        otherPlayer.x = otherPlayer.targetX;
+                        otherPlayer.y = otherPlayer.targetY;
+                    }
+                }
+            });
         }
         CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
              if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
