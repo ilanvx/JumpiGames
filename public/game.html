@@ -2640,11 +2640,7 @@ Object.keys(serverPlayers).forEach(id => {
             }
         });
 
-        window.socket.on('playerAFKUpdate', (data) => {
-            if (window.players[data.playerId]) {
-                window.players[data.playerId].isAFK = data.isAFK;
-            }
-        });
+        // AFK status is now handled via updatePlayers, no need for separate event
         window.socket.on('updateInventory', inventory => {
             // רק העדכון הרלוונטי, מהשרת בלבד!
             currentInventory = inventory || {};

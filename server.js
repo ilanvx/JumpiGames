@@ -201,15 +201,7 @@ io.on('connection', async (socket) => {
    
    if (players[socket.id]) {
      players[socket.id].isAFK = data.isAFK;
-     // Broadcast AFK status to all players in the same room
-     const playerRoom = playerRooms[socket.id];
-     if (playerRoom) {
-       io.to(playerRoom).emit('playerAFKUpdate', { 
-         playerId: socket.id, 
-         isAFK: data.isAFK,
-         username: players[socket.id].username 
-       });
-     }
+     // AFK status will be sent via updatePlayers, no need for separate event
    }
  });
 
@@ -284,6 +276,11 @@ io.on('connection', async (socket) => {
      //   return;
      // }
      
+     // Reset AFK status when player moves
+     if (p.isAFK) {
+       p.isAFK = false;
+     }
+     
      // Update target position for smooth movement (keep current position)
      p.targetX = pos.x;
      p.targetY = pos.y;
@@ -315,6 +312,11 @@ io.on('connection', async (socket) => {
        // Just ignore invalid messages, don't disconnect
        return;
      }
+     // Reset AFK status when player chats
+     if (players[socket.id].isAFK) {
+       players[socket.id].isAFK = false;
+     }
+     
      players[socket.id].message = text.substring(0, 50).trim(); // Limit message length
      players[socket.id].messageTime = Date.now();
      emitPlayersWithRooms();
