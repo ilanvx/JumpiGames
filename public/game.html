@@ -3118,7 +3118,7 @@ Object.keys(serverPlayers).forEach(id => {
                     else if (angleDeg < 337.5) player.direction = 'up_right';
                     
                     // Send real-time position updates during movement
-                    if (!window.lastMoveEmit || Date.now() - window.lastMoveEmit > 50) {
+                    if (!window.lastMoveEmit || Date.now() - window.lastMoveEmit > 16) {
                         window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
                         window.lastMoveEmit = Date.now();
                     }
