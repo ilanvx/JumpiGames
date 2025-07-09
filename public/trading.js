@@ -226,7 +226,7 @@
         const charY = (canvas.height - 70) / 2;
         
         // Draw equipped items in order using proper offsets
-        const order = ['sk', 'hd', 'ps', 'st', 'nk', 'hr', 'gs', 'ht'];
+        const order = ['hd', 'sk', 'ps', 'st', 'nk', 'hr', 'gs', 'ht'];
         order.forEach(cat => {
             const itemId = player.equipped && player.equipped[cat];
             if (itemId) {

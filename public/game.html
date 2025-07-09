@@ -2150,7 +2150,7 @@
             const charY = (canvas.height - 70) / 2; // 70 is half the character height
             
             // Define the correct drawing order for equipped items
-            const ITEM_DRAW_ORDER = ["sk", "hd", "ps", "st", "nk", "hr", "gs", "ht"];
+            const ITEM_DRAW_ORDER = ["hd", "sk", "ps", "st", "nk", "hr", "gs", "ht"];
             
             // For preview, always use 'front' direction (or 'down' for base sprite)
             const previewDirection = 'front';
@@ -2214,7 +2214,7 @@
             }
             function drawEquipped() {
                 // 3. Draw all other equipped items in order (except sk, hd)
-                for (const cat of ["ps", "st", "nk", "hr", "gs", "ht"]) {
+                for (const cat of ["ps", "st", "nk", "hr", "gs", "ht", "sk"]) {
                 const itemId = currentEquipped[cat];
                     if (!itemId) continue;
                     const img = new Image();
@@ -2834,7 +2834,7 @@
 
                 // 3. Draw other equipped items AFTER the base character
                 if (p.equipped && window.itemsMetadata) {
-                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht"]) {
+                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht", "sk"]) {
                         if (cat === "hd") continue;
                         const itemId = p.equipped[cat];
                         if (!itemId) continue;
@@ -2846,6 +2846,10 @@
                         let availableDirection = direction;
                         if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
                             availableDirection = 'front';
+                        }
+                        // For glasses (gs), don't show if direction is back (up) since there's no back image
+                        if (cat === "gs" && direction === "back") {
+                            continue;
                         }
                         const key = `${cat}_${itemId}_${availableDirection}`;
                         if (!window.itemOverlays[key]) {
@@ -3556,7 +3560,7 @@
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       // Use the same draw order and offset logic as the main game
-      const order = ['sk','hd','ps','st','nk','hr','gs','ht'];
+      const order = ['hd','sk','ps','st','nk','hr','gs','ht'];
       const previewDirection = 'front';
       // Helper to get offset/size for an item
       function getItemOffset(cat, itemId) {
@@ -3712,7 +3716,7 @@
         ctx.clearRect(0, 0, 200, 200);
         
         // Use the existing drawPlayerAvatarToCanvas function but adapt it for our canvas
-        const order = ['sk','hd','ps','st','nk','hr','gs','ht'];
+        const order = ['hd','sk','ps','st','nk','hr','gs','ht'];
         const previewDirection = 'front';
         
         // Helper to get offset/size for an item
