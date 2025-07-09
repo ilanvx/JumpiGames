@@ -2578,39 +2578,31 @@
                 }
             });
             
-            // Update players with smooth movement handling
-            Object.keys(serverPlayers).forEach(id => {
-                const serverPlayer = serverPlayers[id];
-                const currentPlayer = window.players[id];
-                
-                if (currentPlayer && serverPlayer.targetX !== undefined && serverPlayer.targetY !== undefined) {
-                    // Update target for smooth movement
-                    currentPlayer.targetX = serverPlayer.targetX;
-                    currentPlayer.targetY = serverPlayer.targetY;
-                    currentPlayer.direction = serverPlayer.direction;
-                } else {
-                    // New player or no target - use current position
-                    if (currentPlayer) {
-                        currentPlayer.x = serverPlayer.x;
-                        currentPlayer.y = serverPlayer.y;
-                        currentPlayer.targetX = serverPlayer.x;
-                        currentPlayer.targetY = serverPlayer.y;
-                    }
-                }
-                
-                // Update other properties
-                if (currentPlayer) {
-                    currentPlayer.username = serverPlayer.username;
-                    currentPlayer.message = serverPlayer.message;
-                    currentPlayer.messageTime = serverPlayer.messageTime;
-                    currentPlayer.inventory = serverPlayer.inventory;
-                    currentPlayer.equipped = serverPlayer.equipped;
-                    currentPlayer.coins = serverPlayer.coins;
-                    currentPlayer.room = serverPlayer.room;
-                    currentPlayer.isAdmin = serverPlayer.isAdmin;
-                    currentPlayer.isAFK = serverPlayer.isAFK;
-                }
-            });
+// Update all players' positions and properties in real-time
+Object.keys(serverPlayers).forEach(id => {
+    const serverPlayer = serverPlayers[id];
+    let currentPlayer = window.players[id];
+    if (!currentPlayer) {
+        // New player
+        window.players[id] = serverPlayer;
+        currentPlayer = window.players[id];
+    } else {
+        // Always update position and direction
+        currentPlayer.x = serverPlayer.x;
+        currentPlayer.y = serverPlayer.y;
+        currentPlayer.direction = serverPlayer.direction;
+        // Update other properties
+        currentPlayer.username = serverPlayer.username;
+        currentPlayer.message = serverPlayer.message;
+        currentPlayer.messageTime = serverPlayer.messageTime;
+        currentPlayer.inventory = serverPlayer.inventory;
+        currentPlayer.equipped = serverPlayer.equipped;
+        currentPlayer.coins = serverPlayer.coins;
+        currentPlayer.room = serverPlayer.room;
+        currentPlayer.isAdmin = serverPlayer.isAdmin;
+        currentPlayer.isAFK = serverPlayer.isAFK;
+    }
+});
             
             // Add new players
             Object.keys(serverPlayers).forEach(id => {
