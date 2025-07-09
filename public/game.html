@@ -2048,6 +2048,11 @@
                 window.isAFK = false;
                 window.socket.emit('afkStatus', { isAFK: false });
             }
+            
+            // Update local player AFK status
+            if (window.players[window.socket.id]) {
+                window.players[window.socket.id].isAFK = window.isAFK;
+            }
         }
 
         function resetAFKTimer() {
@@ -2868,7 +2873,7 @@
 
                 // 3. Draw other equipped items AFTER the base character
                 if (p.equipped && window.itemsMetadata) {
-                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht", "sk"]) {
+                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht"]) {
                         if (cat === "hd") continue;
                         const itemId = p.equipped[cat];
                         if (!itemId) continue;
@@ -3037,10 +3042,7 @@
                 window.ctx.lineWidth = 2.5;
                 window.ctx.strokeStyle = 'black';
                 window.ctx.strokeText(p.username, p.x, p.y + 55);
-                window.ctx.fillStyle = 'white';
-                window.ctx.fillText(p.username, p.x, p.y + 55);
-
-                // Draw AFK indicator
+                // Draw AFK indicator BEFORE chat bubble
                 if (p.isAFK) {
                     // Draw white circle background
                     window.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -3053,6 +3055,9 @@
                     window.ctx.textAlign = 'center';
                     window.ctx.fillText('😴', p.x, p.y - 65);
                 }
+
+                window.ctx.fillStyle = 'white';
+                window.ctx.fillText(p.username, p.x, p.y + 55);
             });
         }
 
@@ -3945,6 +3950,9 @@
                 if (!document.hasFocus()) {
                     window.isAFK = true;
                     window.socket.emit('afkStatus', { isAFK: true });
+                    if (window.players[window.socket.id]) {
+                        window.players[window.socket.id].isAFK = true;
+                    }
                 }
             }, 1000); // Wait 1 second to see if they come back
         });
@@ -3952,6 +3960,14 @@
         window.addEventListener('focus', function() {
             // User returned to the game window
             resetAFKTimer();
+            // Force update AFK status immediately
+            if (window.isAFK) {
+                window.isAFK = false;
+                window.socket.emit('afkStatus', { isAFK: false });
+                if (window.players[window.socket.id]) {
+                    window.players[window.socket.id].isAFK = false;
+                }
+            }
         });
 
         // Page visibility API for tab switching
@@ -3962,11 +3978,22 @@
                     if (document.hidden) {
                         window.isAFK = true;
                         window.socket.emit('afkStatus', { isAFK: true });
+                        if (window.players[window.socket.id]) {
+                            window.players[window.socket.id].isAFK = true;
+                        }
                     }
                 }, 1000);
             } else {
                 // Page is visible again
                 resetAFKTimer();
+                // Force update AFK status immediately
+                if (window.isAFK) {
+                    window.isAFK = false;
+                    window.socket.emit('afkStatus', { isAFK: false });
+                    if (window.players[window.socket.id]) {
+                        window.players[window.socket.id].isAFK = false;
+                    }
+                }
             }
         });
 
