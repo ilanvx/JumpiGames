@@ -225,10 +225,10 @@ io.on('connection', async (socket) => {
    if (players[socket.id]) {
      const p = players[socket.id];
      
-     // Security: Validate position data
-        if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
+     // Security: Validate position data (basic validation only)
+     if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
        isNaN(pos.x) || isNaN(pos.y) ||
-       pos.x < 0 || pos.y < 0 || pos.x > 1200 || pos.y > 680) {
+       pos.x < -1000 || pos.y < -1000 || pos.x > 3000 || pos.y > 2000) {
      console.log('SERVER: Invalid position data from socket:', socket.id, pos);
      return;
    }
@@ -237,20 +237,19 @@ io.on('connection', async (socket) => {
      const dx = pos.x - p.x;
      const dy = pos.y - p.y;
      const distance = Math.sqrt(dx * dx + dy * dy);
-     const maxSpeed = 500; // Maximum allowed movement per update (more permissive)
+     const maxSpeed = 1000; // Maximum allowed movement per update (very permissive)
      
      if (distance > maxSpeed) {
        console.log('SERVER: Movement too fast from socket:', socket.id, 'distance:', distance, 'max:', maxSpeed);
-       // Don't block immediately, just log for now
+       // Only log, don't block normal movement
        return;
      }
      
-     // Additional security: Check for suspicious movement patterns (more permissive)
-     if (distance > 200 && timeSinceLastMove < 50) {
-       console.log('SERVER: Suspicious movement pattern from socket:', socket.id, 'distance:', distance, 'time:', timeSinceLastMove);
-       // Don't block immediately, just log for now
-       return;
-     }
+     // Additional security: Check for suspicious movement patterns (disabled for normal movement)
+     // if (distance > 200 && timeSinceLastMove < 50) {
+     //   console.log('SERVER: Suspicious movement pattern from socket:', socket.id, 'distance:', distance, 'time:', timeSinceLastMove);
+     //   return;
+     // }
      
      // Security: Prevent teleporting - check if movement is reasonable
      if (distance > 0 && distance < 1) {
@@ -258,15 +257,15 @@ io.on('connection', async (socket) => {
        console.log('SERVER: Very small movement from socket:', socket.id, 'distance:', distance);
      }
      
-     // Security: Rate limiting - prevent too many move events
+     // Security: Rate limiting - prevent too many move events (only for extreme cases)
      const now = Date.now();
      if (!p.lastMoveTime) p.lastMoveTime = 0;
      const timeSinceLastMove = now - p.lastMoveTime;
-     const minMoveInterval = 10; // Minimum 10ms between moves (100 moves per second max)
+     const minMoveInterval = 1; // Minimum 1ms between moves (1000 moves per second max)
      
      if (timeSinceLastMove < minMoveInterval) {
        console.log('SERVER: Move rate limit exceeded from socket:', socket.id, 'time:', timeSinceLastMove, 'min:', minMoveInterval);
-       // Don't block immediately, just log for now
+       // Only log, don't block normal movement
        return;
      }
      
@@ -276,11 +275,11 @@ io.on('connection', async (socket) => {
      const validDirections = ['front', 'back', 'left', 'right', 'up_left', 'up_right', 'down_left', 'down_right', 'up', 'down'];
      const direction = validDirections.includes(pos.direction) ? pos.direction : 'front';
      
-     // Security: Final validation before updating target
-     if (Math.abs(pos.x - p.x) > maxSpeed || Math.abs(pos.y - p.y) > maxSpeed) {
-       console.log('SERVER: Position change too large from socket:', socket.id, 'dx:', Math.abs(pos.x - p.x), 'dy:', Math.abs(pos.y - p.y));
-       return;
-     }
+     // Security: Final validation before updating target (disabled for normal movement)
+     // if (Math.abs(pos.x - p.x) > maxSpeed || Math.abs(pos.y - p.y) > maxSpeed) {
+     //   console.log('SERVER: Position change too large from socket:', socket.id, 'dx:', Math.abs(pos.x - p.x), 'dy:', Math.abs(pos.y - p.y));
+     //   return;
+     // }
      
      // Update target position instead of current position
      p.targetX = pos.x;
