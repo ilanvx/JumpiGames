@@ -192,16 +192,10 @@ io.on('connection', async (socket) => {
  });
 
  socket.on('afkStatus', (data) => {
-   // Security: Check if socket is blocked
-   if (blockedSockets.has(socket.id)) {
-       console.log('SERVER: Blocked socket attempted AFK update:', socket.id);
-       return;
-   }
-   
    const currentPlayer = players[socket.id];
    if (!currentPlayer || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
        console.log('SERVER: Unauthorized AFK status update from socket:', socket.id);
-       handleSecurityViolation(socket.id, 'unauthorized_afk', 'Socket ID mismatch');
+       // Don't block, just log for now
        return;
    }
    
@@ -220,17 +214,11 @@ io.on('connection', async (socket) => {
  });
 
  socket.on('move', (pos) => {
-   // Security: Check if socket is blocked
-   if (blockedSockets.has(socket.id)) {
-       console.log('SERVER: Blocked socket attempted move:', socket.id);
-       return;
-   }
-   
    // Security: Verify the socket.id matches the actual user
    const currentPlayer = players[socket.id];
    if (!currentPlayer || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
        console.log('SERVER: Unauthorized move attempt from socket:', socket.id);
-       handleSecurityViolation(socket.id, 'unauthorized_move', 'Socket ID mismatch');
+       // Don't block, just log for now
        return;
    }
    
@@ -238,30 +226,29 @@ io.on('connection', async (socket) => {
      const p = players[socket.id];
      
      // Security: Validate position data
-     if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
-         isNaN(pos.x) || isNaN(pos.y) ||
-         pos.x < 0 || pos.y < 0 || pos.x > 1200 || pos.y > 680) {
-       console.log('SERVER: Invalid position data from socket:', socket.id, pos);
-       handleSecurityViolation(socket.id, 'invalid_position', `Invalid pos: ${JSON.stringify(pos)}`);
-       return;
-     }
+        if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
+       isNaN(pos.x) || isNaN(pos.y) ||
+       pos.x < 0 || pos.y < 0 || pos.x > 1200 || pos.y > 680) {
+     console.log('SERVER: Invalid position data from socket:', socket.id, pos);
+     return;
+   }
      
      // Security: Validate movement speed and distance
      const dx = pos.x - p.x;
      const dy = pos.y - p.y;
      const distance = Math.sqrt(dx * dx + dy * dy);
-     const maxSpeed = 200; // Maximum allowed movement per update (reasonable limit)
+     const maxSpeed = 500; // Maximum allowed movement per update (more permissive)
      
      if (distance > maxSpeed) {
        console.log('SERVER: Movement too fast from socket:', socket.id, 'distance:', distance, 'max:', maxSpeed);
-       handleSecurityViolation(socket.id, 'movement_too_fast', `Distance: ${distance}, Max: ${maxSpeed}`);
+       // Don't block immediately, just log for now
        return;
      }
      
-     // Additional security: Check for suspicious movement patterns
-     if (distance > 50 && timeSinceLastMove < 100) {
+     // Additional security: Check for suspicious movement patterns (more permissive)
+     if (distance > 200 && timeSinceLastMove < 50) {
        console.log('SERVER: Suspicious movement pattern from socket:', socket.id, 'distance:', distance, 'time:', timeSinceLastMove);
-       handleSecurityViolation(socket.id, 'suspicious_movement', `Distance: ${distance}, Time: ${timeSinceLastMove}`);
+       // Don't block immediately, just log for now
        return;
      }
      
@@ -275,11 +262,11 @@ io.on('connection', async (socket) => {
      const now = Date.now();
      if (!p.lastMoveTime) p.lastMoveTime = 0;
      const timeSinceLastMove = now - p.lastMoveTime;
-     const minMoveInterval = 50; // Minimum 50ms between moves (20 moves per second max)
+     const minMoveInterval = 10; // Minimum 10ms between moves (100 moves per second max)
      
      if (timeSinceLastMove < minMoveInterval) {
        console.log('SERVER: Move rate limit exceeded from socket:', socket.id, 'time:', timeSinceLastMove, 'min:', minMoveInterval);
-       handleSecurityViolation(socket.id, 'rate_limit_exceeded', `Time: ${timeSinceLastMove}, Min: ${minMoveInterval}`);
+       // Don't block immediately, just log for now
        return;
      }
      
@@ -311,25 +298,19 @@ io.on('connection', async (socket) => {
  });
 
  socket.on('chat', (text) => {
-   // Security: Check if socket is blocked
-   if (blockedSockets.has(socket.id)) {
-       console.log('SERVER: Blocked socket attempted chat:', socket.id);
-       return;
-   }
-   
    if (players[socket.id]) {
      // Security: Rate limiting for chat
      const now = Date.now();
      if (!players[socket.id].lastChatTime) players[socket.id].lastChatTime = 0;
-     if (now - players[socket.id].lastChatTime < 1000) { // Max 1 chat per second
-       handleSecurityViolation(socket.id, 'chat_rate_limit', 'Too many chat messages');
+     if (now - players[socket.id].lastChatTime < 500) { // Max 2 chat per second
+       console.log('SERVER: Chat rate limit exceeded from socket:', socket.id);
        return;
      }
      players[socket.id].lastChatTime = now;
      
      // Security: Sanitize chat message
      if (typeof text !== 'string' || text.trim().length === 0 || text.length > 50) {
-       handleSecurityViolation(socket.id, 'invalid_chat', `Invalid chat: ${text}`);
+       console.log('SERVER: Invalid chat message from socket:', socket.id, text);
        return;
      }
      players[socket.id].message = text.substring(0, 50).trim(); // Limit message length
@@ -1395,7 +1376,7 @@ function executeTrade(tradeId) {
     });
 }
 
-// Security function to handle violations
+// Security function to handle violations (logging only for now)
 function handleSecurityViolation(socketId, violationType, details = '') {
     if (!securityViolations[socketId]) {
         securityViolations[socketId] = { count: 0, violations: [] };
@@ -1410,18 +1391,8 @@ function handleSecurityViolation(socketId, violationType, details = '') {
     
     console.log(`SECURITY VIOLATION: Socket ${socketId}, Type: ${violationType}, Count: ${securityViolations[socketId].count}, Details: ${details}`);
     
-    // Block socket after 3 violations
-    if (securityViolations[socketId].count >= 3) {
-        blockedSockets.add(socketId);
-        console.log(`SECURITY: Blocking socket ${socketId} due to multiple violations`);
-        
-        // Disconnect the socket
-        const socket = io.sockets.sockets.get(socketId);
-        if (socket) {
-            socket.emit('forceDisconnect', { reason: 'Security violation detected' });
-            socket.disconnect(true);
-        }
-    }
+    // For now, just log violations without blocking
+    // TODO: Re-enable blocking after testing
 }
 
 // Before emitting updatePlayers, add the room property to each player
