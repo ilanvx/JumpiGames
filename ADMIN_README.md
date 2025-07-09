@@ -88,8 +88,9 @@ Change user password (automatically hashed):
 ## Usage
 
 ### Accessing the Admin Panel
-1. Navigate to `http://localhost:3000/admin`
-2. The panel will automatically load and refresh data
+1. The server will listen automatically on the assigned port (e.g., Railway or localhost). No need to set HOST manually.
+2. Navigate to `/admin` on your server URL.
+3. The panel will automatically load and refresh data
 
 ### Managing Users
 1. **Ban a User**: Click the "Ban" button next to any active user
