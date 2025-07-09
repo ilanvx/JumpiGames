@@ -3120,28 +3120,21 @@
                     else if (angleDeg < 247.5) player.direction = 'up_left';
                     else if (angleDeg < 292.5) player.direction = 'up';
                     else if (angleDeg < 337.5) player.direction = 'up_right';
+                    
+                    // Send real-time position updates during movement
+                    if (!window.lastMoveEmit || Date.now() - window.lastMoveEmit > 50) {
+                        window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
+                        window.lastMoveEmit = Date.now();
+                    }
                 }
             }
             
-            // Handle other players' smooth movement
+            // Handle other players' movement - now using real-time positions
             Object.values(window.players).forEach(otherPlayer => {
                 if (otherPlayer.id === window.socket.id) return; // Skip local player
                 
-                if (otherPlayer.targetX !== undefined && otherPlayer.targetY !== undefined) {
-                    const dx = otherPlayer.targetX - otherPlayer.x;
-                    const dy = otherPlayer.targetY - otherPlayer.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const speed = 0.1; // Smooth interpolation factor
-                    
-                    if (dist > 1) {
-                        otherPlayer.x += dx * speed;
-                        otherPlayer.y += dy * speed;
-                    } else {
-                        // Close enough, snap to target
-                        otherPlayer.x = otherPlayer.targetX;
-                        otherPlayer.y = otherPlayer.targetY;
-                    }
-                }
+                // Players now move in real-time, no need for interpolation
+                // The server sends actual positions immediately
             });
         }
         CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
@@ -3170,6 +3163,7 @@
             drawGame();
             requestAnimationFrame(gameLoop);
         }
+        window.gameLoop = gameLoop;
         // ---- אירועים על קנבס ----
         window.canvas.addEventListener('click', (e) => {
             window.lastActivityTime = Date.now();

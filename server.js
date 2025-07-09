@@ -22,7 +22,7 @@ app.set('io', io);
 // This helps ensure consistency in data structures.
 const ITEM_CATEGORIES_SERVER_KEYS = ["ht", "ps", "st", "gs", "nk", "hd", "sk", "hr"];
 
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jumpi', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -273,7 +273,7 @@ io.on('connection', async (socket) => {
      const now = Date.now();
      if (!p.lastMoveTime) p.lastMoveTime = 0;
      const timeSinceLastMove = now - p.lastMoveTime;
-     const minMoveInterval = 150; // Minimum 150ms between moves
+     const minMoveInterval = 50; // Minimum 50ms between moves for smoother movement
      
      if (timeSinceLastMove < minMoveInterval) {
        console.log('SERVER: Move rate limit exceeded from socket:', socket.id);
@@ -288,8 +288,6 @@ io.on('connection', async (socket) => {
      p.lastMoveTime = now;
      p.spamCounter = 0;
      
-     p.lastMoveTime = now;
-     
      // Security: Validate direction
      const validDirections = ['front', 'back', 'left', 'right', 'up_left', 'up_right', 'down_left', 'down_right', 'up', 'down'];
      const direction = validDirections.includes(pos.direction) ? pos.direction : 'front';
@@ -300,18 +298,15 @@ io.on('connection', async (socket) => {
      //   return;
      // }
      
-     // Update target position instead of current position
+     // Update both current and target position for smooth movement
+     p.x = pos.x;
+     p.y = pos.y;
      p.targetX = pos.x;
      p.targetY = pos.y;
      p.direction = direction;
      
-     // Only emit updates every 500ms to reduce network traffic
-     const currentTime = Date.now();
-     if (!p.lastEmitTime) p.lastEmitTime = 0;
-     if (currentTime - p.lastEmitTime > 500) {
-       p.lastEmitTime = currentTime;
-       emitPlayersWithRooms();
-     }
+     // Emit updates immediately for real-time synchronization
+     emitPlayersWithRooms();
    }
  });
 
@@ -1302,7 +1297,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 server.listen(PORT, () => {
  console.log(`🚀 Server running on PORT ${PORT}`);
 });
