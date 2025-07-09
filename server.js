@@ -195,7 +195,7 @@ io.on('connection', async (socket) => {
    const currentPlayer = players[socket.id];
    if (!currentPlayer || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
        console.log('SERVER: Unauthorized AFK status update from socket:', socket.id);
-       // Don't block, just log for now
+       socket.disconnect(true);
        return;
    }
    
@@ -218,18 +218,25 @@ io.on('connection', async (socket) => {
    const currentPlayer = players[socket.id];
    if (!currentPlayer || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
        console.log('SERVER: Unauthorized move attempt from socket:', socket.id);
-       // Don't block, just log for now
+       // Disconnect immediately for unauthorized access
+       socket.disconnect(true);
        return;
    }
    
    if (players[socket.id]) {
      const p = players[socket.id];
      
-     // Security: Validate position data (basic validation only)
+     // Security: Validate position data
      if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
        isNaN(pos.x) || isNaN(pos.y) ||
        pos.x < -1000 || pos.y < -1000 || pos.x > 3000 || pos.y > 2000) {
      console.log('SERVER: Invalid position data from socket:', socket.id, pos);
+     p.spamCounter = (p.spamCounter || 0) + 1;
+     if (p.spamCounter >= 10) {
+       console.log('SERVER: Disconnecting spammer for invalid data:', socket.id);
+       socket.disconnect(true);
+       return;
+     }
      return;
    }
      
@@ -237,11 +244,16 @@ io.on('connection', async (socket) => {
      const dx = pos.x - p.x;
      const dy = pos.y - p.y;
      const distance = Math.sqrt(dx * dx + dy * dy);
-     const maxSpeed = 1000; // Maximum allowed movement per update (very permissive)
+     const maxSpeed = 500; // Maximum allowed movement per update
      
      if (distance > maxSpeed) {
-       console.log('SERVER: Movement too fast from socket:', socket.id, 'distance:', distance, 'max:', maxSpeed);
-       // Only log, don't block normal movement
+       console.log('SERVER: Movement too fast from socket:', socket.id, 'distance:', distance);
+       p.spamCounter = (p.spamCounter || 0) + 1;
+       if (p.spamCounter >= 10) {
+         console.log('SERVER: Disconnecting spammer for teleport:', socket.id);
+         socket.disconnect(true);
+         return;
+       }
        return;
      }
      
@@ -257,17 +269,24 @@ io.on('connection', async (socket) => {
        console.log('SERVER: Very small movement from socket:', socket.id, 'distance:', distance);
      }
      
-     // Security: Rate limiting - prevent too many move events (only for extreme cases)
+     // Security: Rate limiting - prevent too many move events
      const now = Date.now();
      if (!p.lastMoveTime) p.lastMoveTime = 0;
      const timeSinceLastMove = now - p.lastMoveTime;
-     const minMoveInterval = 1; // Minimum 1ms between moves (1000 moves per second max)
+     const minMoveInterval = 150; // Minimum 150ms between moves
      
      if (timeSinceLastMove < minMoveInterval) {
-       console.log('SERVER: Move rate limit exceeded from socket:', socket.id, 'time:', timeSinceLastMove, 'min:', minMoveInterval);
-       // Only log, don't block normal movement
+       console.log('SERVER: Move rate limit exceeded from socket:', socket.id);
+       p.spamCounter = (p.spamCounter || 0) + 1;
+       if (p.spamCounter >= 10) {
+         console.log('SERVER: Disconnecting spammer:', socket.id);
+         socket.disconnect(true);
+         return;
+       }
        return;
      }
+     p.lastMoveTime = now;
+     p.spamCounter = 0;
      
      p.lastMoveTime = now;
      
@@ -303,6 +322,12 @@ io.on('connection', async (socket) => {
      if (!players[socket.id].lastChatTime) players[socket.id].lastChatTime = 0;
      if (now - players[socket.id].lastChatTime < 500) { // Max 2 chat per second
        console.log('SERVER: Chat rate limit exceeded from socket:', socket.id);
+       players[socket.id].spamCounter = (players[socket.id].spamCounter || 0) + 1;
+       if (players[socket.id].spamCounter >= 10) {
+         console.log('SERVER: Disconnecting spammer for chat spam:', socket.id);
+         socket.disconnect(true);
+         return;
+       }
        return;
      }
      players[socket.id].lastChatTime = now;
@@ -310,6 +335,12 @@ io.on('connection', async (socket) => {
      // Security: Sanitize chat message
      if (typeof text !== 'string' || text.trim().length === 0 || text.length > 50) {
        console.log('SERVER: Invalid chat message from socket:', socket.id, text);
+       players[socket.id].spamCounter = (players[socket.id].spamCounter || 0) + 1;
+       if (players[socket.id].spamCounter >= 10) {
+         console.log('SERVER: Disconnecting spammer for invalid chat:', socket.id);
+         socket.disconnect(true);
+         return;
+       }
        return;
      }
      players[socket.id].message = text.substring(0, 50).trim(); // Limit message length
