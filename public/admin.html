@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumpi Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Toolbar */
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .toolbar-logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .toolbar-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .toolbar-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .toolbar-link:hover {
+            color: #667eea;
+        }
+
+        .toolbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #ff3742;
+            transform: translateY(-1px);
+        }
+
+        body {
+            padding-top: 80px;
+        }
+
+        .status-badge {
+            font-size: 0.8rem;
+        }
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .table-responsive {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .password-form {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .item-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .item-thumbnail {
+            max-width: 64px;
+            max-height: 64px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-logo">Jumpi Admin</div>
+        <div class="toolbar-links">
+            <a class="toolbar-link" onclick="showComingSoon('בלוג')">בלוג</a>
+            <a class="toolbar-link" onclick="showComingSoon('צור קשר')">צור קשר</a>
+            <a class="toolbar-link" onclick="showComingSoon('תקנון')">תקנון</a>
+            <a class="toolbar-link" onclick="showComingSoon('מדיניות פרטיות')">מדיניות פרטיות</a>
+        </div>
+        <div class="toolbar-user">
+            <div class="user-info">Admin Panel</div>
+            <button class="logout-btn" onclick="logout()">התנתק</button>
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h1 class="display-4 mb-0">
+                        <i class="fas fa-shield-alt text-primary"></i>
+                        Jumpi Admin Panel
+                    </h1>
+                    <div>
+                        <a href="/admin/item-editor" class="btn btn-info me-2">
+                            <i class="fas fa-edit"></i>
+                            Item Editor
+                        </a>
+                        <a href="/game" class="btn btn-secondary">
+                            <i class="fas fa-gamepad"></i>
+                            Back to Game
+                        </a>
+                    </div>
+                </div>
+                <div class="refresh-indicator">
+                    <div class="alert alert-info alert-dismissible fade show" id="refreshAlert" style="display: none;">
+                        <i class="fas fa-sync-alt fa-spin"></i> Auto-refreshing data...
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Players Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users"></i>
+                            Online Players
+                            <span class="badge bg-light text-primary ms-2" id="onlineCount">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="onlinePlayersTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Socket ID</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="onlinePlayersBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Password Change Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="password-form">
+                    <h5 class="mb-3">
+                        <i class="fas fa-key"></i>
+                        Change User Password
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="passwordUsername" placeholder="Username">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="password" class="form-control" id="newPassword" placeholder="New Password">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-warning" id="changePasswordBtn">
+                                <i class="fas fa-save"></i> Change Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Actions Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div id="adminActions" class="mb-3"></div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tools"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-primary w-100 mb-2" id="refreshDataBtn">
+                                    <i class="fas fa-sync-alt"></i> Refresh Data
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-success w-100 mb-2" id="exportDataBtn">
+                                    <i class="fas fa-download"></i> Export Data
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-warning w-100 mb-2" id="clearCacheBtn">
+                                    <i class="fas fa-broom"></i> Clear Cache
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="autoRefreshToggle" checked>
+                                    <label class="form-check-label" for="autoRefreshToggle">
+                                        Auto Refresh
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Users Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-database"></i>
+                            All Registered Users
+                            <span class="badge bg-light text-success ms-2" id="totalUsersCount">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="usersTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Banned Status</th>
+                                        <th>Actions</th>
+                                        <th>Admin</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Management Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-boxes"></i>
+                            Items Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Target User Selection -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="targetUsername" class="form-label">Target Username</label>
+                                <input type="text" class="form-control" id="targetUsername" placeholder="Enter username">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="itemCategory" class="form-label">Item Category</label>
+                                <select class="form-select" id="itemCategory">
+                                    <option value="">Select category...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Items Grid -->
+                        <div id="itemsGrid" class="row g-3">
+                            <div class="col-12 text-center">
+                                <i class="fas fa-spinner fa-spin"></i> Loading items...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container for Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        // Toolbar functions
+        function showComingSoon(feature) {
+            // Use Bootstrap toast for admin panel
+            const toast = new bootstrap.Toast(document.getElementById('notificationToast'));
+            document.getElementById('toastTitle').textContent = 'מידע';
+            document.getElementById('toastMessage').textContent = `${feature} - בקרוב!`;
+            toast.show();
+        }
+
+        function logout() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html> 

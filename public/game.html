@@ -1,0 +1,3977 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>Jumpi - עולם וירטואלי</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            padding-top: 10px;
+        }
+
+        /* Game Container */
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: calc(100vh - 90px);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            height: 80px;
+            box-sizing: border-box;
+        }
+
+        .toolbar-logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .toolbar-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .toolbar-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .toolbar-link:hover {
+            color: #667eea;
+        }
+
+        .toolbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #ff3742;
+            transform: translateY(-1px);
+        }
+
+        #gameCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            display: block;
+            background-color: #e0f7fa;
+            object-fit: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            #gameCanvas {
+                width: 90vw;
+                height: 70vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 5px;
+            }
+
+            .toolbar {
+                height: 60px;
+                padding: 10px 20px;
+            }
+
+            .toolbar-logo {
+                font-size: 1.4rem;
+            }
+
+            .toolbar-links {
+                gap: 15px;
+            }
+
+            .toolbar-link {
+                font-size: 0.8rem;
+            }
+
+            .toolbar-user {
+                gap: 10px;
+            }
+
+            .user-info {
+                font-size: 0.8rem;
+            }
+
+            .logout-btn {
+                padding: 6px 12px;
+                font-size: 0.7rem;
+            }
+
+            #gameCanvas {
+                width: 95vw;
+                height: 75vh;
+                border-radius: 15px;
+            }
+
+            .game-container {
+                height: calc(100vh - 70px);
+                padding: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .toolbar {
+                padding: 8px 15px;
+            }
+
+            .toolbar-logo {
+                font-size: 1.2rem;
+            }
+
+            .toolbar-links {
+                gap: 10px;
+            }
+
+            .toolbar-link {
+                font-size: 0.7rem;
+            }
+
+            #gameCanvas {
+                width: 98vw;
+                height: 80vh;
+                border-radius: 10px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            body {
+                padding-top: 5px;
+            }
+
+            .toolbar {
+                height: 50px;
+                padding: 8px 20px;
+            }
+
+            .game-container {
+                height: calc(100vh - 60px);
+                padding: 5px;
+            }
+
+            #gameCanvas {
+                height: 85vh;
+            }
+        }
+
+        /* Landscape orientation for mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            body {
+                padding-top: 5px;
+            }
+
+            .toolbar {
+                height: 50px;
+            }
+
+            .game-container {
+                height: calc(100vh - 60px);
+            }
+
+            #gameCanvas {
+                height: 90vh;
+                width: 95vw;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            #gameCanvas {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+
+        /* Inventory Window */
+        #inventoryWindow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            max-width: 800px;
+            height: 80vh;
+            max-height: 600px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Responsive Inventory */
+        @media (max-width: 768px) {
+            #inventoryWindow {
+                width: 95vw;
+                height: 85vh;
+                border-radius: 15px;
+            }
+
+            .inventory-header {
+                padding: 15px 20px;
+            }
+
+            .inventory-title {
+                font-size: 20px;
+            }
+
+            .inventory-sidebar {
+                width: 200px;
+                padding: 15px;
+            }
+
+            .player-avatar canvas {
+                width: 150px;
+                height: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #inventoryWindow {
+                width: 98vw;
+                height: 90vh;
+                border-radius: 10px;
+            }
+
+            .inventory-header {
+                padding: 10px 15px;
+            }
+
+            .inventory-title {
+                font-size: 18px;
+            }
+
+            .inventory-sidebar {
+                width: 150px;
+                padding: 10px;
+            }
+
+            .player-avatar canvas {
+                width: 120px;
+                height: 150px;
+            }
+
+            .close-btn {
+                width: 35px;
+                height: 35px;
+            }
+        }
+        .inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .inventory-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        .inventory-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .inventory-sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .player-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        .player-avatar {
+            margin-bottom: 15px;
+        }
+        
+        .player-avatar canvas {
+            width: 200px;
+            height: 250px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            display: block;
+            margin: 0 auto 15px auto;
+        }
+        
+        .player-details h6 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .coins-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Player Card Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .player-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .player-card-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .player-card-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .player-card-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .player-card-avatar {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .player-card-avatar canvas {
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-card-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .player-card-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+
+        .player-card-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-card-btn:active {
+            transform: translateY(0);
+        }
+
+        .player-card-btn i {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        /* Admin Actions Styles */
+        .player-card-admin-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e74c3c;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 180px;
+            overflow-y: auto;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .admin-actions-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .admin-actions-header i {
+            font-size: 1.1em;
+        }
+
+        .admin-actions-buttons {
+            display: flex;
+            flex-direction: row;
+            gap: 18px;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+        .admin-btn-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: box-shadow 0.2s, background 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 1.5em;
+        }
+        .admin-btn-circle.add-coins-btn {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: #fff;
+        }
+        .admin-btn-circle.disconnect-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: #fff;
+        }
+        .admin-btn-circle.ban-btn {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            color: #fff;
+        }
+        .admin-btn-circle:hover, .admin-btn-circle:focus {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            z-index: 2;
+        }
+        .admin-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            background: #222;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 7px 16px;
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 0.95em;
+            pointer-events: none;
+            transition: opacity 0.2s, visibility 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+        .admin-btn-circle:hover .admin-tooltip, .admin-btn-circle:focus .admin-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .admin-btn {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: white;
+            text-align: right;
+        }
+
+        .admin-btn.add-coins-btn {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .admin-btn.disconnect-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .admin-btn.ban-btn {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .admin-btn:active {
+            transform: scale(0.98);
+        }
+
+        .admin-btn i {
+            font-size: 1.1em;
+        }
+
+        .coins-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .category-tabs {
+            flex: 1;
+            overflow-y: auto;
+        }
+        #categoryTabs {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            flex-wrap: nowrap;
+            padding: 0 10px;
+        }
+        
+        #categoryTabs button {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            color: #333;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        #categoryTabs button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        
+        #categoryTabs button:hover {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        
+        #categoryTabs button.selected-category-tab {
+            background: #00aaff;
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 170, 255, 0.3);
+            border: 2px solid #0099cc;
+        }
+        
+        #categoryTabs button.selected-category-tab svg {
+            fill: #fff;
+        }
+        .inventory-main {
+            flex: 1;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .items-container {
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        #itemSlotsContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            padding: 10px;
+        }
+        .itemSlot {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: white;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .itemSlot:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .itemSlot.equipped {
+            border-color: #00aaff;
+            background: rgba(0, 170, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
+        }
+        
+        .itemSlot img {
+            max-width: 80px;
+            max-height: 80px;
+            display: block;
+            margin: auto;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        #settingsMenu {
+            position: fixed;
+            background: rgba(255,255,255,0.92);
+            box-shadow: 0 8px 32px rgba(120,144,255,0.18);
+            border-radius: 18px;
+            border: 1.5px solid rgba(120,144,255,0.13);
+            z-index: 1100;
+            padding: 0;
+            min-width: 220px;
+            max-width: 95vw;
+            min-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px) scale(0.97);
+            transition: opacity 0.25s, transform 0.25s, visibility 0s 0.25s;
+            backdrop-filter: blur(18px);
+        }
+        #settingsMenu.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            transition: opacity 0.25s, transform 0.25s, visibility 0s 0s;
+        }
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 10px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .settings-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4b3869;
+        }
+        .settings-icon {
+            font-size: 1.3rem;
+            color: #667eea;
+        }
+        .settings-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .settings-close:hover {
+            background: #f3f3f3;
+            color: #222;
+        }
+        .settings-content {
+            padding: 18px 20px 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .settings-btn {
+            width: 100%;
+            padding: 12px 0;
+            font-size: 1rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #7c8aff 0%, #b494ff 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(120,144,255,0.13);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            outline: none;
+        }
+        .settings-btn:active {
+            background: #7c8aff;
+        }
+        .settings-btn.fullscreen {
+            background: linear-gradient(90deg, #4fd18b 0%, #6be8a8 100%);
+        }
+        @media (max-width: 480px) {
+            #settingsMenu {
+                min-width: 160px;
+                padding: 0;
+            }
+            .settings-header, .settings-content {
+                padding: 12px 10px 10px 10px;
+            }
+        }
+        #settingsTitle {
+            font-size: 18px;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        #settingsMenu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #settingsMenu li {
+            margin-bottom: 5px;
+        }
+        #logoutButton {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            text-align: center;
+            transition: background-color 0.2s ease;
+        }
+        #logoutButton:hover {
+            background-color: #c82333;
+        }
+        
+        /* Responsive Game Layout */
+        @media (max-width: 768px) {
+            #inventoryWindow {
+                width: 95%;
+                height: 80vh;
+                max-width: 400px;
+            }
+            
+            .inventory-sidebar {
+                width: 120px;
+                padding: 15px;
+            }
+            
+            .player-avatar canvas {
+                width: 150px;
+                height: 180px;
+            }
+            
+            .player-details h6 {
+                font-size: 14px;
+            }
+            
+            #categoryTabs button {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+            
+            #itemSlotsContainer {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 10px;
+            }
+            
+            .itemSlot {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .itemSlot img {
+                max-width: 60px;
+                max-height: 60px;
+            }
+            
+            .toolbar-container {
+                width: 95%;
+                bottom: 10px;
+            }
+            
+            .toolbar-content {
+                padding: 10px 15px;
+                border-radius: 20px;
+            }
+            
+            .toolbar-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            
+            .toolbar-center {
+                margin: 0 10px;
+            }
+            
+            #chatInput {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #inventoryWindow {
+                width: 98%;
+                height: 85vh;
+            }
+            
+            .inventory-sidebar {
+                width: 100px;
+                padding: 10px;
+            }
+            
+            .player-avatar img {
+                width: 50px;
+                height: 50px;
+            }
+            
+            #categoryTabs button {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+            
+            #itemSlotsContainer {
+                grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+                gap: 8px;
+            }
+            
+            .itemSlot {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .itemSlot img {
+                max-width: 50px;
+                max-height: 50px;
+            }
+            
+            .toolbar-container {
+                width: 98%;
+                bottom: 5px;
+            }
+            
+            .toolbar-content {
+                padding: 8px 12px;
+            }
+            
+            .toolbar-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .toolbar-content {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .toolbar-center {
+                order: -1;
+                width: 100%;
+                max-width: none;
+                margin: 0;
+            }
+            
+            .toolbar-left, .toolbar-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .toolbar-container {
+                width: 98%;
+                bottom: 5px;
+            }
+            
+            .toolbar-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 12px;
+            }
+
+            #chatInput {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+
+            .send-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
+            }
+        }
+        
+        /* Modern Toolbar Styles */
+        .toolbar-container {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 96%;
+            max-width: 700px;
+        }
+        
+        .toolbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(120, 144, 255, 0.82) 0%, rgba(180, 148, 255, 0.82) 100%);
+            backdrop-filter: blur(18px);
+            border-radius: 18px;
+            padding: 7px 10px;
+            box-shadow: 0 4px 24px rgba(120, 144, 255, 0.13);
+            border: 1.5px solid rgba(255,255,255,0.22);
+        }
+        
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .toolbar-center {
+            flex: 1;
+            max-width: 320px;
+            margin: 0 8px;
+        }
+        
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.18);
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            border: 1px solid rgba(255,255,255,0.18);
+            margin: 0 1px;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.28);
+            transform: translateY(-1px) scale(1.08);
+        }
+        
+        .toolbar-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .admin-btn {
+            background: rgba(255, 107, 107, 0.22);
+            border-color: rgba(255, 107, 107, 0.32);
+        }
+        
+        .admin-btn:hover {
+            background: rgba(255, 107, 107, 0.32);
+        }
+        
+        .chat-input-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.82);
+            border-radius: 16px;
+            padding: 2px 4px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+            border: 1px solid rgba(255,255,255,0.18);
+            backdrop-filter: blur(6px);
+        }
+        
+        #chatInput {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 7px 10px;
+            font-size: 14px;
+            background: transparent;
+            border-radius: 10px;
+        }
+        
+        #chatInput::placeholder {
+            color: #aaa;
+        }
+        
+        .send-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c8aff 0%, #b494ff 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-left: 3px;
+            font-size: 13px;
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px rgba(120, 144, 255, 0.18);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .toolbar-container {
+                width: 95%;
+                bottom: 10px;
+            }
+            
+            .toolbar-content {
+                padding: 10px 15px;
+            }
+            
+            .toolbar-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            
+            .toolbar-center {
+                margin: 0 10px;
+            }
+            
+            #chatInput {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .toolbar-content {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .toolbar-center {
+                order: -1;
+                width: 100%;
+                max-width: none;
+                margin: 0;
+            }
+            
+            .toolbar-left, .toolbar-right {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        .player-avatar canvas {
+            width: 110px !important;
+            height: 140px !important;
+            background: none;
+            border: none;
+            margin: 0 auto;
+            display: block;
+        }
+        #characterPreviewContainer {
+            padding: 20px 0 0 0 !important;
+            min-width: 140px;
+            max-width: 220px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.12);
+            border-radius: 18px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+        #categoryTabs {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            flex-wrap: nowrap;
+            padding: 0 10px;
+        }
+        #categoryTabs button {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            color: #333;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        #categoryTabs button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        #categoryTabs button:hover {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        #categoryTabs button.selected-category-tab {
+            background: #00aaff;
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 170, 255, 0.3);
+            border: 2px solid #0099cc;
+        }
+        #categoryTabs button.selected-category-tab svg {
+            fill: #fff;
+        }
+        #categoryTabs button.selected-category-tab {
+            background: #00aaff;
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 170, 255, 0.3);
+            border: 2px solid #0099cc;
+        }
+        #categoryTabs button:hover {
+            background: #e0e0e0;
+            color: #222;
+        }
+        @media (max-width: 768px) {
+            .player-avatar canvas {
+                width: 80px !important;
+                height: 100px !important;
+            }
+            #characterPreviewContainer {
+                min-width: 90px;
+                max-width: 120px;
+            }
+            #categoryTabs {
+                gap: 6px;
+                padding: 0 5px;
+            }
+            #categoryTabs button {
+                width: 36px;
+                height: 36px;
+                padding: 6px;
+            }
+            #categoryTabs button svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+        @media (max-width: 480px) {
+            #categoryTabs {
+                gap: 4px;
+                padding: 0 3px;
+            }
+            #categoryTabs button {
+                width: 32px;
+                height: 32px;
+                padding: 5px;
+            }
+            #categoryTabs button svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+        .emoji-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.15s;
+            border-radius: 10px;
+            padding: 4px 8px;
+        }
+        .emoji-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.18);
+        }
+
+        /* Responsive Emoji Panel */
+        @media (max-width: 768px) {
+            #emojiPanel {
+                bottom: 90px !important;
+                padding: 12px 16px !important;
+                gap: 10px !important;
+            }
+            
+            .emoji-btn {
+                font-size: 1.8rem !important;
+                padding: 3px 6px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #emojiPanel {
+                bottom: 100px !important;
+                padding: 10px 14px !important;
+                gap: 8px !important;
+            }
+            
+            .emoji-btn {
+                font-size: 1.6rem !important;
+                padding: 2px 5px !important;
+            }
+            
+            #chatHistoryPanel {
+                min-width: 280px !important;
+                max-width: 95vw !important;
+                bottom: 100px !important;
+            }
+            
+            .chat-history-content {
+                max-height: 250px !important;
+                padding: 10px 15px !important;
+            }
+            
+            .chat-history-actions {
+                padding: 10px 15px !important;
+            }
+            
+            .chat-history-actions button {
+                font-size: 0.8rem !important;
+                padding: 6px 10px !important;
+            }
+        }
+    </style>
+    <!-- Notification System Styles -->
+    <style>
+    #notification-container {
+      position: fixed;
+      top: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .notification {
+      min-width: 280px;
+      max-width: 90vw;
+      padding: 18px 24px 18px 20px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      font-family: 'Varela Round', Arial, sans-serif;
+      color: #222;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 8px 32px rgba(120, 144, 255, 0.18);
+      border: 2px solid rgba(120,144,255,0.15);
+      opacity: 0;
+      transform: translateY(-30px) scale(0.95);
+      transition: opacity 0.4s, transform 0.4s;
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      backdrop-filter: blur(12px);
+    }
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .notification.info { 
+      background: linear-gradient(135deg, #e3f0ff 0%, #fafdff 100%); 
+      border-color: #7c8aff; 
+      box-shadow: 0 8px 32px rgba(124, 138, 255, 0.2);
+    }
+    .notification.success { 
+      background: linear-gradient(135deg, #eafff3 0%, #fafdff 100%); 
+      border-color: #4fd18b; 
+      box-shadow: 0 8px 32px rgba(79, 209, 139, 0.2);
+    }
+    .notification.error { 
+      background: linear-gradient(135deg, #ffeaea 0%, #fff6f6 100%); 
+      border-color: #ff6b6b; 
+      box-shadow: 0 8px 32px rgba(255, 107, 107, 0.2);
+    }
+    .notification .icon {
+      font-size: 1.3em;
+      margin-right: 4px;
+    }
+    .notification.info .icon { color: #7c8aff; }
+    .notification.success .icon { color: #4fd18b; }
+    .notification.error .icon { color: #ff6b6b; }
+    .notification .close-btn {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.4em;
+      margin-left: 8px;
+      cursor: pointer;
+      transition: color 0.2s;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .notification .close-btn:hover { 
+      color: #222; 
+      background: rgba(0,0,0,0.05);
+    }
+    @media (max-width: 600px) {
+      #notification-container { 
+        top: 10px; 
+        width: 95%;
+        max-width: none;
+      }
+      .notification { 
+        font-size: 1rem; 
+        padding: 16px 20px 16px 18px; 
+        min-width: 240px;
+        max-width: 95vw;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #notification-container { 
+        top: 5px; 
+        width: 98%;
+      }
+      .notification { 
+        font-size: 0.9rem; 
+        padding: 14px 18px 14px 16px; 
+        min-width: 200px;
+        max-width: 98vw;
+      }
+    }
+
+    @media (max-width: 360px) {
+      #notification-container { 
+        top: 3px; 
+        width: 99%;
+      }
+      .notification { 
+        font-size: 0.85rem; 
+        padding: 12px 16px 12px 14px; 
+        min-width: 180px;
+        max-width: 99vw;
+      }
+    }
+
+    /* Admin Panel Styles */
+    #adminPanel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90vw;
+      max-width: 800px;
+      max-height: 85vh;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.2);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .admin-header {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 22px 22px 0 0;
+    }
+    .admin-header h3 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+    .admin-close {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: all 0.2s;
+    }
+    .admin-close:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
+    }
+    .admin-content {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .admin-section {
+      margin-bottom: 24px;
+      padding: 20px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 16px;
+      border: 1px solid rgba(120,144,255,0.1);
+    }
+    .admin-section h4 {
+      margin: 0 0 16px 0;
+      color: #333;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    .admin-form {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr auto;
+      align-items: end;
+    }
+    .admin-input {
+      padding: 12px 16px;
+      border: 2px solid rgba(120,144,255,0.2);
+      border-radius: 12px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.8);
+      transition: all 0.2s;
+    }
+    .admin-input:focus {
+      outline: none;
+      border-color: #7c8aff;
+      background: white;
+    }
+    .admin-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+    }
+    .admin-btn.primary {
+      background: linear-gradient(135deg, #7c8aff 0%, #b494ff 100%);
+    }
+    .admin-btn.danger {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+    }
+    .admin-btn.success {
+      background: linear-gradient(135deg, #4fd18b 0%, #6be8a8 100%);
+    }
+    .admin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .admin-btn:active {
+      transform: translateY(0);
+    }
+    .admin-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .admin-broadcast {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 12px;
+    }
+    .admin-broadcast input {
+      flex: 1;
+    }
+    @media (max-width: 768px) {
+      #adminPanel {
+        width: 95vw;
+        max-height: 90vh;
+      }
+      
+      .admin-header {
+        padding: 15px 20px;
+      }
+      
+      .admin-header h3 {
+        font-size: 1.2rem;
+      }
+      
+      .admin-content {
+        padding: 20px;
+      }
+      
+      .admin-section {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      
+      .admin-form {
+        grid-template-columns: 1fr;
+      }
+      
+      .admin-broadcast {
+        grid-column: 1;
+      }
+      
+      .admin-actions {
+        flex-direction: column;
+      }
+      
+      .admin-input {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+      }
+      
+      .admin-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #adminPanel {
+        width: 98vw;
+        max-height: 95vh;
+        border-radius: 20px;
+      }
+      
+      .admin-header {
+        padding: 12px 16px;
+      }
+      
+      .admin-header h3 {
+        font-size: 1.1rem;
+      }
+      
+      .admin-content {
+        padding: 16px;
+      }
+      
+      .admin-section {
+        padding: 12px;
+        margin-bottom: 16px;
+      }
+      
+      .admin-section h4 {
+        font-size: 1.1rem;
+      }
+      
+      .admin-input {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+      }
+      
+      .admin-btn {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+      }
+      
+      .admin-close {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+      }
+    }
+    </style>
+</head>
+<body>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-logo">Jumpi</div>
+        <div class="toolbar-links">
+            <a class="toolbar-link" onclick="showComingSoon('בלוג')">בלוג</a>
+            <a class="toolbar-link" onclick="showComingSoon('צור קשר')">צור קשר</a>
+            <a class="toolbar-link" onclick="showComingSoon('תקנון')">תקנון</a>
+            <a class="toolbar-link" onclick="showComingSoon('מדיניות פרטיות')">מדיניות פרטיות</a>
+        </div>
+        <div class="toolbar-user">
+            <div class="user-info" id="userInfo">משתמש</div>
+            <button class="logout-btn" onclick="logout()">התנתק</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <canvas id="gameCanvas" width="1200" height="680"></canvas>
+    </div>
+    
+    <!-- Modern Toolbar -->
+    <div id="toolbar" class="toolbar-container">
+        <div class="toolbar-content">
+            <div class="toolbar-left">
+                <button class="toolbar-btn" id="inventoryBtn" title="Inventory">
+                    <i class="fas fa-briefcase"></i>
+                </button>
+                <button class="toolbar-btn" id="chatBtn" title="Chat">
+                    <i class="fas fa-comments"></i>
+                </button>
+                <button class="toolbar-btn" id="emotesBtn" title="Emotes">
+                    <i class="fas fa-smile"></i>
+                </button>
+            </div>
+            
+            <div class="toolbar-center">
+                <div class="chat-input-container">
+                    <input type="text" id="chatInput" placeholder="Type your message..." maxlength="50">
+                    <button class="send-btn" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="toolbar-right">
+                <button class="toolbar-btn" id="settingsBtn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="toolbar-btn admin-btn" id="adminBtn" title="Admin Panel" style="display: none;">
+                    <i class="fas fa-shield-alt"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="inventoryWindow">
+        <div class="inventory-header">
+            <div class="inventory-title">
+                <i class="fas fa-briefcase"></i>
+                <span id="inventoryTitle">Inventory</span>
+        </div>
+            <button id="inventoryCloseButton" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="inventory-body">
+            <div class="inventory-sidebar">
+                <div class="player-info" style="padding:0;background:none;box-shadow:none;">
+                    <div class="player-avatar" style="margin-bottom:10px;padding:10px 0;display:flex;justify-content:center;align-items:flex-end;">
+                        <div id="characterPreviewContainer" style="background:rgba(255,255,255,0.12);border-radius:18px;padding:20px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,0.07);width:auto;min-width:140px;max-width:220px;margin:0 auto;">
+                            <canvas id="characterPreviewCanvas" width="110" height="140" style="display:block;margin:0 auto;"></canvas>
+                        </div>
+                    </div>
+                    <div class="player-details">
+                        <h6 id="inventoryUsername">Username</h6>
+                        <div class="coins-display">
+                            <i class="fas fa-coins"></i>
+                            <span id="inventoryCoins">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-tabs" style="margin-top:10px;">
+                    <div id="categoryTabsContainer" style="display:flex;justify-content:center;align-items:center;width:100%;padding:0 10px;">
+                        <div id="categoryTabs" style="display:flex;flex-direction:row;gap:8px;justify-content:center;align-items:center;width:100%;flex-wrap:nowrap;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="inventory-main">
+                <div class="items-container">
+            <div id="itemSlotsContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="settingsMenu">
+        <div class="settings-header">
+            <span class="settings-title"><span class="settings-icon"><i class="fas fa-cog"></i></span>הגדרות</span>
+            <button class="settings-close" id="settingsCloseBtn" title="סגור">&times;</button>
+        </div>
+        <div class="settings-content">
+            <button class="settings-btn fullscreen" id="fullscreenBtn"><i class="fas fa-expand"></i> מסך מלא</button>
+            <button class="settings-btn" id="logoutButton">התנתקות</button>
+        </div>
+    </div>
+    <!-- Emoji Panel -->
+    <div id="emojiPanel" style="display:none; position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:1300; background:rgba(255,255,255,0.22); border-radius:18px; box-shadow:0 8px 32px rgba(120,144,255,0.13); border:1.5px solid rgba(255,255,255,0.22); backdrop-filter:blur(18px); padding:14px 18px 10px 18px; display:flex; flex-direction:row; gap:12px; align-items:center;">
+        <button class="close-btn" id="emojiPanelClose" style="position:absolute;top:6px;right:8px;"><i class="fas fa-times"></i></button>
+        <button class="emoji-btn" data-emoji="😀">😀</button>
+        <button class="emoji-btn" data-emoji="😭">😭</button>
+        <button class="emoji-btn" data-emoji="😡">😡</button>
+        <button class="emoji-btn" data-emoji="😂">😂</button>
+        <button class="emoji-btn" data-emoji="❤️">❤️</button>
+    </div>
+
+    <!-- Chat History Panel -->
+    <div id="chatHistoryPanel" style="display:none; position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:1300; background:rgba(255,255,255,0.95); border-radius:18px; box-shadow:0 8px 32px rgba(120,144,255,0.18); border:1.5px solid rgba(255,255,255,0.22); backdrop-filter:blur(18px); padding:0; min-width:300px; max-width:400px; max-height:400px;">
+        <div class="chat-history-header" style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px; border-bottom:1px solid rgba(120,144,255,0.1);">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-history" style="color:#667eea; font-size:1.1rem;"></i>
+                <span style="font-weight:600; color:#333; font-size:1rem;">היסטוריית צ'אט</span>
+            </div>
+            <button class="close-btn" id="chatHistoryClose" style="background:rgba(255,255,255,0.2); border:none; color:#666; width:30px; height:30px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-history-content" style="padding:15px 20px; max-height:300px; overflow-y:auto;">
+            <div id="chatHistoryList" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Chat messages will be inserted here -->
+            </div>
+        </div>
+        <div class="chat-history-actions" style="display:flex; gap:10px; padding:15px 20px; border-top:1px solid rgba(120,144,255,0.1);">
+            <button id="refreshChatHistory" style="flex:1; padding:8px 12px; background:linear-gradient(135deg, #7c8aff 0%, #b494ff 100%); color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.9rem; font-weight:500; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fas fa-sync-alt"></i>
+                רענון
+            </button>
+            <button id="clearChatHistory" style="flex:1; padding:8px 12px; background:linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.9rem; font-weight:500; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fas fa-trash"></i>
+                איפוס
+            </button>
+        </div>
+    </div>
+    <div id="notification-container"></div>
+    <!-- Admin Panel -->
+    <div id="adminPanel">
+      <div class="admin-header">
+        <h3>🔧 פאנל ניהול</h3>
+        <button class="admin-close" onclick="toggleAdminPanel()">&times;</button>
+      </div>
+      <div class="admin-content">
+        <!-- Ban/Unban Section -->
+        <div class="admin-section">
+          <h4>🚫 ניהול חשבונות</h4>
+          <div class="admin-form">
+            <input type="text" id="banUsername" class="admin-input" placeholder="שם משתמש">
+            <input type="text" id="banReason" class="admin-input" placeholder="סיבת חסימה">
+            <div class="admin-actions">
+              <button class="admin-btn danger" onclick="banUser()">חסום</button>
+              <button class="admin-btn success" onclick="unbanUser()">שחרר</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Coin Management Section -->
+        <div class="admin-section">
+          <h4>💰 ניהול מטבעות</h4>
+          <div class="admin-form">
+            <input type="text" id="coinUsername" class="admin-input" placeholder="שם משתמש">
+            <input type="number" id="coinAmount" class="admin-input" placeholder="כמות">
+            <button class="admin-btn primary" onclick="addCoins()">הוסף מטבעות</button>
+          </div>
+        </div>
+        
+        <!-- Item Granting Section -->
+        <div class="admin-section">
+          <h4>🎁 הענקת פריטים</h4>
+          <div class="admin-form">
+            <input type="text" id="itemUsername" class="admin-input" placeholder="שם משתמש">
+            <select id="itemCategory" class="admin-input">
+              <option value="">בחר קטגוריה</option>
+              <option value="ht">כובעים</option>
+              <option value="st">חולצות</option>
+              <option value="ps">מכנסיים</option>
+              <option value="nk">נעליים</option>
+              <option value="gs">משקפיים</option>
+              <option value="hd">צבעי גוף</option>
+              <option value="sk">סקייטבורדים</option>
+              <option value="hr">שיערות</option>
+            </select>
+            <input type="number" id="itemId" class="admin-input" placeholder="מזהה פריט">
+            <button class="admin-btn primary" onclick="giveItem()">הענק פריט</button>
+          </div>
+        </div>
+        
+        <!-- Broadcast Section -->
+        <div class="admin-section">
+          <h4>📢 הודעת מערכת</h4>
+          <div class="admin-broadcast">
+            <input type="text" id="broadcastMessage" class="admin-input" placeholder="הודעת מערכת לכל השחקנים">
+            <button class="admin-btn primary" onclick="broadcastMessage(event); return false;">שלח</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/trading.js"></script>
+    <script src="/mapNavigation.js"></script>
+    <script>
+        window.socket = io();
+    </script>
+    <script>
+        const DEBUG_MODE = true; // Temporarily enable debug mode
+        // ==================== גלובלים ====================
+        window.canvas = document.getElementById('gameCanvas');
+        window.ctx = window.canvas.getContext('2d');
+        window.bg = new Image();
+        window.characterImages = {};
+        const directions = ['right', 'left', 'up', 'down', 'up_right', 'up_left', 'down_right', 'down_left'];
+        window.imagesLoaded = 0;
+        const totalCharacterImages = directions.length;
+        const totalImagesToLoad = totalCharacterImages + 1;
+
+        function checkAllImagesLoaded() {
+            if (window.imagesLoaded === totalImagesToLoad) {
+                initializeGameElements();
+                loadItemsMetadata().then(() => {
+                window.socket.emit('requestUserData');
+                requestAnimationFrame(window.gameLoop);
+                });
+            }
+        }
+        directions.forEach(dir => {
+            window.characterImages[dir] = new Image();
+            window.characterImages[dir].onload = () => { window.imagesLoaded++; checkAllImagesLoaded(); };
+            window.characterImages[dir].onerror = () => { window.imagesLoaded++; checkAllImagesLoaded(); };
+            window.characterImages[dir].src = `assets/character_${dir}.png`;
+        });
+        window.bg.onload = () => { window.imagesLoaded++; checkAllImagesLoaded(); };
+        window.bg.onerror = () => { window.imagesLoaded++; checkAllImagesLoaded(); };
+        window.bg.src = 'rooms/sea.png';
+
+        window.players = {};
+        window.target = null;
+        window.toolbarButtons = {};
+        window.currentInput = '';
+        window.bounceButtons = {};
+        window.breathScale = 1;
+        window.breathDirection = 1;
+        window.walkFrame = 0;
+        window.walkBounce = 0;
+        const idleDisconnectTimeout = 20 * 60 * 1000;
+        window.lastActivityTime = Date.now();
+
+        window.isInventoryOpen = false;
+        window.isChatHistoryOpen = false;
+        let inventoryWindowElement;
+        let characterPreviewImageElement;
+        let inventoryCloseButtonElement;
+        let inventoryUsernameElement;
+        let inventoryCoinsElement;
+        let logoutButtonElement;
+        
+        // Chat History Management
+        window.chatHistory = [];
+        window.lastRefreshTime = Date.now();
+        window.lastSeenMessageTime = {}; // Track last seen message time for each player
+
+        // ========== קטגוריות ==========
+        const ITEM_CATEGORIES = {
+            ht: "כובעים",
+            ps: "מכנסיים",
+            st: "חולצות",
+            gs: "משקפיים",
+            nk: "שרשראות",
+            hd: "צבעי גוף",
+            sk: "סקייטבורדים",
+            hr: "שיערות"
+        };
+        
+        // Replace SVG icons with emojis for inventory categories
+        const CATEGORY_EMOJIS = {
+            ht: '🎩', // hats
+            st: '👕', // shirts
+            ps: '👖', // pants
+            nk: '👟', // shoes
+            gs: '🕶️', // glasses
+            hd: '🎨', // skin colors
+            sk: '🛹', // skateboards
+            hr: '💇‍♂️', // hair
+        };
+        
+        // Category icons (SVG) - More specific icons for each category
+        const CATEGORY_ICONS = {
+            ht: `<svg viewBox="0 0 24 24"><path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 1H9L3 7V9H5V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V9H21Z"/></svg>`,
+            ps: `<svg viewBox="0 0 24 24"><path d="M8 21V19H16V21H8M16 17V15H8V17H16M8 13V11H16V13H8M8 9V7H16V9H8M8 5V3H16V5H8Z"/></svg>`,
+            st: `<svg viewBox="0 0 24 24"><path d="M16 21H8A1 1 0 0 1 7 20V12.07L5.7 13.12C5.31 13.5 4.68 13.5 4.29 13.12L1.46 10.29C1.07 9.9 1.07 9.27 1.46 8.88L7.34 3H9C9 4.1 10.34 5 12 5S15 4.1 15 3H16.66L22.54 8.88C22.93 9.27 22.93 9.9 22.54 10.29L19.71 13.12C19.32 13.5 18.69 13.5 18.3 13.12L17 12.07V20A1 1 0 0 1 16 21M20.42 9.58L16.85 6H14.92C14.46 7.25 13.31 8 12 8C10.69 8 9.54 7.25 9.08 6H7.15L3.58 9.58L5 11L8 8V10H10V8H14V10H16V8L19 11L20.42 9.58Z"/></svg>`,
+            gs: `<svg viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20A8 8 0 0 1 4 12A8 8 0 0 1 12 4M12 6A6 6 0 0 0 6 12A6 6 0 0 0 12 18A6 6 0 0 0 18 12A6 6 0 0 0 12 6M12 8A4 4 0 0 1 16 12A4 4 0 0 1 12 16A4 4 0 0 1 8 12A4 4 0 0 1 12 8Z"/></svg>`,
+            nk: `<svg viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2M12 4A8 8 0 0 1 20 12A8 8 0 0 1 12 20A8 8 0 0 1 4 12A8 8 0 0 1 12 4M12 6A6 6 0 0 0 6 12A6 6 0 0 0 12 18A6 6 0 0 0 18 12A6 6 0 0 0 12 6M12 8A4 4 0 0 1 16 12A4 4 0 0 1 12 16A4 4 0 0 1 8 12A4 4 0 0 1 12 8Z"/></svg>`,
+            hd: `<svg viewBox="0 0 24 24"><path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 1H9L3 7V9H5V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V9H21Z"/></svg>`,
+            sk: `<svg viewBox="0 0 24 24"><path d="M19 15C19 15 19 16 17 16C15 16 15 15 15 15S15 14 17 14C19 14 19 15 19 15M5 15C5 15 5 16 7 16C9 16 9 15 9 15S9 14 7 14C5 14 5 15 5 15M7 18C4.79 18 3 16.21 3 14V12C3 9.79 4.79 8 7 8H17C19.21 8 21 9.79 21 12V14C21 16.21 19.21 18 17 18H7M7 10C5.9 10 5 10.9 5 12V14C5 15.1 5.9 16 7 16H17C18.1 16 19 15.1 19 14V12C19 10.9 18.1 10 17 10H7Z"/></svg>`,
+            hr: `<svg viewBox="0 0 24 24"><path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 1H9L3 7V9H5V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V9H21Z"/></svg>`
+        };
+        let currentCategory = 'ht';
+        let currentInventory = {};
+        let currentEquipped = {};
+
+        // ==================== UI - סל חפצים ====================
+        function showCategoryTabs() {
+            const catTabs = document.getElementById('categoryTabs');
+            catTabs.innerHTML = '';
+            const categories = Object.entries(ITEM_CATEGORIES);
+            // Create a grid: 2 rows, 4 columns
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+            grid.style.gridGap = '10px';
+            grid.style.justifyItems = 'center';
+            grid.style.alignItems = 'center';
+            grid.style.width = '100%';
+            grid.style.maxWidth = '340px';
+            grid.style.margin = '0 auto';
+            categories.forEach(([cat, name], i) => {
+                const tab = document.createElement('button');
+                tab.innerHTML = CATEGORY_EMOJIS[cat] || '';
+                tab.className = (currentCategory === cat) ? 'selected-category-tab' : '';
+                tab.title = name;
+                tab.style.fontSize = '2rem';
+                tab.style.background = 'white';
+                tab.style.border = (currentCategory === cat)
+                    ? '2.5px solid #7c8aff'
+                    : '2px solid #e0e0e0';
+                tab.style.margin = '0';
+                tab.style.cursor = 'pointer';
+                tab.style.padding = '10px 0';
+                tab.style.borderRadius = '12px';
+                tab.style.transition = 'border 0.15s, background 0.15s';
+                tab.style.width = '60px';
+                tab.style.height = '60px';
+                tab.style.display = 'flex';
+                tab.style.alignItems = 'center';
+                tab.style.justifyContent = 'center';
+                tab.style.boxShadow = (currentCategory === cat)
+                    ? '0 2px 10px rgba(120,144,255,0.10)'
+                    : '0 1px 4px rgba(0,0,0,0.04)';
+                tab.onclick = () => {
+                    currentCategory = cat;
+                    showInventorySlots();
+                };
+                grid.appendChild(tab);
+            });
+            catTabs.appendChild(grid);
+            catTabs.style.display = 'flex';
+            catTabs.style.justifyContent = 'center';
+            catTabs.style.alignItems = 'center';
+            catTabs.style.overflow = 'visible';
+            catTabs.style.margin = '0 auto 8px auto';
+            catTabs.style.padding = '0';
+        }
+        function showInventorySlots() {
+            showCategoryTabs();
+            const container = document.getElementById('itemSlotsContainer');
+            container.innerHTML = '';
+            const items = currentInventory[currentCategory] || [];
+            if (items.length === 0) {
+                container.innerHTML = `<div style="color:#888;font-size:15px;text-align:center;margin-top:30px">אין לך פריטים בקטגוריה זו</div>`;
+                return;
+            }
+            items.forEach(itemId => {
+                const slot = document.createElement('div');
+                slot.className = 'itemSlot';
+                const img = document.createElement('img');
+                img.src = `/items/${currentCategory}/${itemId}/front.png`;
+                
+                const isEquipped = currentEquipped[currentCategory] == itemId;
+                const itemName = ITEM_CATEGORIES[currentCategory];
+                
+                if (isEquipped) {
+                    slot.style.border = "3px solid #00aaff";
+                    slot.style.backgroundColor = "rgba(0, 170, 255, 0.1)";
+                    img.title = `${itemName} #${itemId} - לוחץ כדי להסיר`;
+                } else {
+                    slot.style.border = "1px solid #ddd";
+                    slot.style.backgroundColor = "transparent";
+                    img.title = `${itemName} #${itemId} - לוחץ כדי ללבוש`;
+                }
+                
+                img.onclick = () => { equipItem(currentCategory, itemId); };
+                slot.appendChild(img);
+                container.appendChild(slot);
+            });
+        }
+        function updateInventoryInfo() {
+            const player = window.players[window.socket.id];
+            if (!player) return;
+            if (inventoryUsernameElement) inventoryUsernameElement.textContent = player.username || 'טוען...';
+            if (inventoryCoinsElement) inventoryCoinsElement.textContent = (typeof player.coins === 'number') ? player.coins.toLocaleString() : '0';
+            currentInventory = player.inventory || {};
+            currentEquipped = player.equipped || {};
+            showInventorySlots();
+            updateCharacterPreview();
+        }
+        function equipItem(category, itemId) {
+            // Toggle behavior: if item is already equipped, unequip it
+            if (currentEquipped[category] === itemId) {
+                // Unequip the item
+                window.socket.emit('equipItem', { category, itemId: null });
+            } else {
+                // Equip the item
+            window.socket.emit('equipItem', { category, itemId });
+            }
+            // Update preview immediately for better UX
+            updateCharacterPreview();
+        }
+        function updateCharacterPreview() {
+            const canvas = document.getElementById('characterPreviewCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Center the character in the canvas
+            const charX = (canvas.width - 55) / 2; // 55 is half the character width
+            const charY = (canvas.height - 70) / 2; // 70 is half the character height
+            
+            // Define the correct drawing order for equipped items
+            const ITEM_DRAW_ORDER = ["sk", "hd", "ps", "st", "nk", "hr", "gs", "ht"];
+            
+            // For preview, always use 'front' direction (or 'down' for base sprite)
+            const previewDirection = 'front';
+            const baseDirection = 'down';
+            
+            // Helper to get offset/size for an item
+            function getItemOffset(cat, itemId) {
+                let offset = { x: 0, y: 0, width: 1, height: 1 };
+                if (window.itemOffsets && window.itemOffsets[cat] && window.itemOffsets[cat][itemId] && window.itemOffsets[cat][itemId][previewDirection]) {
+                    offset = { ...offset, ...window.itemOffsets[cat][itemId][previewDirection] };
+                } else if (window.itemsMetadata && window.itemsMetadata[cat] && window.itemsMetadata[cat][itemId] && window.itemsMetadata[cat][itemId].offsets && window.itemsMetadata[cat][itemId].offsets[previewDirection]) {
+                    offset = { ...offset, ...window.itemsMetadata[cat][itemId].offsets[previewDirection] };
+                } else {
+                    // Optionally show a warning if missing
+                    // console.warn(`Missing offset metadata for ${cat}:${itemId} (${previewDirection})`);
+                }
+                // Default width/height if not set
+                offset.width = offset.width || 1;
+                offset.height = offset.height || 1;
+                offset.x = offset.x || 0;
+                offset.y = offset.y || 0;
+                return offset;
+            }
+            
+            // 1. Draw skateboard (sk) below everything
+            if (currentEquipped.sk) {
+                const itemId = currentEquipped.sk;
+                const img = new Image();
+                img.onload = function() {
+                    const offset = getItemOffset('sk', itemId);
+                    ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                    drawRest();
+                };
+                img.onerror = function() { drawRest(); };
+                img.src = `/items/sk/${itemId}/front.png`;
+            } else {
+                drawRest();
+            }
+            
+            function drawRest() {
+                // 2. Draw skin color (hd) as base, or default character
+                if (currentEquipped.hd) {
+                    const itemId = currentEquipped.hd;
+                    const img = new Image();
+                    img.onload = function() {
+                        const offset = getItemOffset('hd', itemId);
+                        ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                        drawEquipped();
+                    };
+                    img.onerror = function() { drawDefaultBase(); };
+                    img.src = `/items/hd/${itemId}/front.png`;
+                } else {
+                    drawDefaultBase();
+                }
+            }
+            function drawDefaultBase() {
+                // Draw default character sprite
+                const img = window.characterImages[baseDirection] || window.characterImages['down'];
+                ctx.drawImage(img, charX, charY, 55, 70);
+                drawEquipped();
+            }
+            function drawEquipped() {
+                // 3. Draw all other equipped items in order (except sk, hd)
+                for (const cat of ["ps", "st", "nk", "hr", "gs", "ht"]) {
+                const itemId = currentEquipped[cat];
+                    if (!itemId) continue;
+                    const img = new Image();
+                    img.onload = function() {
+                        const offset = getItemOffset(cat, itemId);
+                        ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                    };
+                    img.onerror = function() {};
+                    img.src = `/items/${cat}/${itemId}/front.png`;
+                }
+            }
+        }
+        function toggleInventory() {
+            window.isInventoryOpen = !window.isInventoryOpen;
+            if (inventoryWindowElement) {
+                inventoryWindowElement.style.display = window.isInventoryOpen ? 'flex' : 'none';
+                if (window.isInventoryOpen) {
+                    updateInventoryInfo();
+                    if(window.isSettingsOpen) toggleSettingsMenu();
+                }
+            }
+        }
+        
+        function toggleChatHistory() {
+            window.isChatHistoryOpen = !window.isChatHistoryOpen;
+            const chatHistoryPanel = document.getElementById('chatHistoryPanel');
+            if (chatHistoryPanel) {
+                chatHistoryPanel.style.display = window.isChatHistoryOpen ? 'block' : 'none';
+                if (window.isChatHistoryOpen) {
+                    refreshChatHistoryDisplay();
+                    if(window.isSettingsOpen) toggleSettingsMenu();
+                    if(window.isInventoryOpen) toggleInventory();
+                }
+            }
+        }
+        
+        function refreshChatHistoryDisplay() {
+            const chatHistoryList = document.getElementById('chatHistoryList');
+            if (!chatHistoryList) return;
+            
+            chatHistoryList.innerHTML = '';
+            
+            if (window.chatHistory.length === 0) {
+                chatHistoryList.innerHTML = '<div style="text-align:center; color:#888; font-size:0.9rem; padding:20px;">אין הודעות בהיסטוריה</div>';
+                return;
+            }
+            
+            window.chatHistory.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = `
+                    background: ${message.isAdmin ? 'linear-gradient(135deg, #ffeaea 0%, #fff6f6 100%)' : 'linear-gradient(135deg, #f3f6ff 0%, #fafdff 100%)'};
+                    border: 1px solid ${message.isAdmin ? 'rgba(255,107,107,0.2)' : 'rgba(120,144,255,0.15)'};
+                    border-radius: 12px;
+                    padding: 10px 12px;
+                    margin-bottom: 8px;
+                    font-size: 0.9rem;
+                    line-height: 1.4;
+                `;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.style.cssText = `
+                    font-size: 0.75rem;
+                    color: #888;
+                    margin-bottom: 4px;
+                    font-weight: 500;
+                `;
+                timeDiv.textContent = new Date(message.timestamp).toLocaleTimeString('he-IL', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                const usernameSpan = document.createElement('span');
+                usernameSpan.style.cssText = `
+                    font-weight: 600;
+                    color: ${message.isAdmin ? '#e74c3c' : '#667eea'};
+                    margin-right: 6px;
+                `;
+                usernameSpan.textContent = message.username + ':';
+                
+                const messageSpan = document.createElement('span');
+                messageSpan.style.color = '#333';
+                messageSpan.textContent = message.message;
+                
+                messageDiv.appendChild(timeDiv);
+                messageDiv.appendChild(usernameSpan);
+                messageDiv.appendChild(messageSpan);
+                chatHistoryList.appendChild(messageDiv);
+            });
+            
+            // Scroll to bottom
+            chatHistoryList.scrollTop = chatHistoryList.scrollHeight;
+        }
+        
+        function addToChatHistory(username, message, isAdmin = false) {
+            window.chatHistory.push({
+                username: username,
+                message: message,
+                timestamp: Date.now(),
+                isAdmin: isAdmin
+            });
+            
+            // Keep only last 100 messages
+            if (window.chatHistory.length > 100) {
+                window.chatHistory = window.chatHistory.slice(-100);
+            }
+        }
+        
+        function clearChatHistoryFunction() {
+            window.chatHistory = [];
+            window.lastSeenMessageTime = {}; // Reset message tracking
+            window.lastRefreshTime = Date.now();
+            refreshChatHistoryDisplay();
+            window.showNotification('היסטוריית הצ\'אט אופסה', 'info', 3000);
+        }
+        
+        function refreshChatHistoryFunction() {
+            window.lastRefreshTime = Date.now();
+            refreshChatHistoryDisplay();
+            window.showNotification('היסטוריית הצ\'אט עודכנה', 'success', 2000);
+        }
+        // ==================== Init ====================
+        function initializeGameElements() {
+            inventoryWindowElement = document.getElementById('inventoryWindow');
+            characterPreviewCanvas = document.getElementById('characterPreviewCanvas');
+            inventoryCloseButtonElement = document.getElementById('inventoryCloseButton');
+            inventoryUsernameElement = document.getElementById('inventoryUsername');
+            inventoryCoinsElement = document.getElementById('inventoryCoins');
+            if (inventoryCloseButtonElement) {
+                inventoryCloseButtonElement.addEventListener('click', () => { if (window.isInventoryOpen) toggleInventory(); });
+            }
+            settingsMenuElement = document.getElementById('settingsMenu');
+            logoutButtonElement = document.getElementById('logoutButton');
+            if (logoutButtonElement) {
+                logoutButtonElement.addEventListener('click', () => {
+                    window.showNotification('מתנתק...', 'info', 2000);
+                    setTimeout(() => { window.location.href = '/'; }, 1000);
+                });
+            }
+            
+            // Initialize modern toolbar
+            initializeToolbar();
+            // Initialize trading system
+            if (window.Trading && typeof window.Trading.initTradingSystem === 'function') {
+                window.Trading.initTradingSystem();
+            }
+        }
+        
+        function initializeToolbar() {
+            const inventoryBtn = document.getElementById('inventoryBtn');
+            const chatBtn = document.getElementById('chatBtn');
+            const emotesBtn = document.getElementById('emotesBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const adminBtn = document.getElementById('adminBtn');
+            const sendBtn = document.getElementById('sendBtn');
+            const chatInput = document.getElementById('chatInput');
+            
+            // Inventory button
+            if (inventoryBtn) {
+                inventoryBtn.addEventListener('click', () => {
+                    toggleInventory();
+                });
+            }
+            
+            // Chat button
+            if (chatBtn) {
+                chatBtn.addEventListener('click', () => {
+                    toggleChatHistory();
+                });
+            }
+            
+            // Emotes button - only toggle custom emoji panel
+            if (emotesBtn) {
+                emotesBtn.onclick = () => {
+                    const emojiPanel = document.getElementById('emojiPanel');
+                    if (!emojiPanel) return;
+                    const isOpen = emojiPanel.style.display === 'flex';
+                    emojiPanel.style.display = isOpen ? 'none' : 'flex';
+                };
+            }
+            
+            // Settings button
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (settingsMenu.classList.contains('visible')) closeSettingsMenu();
+                    else openSettingsMenu();
+                });
+            }
+            
+            // Admin button (only show for admin users)
+            if (adminBtn) {
+                adminBtn.addEventListener('click', () => {
+                    console.log('adminBtn clicked');
+                    toggleAdminPanel();
+                });
+            }
+            
+            // Send button
+            if (sendBtn) {
+                sendBtn.addEventListener('click', () => {
+                    sendMessage();
+                });
+            }
+            
+            // Chat History buttons
+            const chatHistoryClose = document.getElementById('chatHistoryClose');
+            const refreshChatHistory = document.getElementById('refreshChatHistory');
+            const clearChatHistory = document.getElementById('clearChatHistory');
+            
+            if (chatHistoryClose) {
+                chatHistoryClose.addEventListener('click', () => {
+                    toggleChatHistory();
+                });
+            }
+            
+            if (refreshChatHistory) {
+                refreshChatHistory.addEventListener('click', () => {
+                    refreshChatHistoryFunction();
+                });
+            }
+            
+            if (clearChatHistory) {
+                clearChatHistory.addEventListener('click', () => {
+                    clearChatHistoryFunction();
+                });
+            }
+            
+            // Chat input
+            if (chatInput) {
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                
+                // Update currentInput for compatibility
+                chatInput.addEventListener('input', (e) => {
+                    window.currentInput = e.target.value;
+                });
+            }
+        }
+        
+        function sendMessage() {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput && chatInput.value.trim() !== '') {
+                const message = chatInput.value.trim();
+                window.socket.emit('chat', message);
+                chatInput.value = '';
+                window.currentInput = '';
+            }
+        }
+
+        // ==================== סוקטים ====================
+        // Security: Prevent client-side speed hacks (disabled temporarily to fix movement)
+        const originalEmit = window.socket.emit;
+        window.socket.emit = function(event, data) {
+            if (event === 'move') {
+                // Validate movement data before sending
+                if (data && typeof data.x === 'number' && typeof data.y === 'number') {
+                    const player = window.players[window.socket.id];
+                    if (player) {
+                        const dx = data.x - player.x;
+                        const dy = data.y - player.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const maxSpeed = 1000; // Very high limit to allow normal movement
+                        
+                        if (distance > maxSpeed) {
+                            console.log('CLIENT: Movement blocked - too fast:', distance);
+                            return;
+                        }
+                    }
+                }
+            }
+            return originalEmit.call(this, event, data);
+        };
+        
+        // Security: Prevent overriding of movement functions
+        Object.defineProperty(window, 'animateMovement', {
+            writable: false,
+            configurable: false,
+            value: window.animateMovement
+        });
+        
+        window.socket.on('forceDisconnect', () => { 
+            window.showNotification('אתה כבר מחובר ממכשיר אחר.', 'error', 8000); 
+            setTimeout(() => { window.location.href = '/'; }, 3000); 
+        });
+
+        window.socket.on('banned', (data) => { 
+            window.showNotification('החשבון שלך נחסם: ' + (data.message || 'No reason provided'), 'error', 8000); 
+            setTimeout(() => { window.location.href = '/'; }, 3000); 
+        });
+
+        // Store current user info securely
+        window.currentUserInfo = null;
+        window.socket.on('userInfo', (userInfo) => {
+            window.currentUserInfo = userInfo;
+            console.log('Received user info:', userInfo);
+            
+            // Update admin button visibility based on server-provided info
+            const adminBtn = document.getElementById('adminBtn');
+            if (adminBtn) {
+                if (userInfo.isAdmin) {
+                    adminBtn.style.display = 'block';
+                } else {
+                    adminBtn.style.display = 'none';
+                }
+            }
+        });
+
+        window.socket.on('updatePlayers', (serverPlayers) => {
+            // שמור אימוג'י קיים
+            Object.keys(serverPlayers).forEach(id => {
+                if (window.players && window.players[id]) {
+                    serverPlayers[id].currentEmoji = window.players[id].currentEmoji;
+                    serverPlayers[id].emojiStartTime = window.players[id].emojiStartTime;
+                }
+            });
+            
+            // Check for new chat messages and add to history
+            Object.values(serverPlayers).forEach(p => {
+                if (p.message && p.messageTime && p.username) {
+                    if (!window.lastSeenMessageTime[p.username] || window.lastSeenMessageTime[p.username] < p.messageTime) {
+                        // This is a new message we haven't seen before
+                        const isAdmin = p.isAdmin === true;
+                        addToChatHistory(p.username, p.message, isAdmin);
+                        window.lastSeenMessageTime[p.username] = p.messageTime;
+                    }
+                }
+            });
+            
+            window.players = serverPlayers;
+            if (window.isInventoryOpen) {
+                updateInventoryInfo();
+            }
+        });
+
+        // Room management socket events
+        window.socket.on('roomOccupancyUpdate', (data) => {
+            if (window.mapNavigation) {
+                window.mapNavigation.updateRoomOccupancy(data);
+            }
+        });
+
+        window.socket.on('roomJoinResponse', (data) => {
+            if (window.mapNavigation) {
+                window.mapNavigation.handleRoomJoinResponse(data);
+            }
+        });
+        window.socket.on('updateInventory', inventory => {
+            // רק העדכון הרלוונטי, מהשרת בלבד!
+            currentInventory = inventory || {};
+            if (window.players[window.socket.id]) window.players[window.socket.id].inventory = currentInventory;
+            if (window.isInventoryOpen) updateInventoryInfo();
+        });
+        window.socket.on('updateEquipped', equipped => {
+            currentEquipped = equipped || {};
+            if (window.players[window.socket.id]) window.players[window.socket.id].equipped = currentEquipped;
+            updateCharacterPreview();
+            showInventorySlots();
+        });
+        window.socket.on('updateCoins', coins => {
+            if (window.players[window.socket.id]) {
+                window.players[window.socket.id].coins = coins;
+                if (window.isInventoryOpen) updateInventoryInfo();
+            }
+        });
+        
+        // Listen for chat messages to add to history
+        window.socket.on('chat', (data) => {
+            console.log('Received chat message:', data);
+            if (data && data.username && data.message) {
+                const isAdmin = data.isAdmin || false;
+                addToChatHistory(data.username, data.message, isAdmin);
+            }
+        });
+        
+        // Listen for admin broadcast messages
+        window.socket.on('adminBroadcast', (data) => {
+            console.log('Received admin broadcast:', data);
+            if (data && data.username && data.message) {
+                addToChatHistory(data.username, data.message, true);
+            }
+        });
+        
+        // Listen for regular chat messages (fallback)
+        window.socket.on('message', (data) => {
+            console.log('Received message event:', data);
+            if (data && typeof data === 'object') {
+                const username = data.username || data.user || 'Unknown';
+                const message = data.message || data.text || data;
+                const isAdmin = data.isAdmin || false;
+                addToChatHistory(username, message, isAdmin);
+            }
+        });
+        
+        // Listen for chat messages from other players
+        window.socket.on('playerChat', (data) => {
+            console.log('Received player chat:', data);
+            if (data && data.username && data.message) {
+                const isAdmin = data.isAdmin || false;
+                addToChatHistory(data.username, data.message, isAdmin);
+            }
+        });
+        
+        // Listen for any chat-related events
+        window.socket.on('chatMessage', (data) => {
+            console.log('Received chatMessage event:', data);
+            if (data && data.username && data.message) {
+                const isAdmin = data.isAdmin || false;
+                addToChatHistory(data.username, data.message, isAdmin);
+            }
+        });
+
+        // === חובה: טוען מהשרת את כל הנתונים בזמן טעינה ===
+        window.addEventListener("DOMContentLoaded", function() {
+            window.socket.emit('requestUserData');
+            loadItemsMetadata();
+            loadItemOffsets();
+        });
+        
+        function triggerBounce(key) { window.bounceButtons[key] = { scale: 1.2, time: 5 }; }
+        function drawToolbar() {
+            // Modern toolbar is now handled by HTML/CSS, so we don't need to draw it on canvas
+            // This function is kept for compatibility but doesn't draw anything
+        }
+
+        // ציור דמויות עם שכבות פריטים
+        window.itemOverlays = {};
+        window.itemsMetadata = {}; // Cache for item metadata
+        
+        // Define the drawing order for equipped items
+        // Note: "hd" (skin color) and "sk" (skateboard) are drawn BEFORE the base character
+        const ITEM_DRAW_ORDER = ["hd", "sk", "st", "ps", "nk", "hr", "gs", "ht"];
+        
+        // Load items metadata and offsets on startup
+        async function loadItemsMetadata() {
+            try {
+                const response = await fetch('/api/items');
+                window.itemsMetadata = await response.json();
+                console.log('Items metadata loaded:', Object.keys(window.itemsMetadata));
+            } catch (error) {
+                console.error('Failed to load items metadata:', error);
+            }
+        }
+        
+        // Load item offsets
+        async function loadItemOffsets() {
+            try {
+                const response = await fetch('/admin/item-offsets', {
+                    headers: {
+                        'x-admin-token': 'YOUR_SECRET_ADMIN_TOKEN'
+                    }
+                });
+                const data = await response.json();
+                window.itemOffsets = data.offsets || {};
+                console.log('Item offsets loaded:', window.itemOffsets);
+            } catch (error) {
+                console.error('Failed to load item offsets:', error);
+                window.itemOffsets = {};
+            }
+        }
+        
+        function drawPlayers() {
+            const localPlayer = window.players[window.socket.id];
+            if (!localPlayer) return;
+            const sortedPlayers = Object.values(window.players)
+                .filter(p => p.room === localPlayer.room) // Only show players in the same room
+                .sort((a, b) => a.y - b.y);
+            sortedPlayers.forEach(p => {
+                const isLocal = p.id === window.socket.id;
+                const isMoving = isLocal && window.target;
+                const scaleY = isMoving ? 1 : window.breathScale;
+                const bounceY = isMoving ? window.walkBounce : 0;
+                window.ctx.save();
+                window.ctx.translate(p.x, p.y - 35 + bounceY);
+
+                // --- SHADOW ---
+                if (isLocal) {
+                    window.ctx.save();
+                    window.ctx.beginPath();
+                    window.ctx.ellipse(0, 70, 22, 10, 0, 0, 2 * Math.PI);
+                    window.ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                    window.ctx.fill();
+                    window.ctx.lineWidth = 3;
+                    window.ctx.strokeStyle = '#3a7cff';
+                    window.ctx.stroke();
+                    window.ctx.restore();
+                } else {
+                    window.ctx.save();
+                    window.ctx.beginPath();
+                    window.ctx.ellipse(0, 70, 22, 10, 0, 0, 2 * Math.PI);
+                    window.ctx.fillStyle = 'rgba(0,0,0,0.18)';
+                    window.ctx.fill();
+                    window.ctx.restore();
+                }
+
+                // 1. Draw skateboard (sk) BEFORE the base character
+                if (p.equipped && p.equipped.sk) {
+                    const skateboardItemId = p.equipped.sk;
+                    // Always map up->back, down->front for items
+                    let direction = p.direction;
+                    if (direction === 'up') direction = 'back';
+                    if (direction === 'down') direction = 'front';
+                    const itemMetadata = window.itemsMetadata?.sk?.[skateboardItemId];
+                    let availableDirection = direction;
+                    if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
+                        availableDirection = 'front';
+                    }
+                    const skateboardImagePath = `/items/sk/${skateboardItemId}/${availableDirection}.png`;
+                    const skateboardImage = new Image();
+                    skateboardImage.onload = function() {
+                        const savedOffset = window.itemOffsets?.sk?.[skateboardItemId]?.[availableDirection];
+                        const metadataOffset = itemMetadata?.offsets?.[availableDirection];
+                        const offset = savedOffset || metadataOffset || { x: 0, y: 0 };
+                        const width = (offset.width || 1) * 55;
+                        const height = (offset.height || 1) * 70;
+                        const x = -27.5 + (offset.x || 0);
+                        const y = (offset.y || 0);
+                        window.ctx.drawImage(skateboardImage, x, y, width, height);
+                    };
+                    skateboardImage.onerror = function() {};
+                    skateboardImage.src = skateboardImagePath;
+                }
+
+                // 2. Draw base character sprite (main character image)
+                // Use window.characterImages[p.direction] directly (up/down/left/right...)
+                function drawDefaultCharacter() {
+                    window.ctx.scale(1, scaleY);
+                    const img = window.characterImages[p.direction] || window.characterImages['down'];
+                    window.ctx.drawImage(img, -27.5, 0, 55, 70 / scaleY);
+                    window.ctx.scale(1, 1/scaleY);
+                }
+                if (p.equipped && p.equipped.hd) {
+                    const skinItemId = p.equipped.hd;
+                    // Always map up->back, down->front for items
+                    let direction = p.direction;
+                    if (direction === 'up') direction = 'back';
+                    if (direction === 'down') direction = 'front';
+                    const itemMetadata = window.itemsMetadata?.hd?.[skinItemId];
+                    let availableDirection = direction;
+                    if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
+                        availableDirection = 'front';
+                    }
+                    const skinImagePath = `/items/hd/${skinItemId}/${availableDirection}.png`;
+                    const key = `hd_${skinItemId}_${availableDirection}`;
+                    if (!window.itemOverlays[key]) {
+                        const skinImage = new Image();
+                        skinImage.src = skinImagePath;
+                        skinImage.onerror = function() {};
+                        window.itemOverlays[key] = skinImage;
+                    }
+                    const skinImage = window.itemOverlays[key];
+                    if (skinImage && skinImage.complete && skinImage.naturalHeight > 0) {
+                        const savedOffset = window.itemOffsets?.hd?.[skinItemId]?.[availableDirection];
+                        const metadataOffset = itemMetadata?.offsets?.[availableDirection];
+                        const offset = savedOffset || metadataOffset || { x: 0, y: 0 };
+                        window.ctx.scale(1, scaleY);
+                        const x = -27.5 + (offset.x || 0);
+                        const y = (offset.y || 0);
+                        const width = (offset.width || 1) * 55;
+                        const height = (offset.height || 1) * 70 / scaleY;
+                        window.ctx.drawImage(skinImage, x, y, width, height);
+                        window.ctx.scale(1, 1/scaleY);
+                    } else {
+                        drawDefaultCharacter();
+                    }
+                } else {
+                    drawDefaultCharacter();
+                }
+
+                // 3. Draw other equipped items AFTER the base character
+                if (p.equipped && window.itemsMetadata) {
+                    for (const cat of ["st", "ps", "nk", "hr", "gs", "ht"]) {
+                        if (cat === "hd") continue;
+                        const itemId = p.equipped[cat];
+                        if (!itemId) continue;
+                        // Always map up->back, down->front for items
+                        let direction = p.direction;
+                        if (direction === 'up') direction = 'back';
+                        if (direction === 'down') direction = 'front';
+                        const itemMetadata = window.itemsMetadata[cat]?.[itemId];
+                        let availableDirection = direction;
+                        if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
+                            availableDirection = 'front';
+                        }
+                        const key = `${cat}_${itemId}_${availableDirection}`;
+                        if (!window.itemOverlays[key]) {
+                            const overlayImg = new Image();
+                            overlayImg.src = `/items/${cat}/${itemId}/${availableDirection}.png`;
+                            overlayImg.onerror = () => {};
+                            window.itemOverlays[key] = overlayImg;
+                        }
+                        const overlay = window.itemOverlays[key];
+                        if (overlay && overlay.complete && overlay.naturalHeight > 0) {
+                            const savedOffset = window.itemOffsets[cat]?.[itemId]?.[availableDirection];
+                            const metadataOffset = itemMetadata?.offsets?.[availableDirection];
+                            const offset = savedOffset || metadataOffset || { x: 0, y: 0 };
+                            const width = (offset.width || 1) * 55;
+                            const height = (offset.height || 1) * 70;
+                            const x = -27.5 + (offset.x || 0);
+                            const y = (offset.y || 0);
+                            window.ctx.drawImage(overlay, x, y, width, height);
+                        }
+                    }
+                }
+                window.ctx.restore();
+
+                // --- Draw chat bubble OUTSIDE translate context ---
+                if (p.message && Date.now() - (p.messageTime || 0) <= 7000) { // 7 seconds
+                   const time = Date.now() - (p.messageTime || 0);
+                   let opacity = 1;
+                   if (time > 6000) opacity = (7000 - time) / 1000;
+                   const isAdmin = p.isAdmin === true;
+                   const maxBubbleWidth = 220;
+                   const font = '15px "Varela Round", Arial, sans-serif';
+                   window.ctx.font = font;
+                   window.ctx.textAlign = 'center';
+                   window.ctx.textBaseline = 'top';
+                   let message = p.message.substring(0, 50);
+                   function wrapTextBreakWord(ctx, text, maxWidth) {
+                       const lines = [];
+                       let line = '';
+                       for (let i = 0; i < text.length; i++) {
+                           line += text[i];
+                           if (ctx.measureText(line).width > maxWidth) {
+                               if (line.length > 1 && line[line.length-1] === ' ') {
+                                   lines.push(line.trimEnd());
+                                   line = '';
+                               } else {
+                                   let lastSpace = line.lastIndexOf(' ');
+                                   if (lastSpace > 0) {
+                                       lines.push(line.slice(0, lastSpace));
+                                       line = line.slice(lastSpace + 1);
+                                   } else {
+                                       lines.push(line);
+                                       line = '';
+                                   }
+                               }
+                           }
+                       }
+                       if (line.length > 0) lines.push(line);
+                       return lines;
+                   }
+                   const lines = wrapTextBreakWord(window.ctx, message, maxBubbleWidth - 20);
+                   const lineHeight = 22;
+                   const paddingX = 18;
+                   const paddingY = 14;
+                   const textWidth = Math.max(...lines.map(line => window.ctx.measureText(line).width));
+                   const bw = Math.max(60, Math.min(maxBubbleWidth, textWidth + paddingX * 2));
+                   const bh = lines.length * lineHeight + paddingY * 2;
+                   // Place the bubble just above the character sprite
+                   const bx = p.x - bw / 2;
+                   const by = p.y - 50 - bh;
+                   window.ctx.save();
+                   window.ctx.globalAlpha = opacity;
+                   window.ctx.shadowColor = 'rgba(0,0,0,0.22)';
+                   window.ctx.shadowBlur = 12;
+                   window.ctx.shadowOffsetY = 4;
+                   // Outer border (stroke)
+                   window.ctx.beginPath();
+                   window.ctx.moveTo(bx + 22, by);
+                   window.ctx.lineTo(bx + bw - 22, by);
+                   window.ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + 22);
+                   window.ctx.lineTo(bx + bw, by + bh - 22);
+                   window.ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - 22, by + bh);
+                   window.ctx.lineTo(bx + 22, by + bh);
+                   window.ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - 22);
+                   window.ctx.lineTo(bx, by + 22);
+                   window.ctx.quadraticCurveTo(bx, by, bx + 22, by);
+                   window.ctx.closePath();
+                   window.ctx.lineWidth = 4;
+                   if (isAdmin) {
+                       window.ctx.strokeStyle = '#b71c1c'; // dark red border for admin
+                   } else {
+                       window.ctx.strokeStyle = '#fff';
+                   }
+                   window.ctx.stroke();
+                   // Inner bubble (fill)
+                   window.ctx.shadowColor = 'transparent';
+                   window.ctx.shadowBlur = 0;
+                   window.ctx.beginPath();
+                   window.ctx.moveTo(bx + 18, by + 4);
+                   window.ctx.lineTo(bx + bw - 18, by + 4);
+                   window.ctx.quadraticCurveTo(bx + bw - 4, by + 4, bx + bw - 4, by + 18);
+                   window.ctx.lineTo(bx + bw - 4, by + bh - 18);
+                   window.ctx.quadraticCurveTo(bx + bw - 4, by + bh - 4, bx + bw - 18, by + bh - 4);
+                   window.ctx.lineTo(bx + 18, by + bh - 4);
+                   window.ctx.quadraticCurveTo(bx + 4, by + bh - 4, bx + 4, by + bh - 18);
+                   window.ctx.lineTo(bx + 4, by + 18);
+                   window.ctx.quadraticCurveTo(bx + 4, by + 4, bx + 18, by + 4);
+                   window.ctx.closePath();
+                   if (isAdmin) {
+                       window.ctx.fillStyle = '#e74c3c'; // light red fill for admin
+                   } else {
+                       const grad = window.ctx.createLinearGradient(bx, by, bx, by + bh);
+                       grad.addColorStop(0, '#e6eaff');
+                       grad.addColorStop(1, '#fafdff');
+                       window.ctx.fillStyle = grad;
+                   }
+                   window.ctx.fill();
+                   window.ctx.beginPath();
+                   window.ctx.moveTo(p.x - 10, by + bh + 2);
+                   window.ctx.lineTo(p.x + 10, by + bh + 2);
+                   window.ctx.lineTo(p.x, by + bh + 18);
+                   window.ctx.closePath();
+                   window.ctx.fillStyle = '#fff';
+                   window.ctx.fill();
+                   window.ctx.beginPath();
+                   window.ctx.moveTo(p.x - 7, by + bh + 2);
+                   window.ctx.lineTo(p.x + 7, by + bh + 2);
+                   window.ctx.lineTo(p.x, by + bh + 12);
+                   window.ctx.closePath();
+                   if (isAdmin) {
+                       window.ctx.fillStyle = '#e74c3c';
+                   } else {
+                       const grad = window.ctx.createLinearGradient(p.x - 7, by + bh + 2, p.x + 7, by + bh + 12);
+                       grad.addColorStop(0, '#e6eaff');
+                       grad.addColorStop(1, '#fafdff');
+                       window.ctx.fillStyle = grad;
+                   }
+                   window.ctx.fill();
+                   window.ctx.font = isAdmin ? 'bold 17px Varela Round, Arial, sans-serif' : font;
+                   window.ctx.textAlign = 'center';
+                   window.ctx.textBaseline = 'top';
+                   window.ctx.fillStyle = isAdmin ? '#fff' : '#4b3869';
+                   for (let i = 0; i < lines.length; i++) {
+                       window.ctx.fillText(lines[i], p.x, by + paddingY + i * lineHeight);
+                   }
+                   window.ctx.globalAlpha = 1;
+                   window.ctx.restore();
+                }
+                // --- Draw username OUTSIDE translate context ---
+                window.ctx.font = 'bold 18px Varela Round, sans-serif';
+                window.ctx.textAlign = 'center';
+                window.ctx.lineWidth = 2.5;
+                window.ctx.strokeStyle = 'black';
+                window.ctx.strokeText(p.username, p.x, p.y + 55);
+                window.ctx.fillStyle = 'white';
+                window.ctx.fillText(p.username, p.x, p.y + 55);
+            });
+        }
+
+        function drawGame() {
+            window.ctx.clearRect(0, 0, window.canvas.width, window.canvas.height);
+            if (window.bg.complete && window.bg.naturalHeight !== 0) {
+                window.ctx.drawImage(window.bg, 0, 0, window.canvas.width, window.canvas.height);
+            } else {
+                window.ctx.fillStyle = '#e0f7fa'; window.ctx.fillRect(0, 0, window.canvas.width, window.canvas.height);
+            }
+            window.breathScale += 0.002 * window.breathDirection;
+            if (window.breathScale >= 1.05 || window.breathScale <= 1) window.breathDirection *= -1;
+            window.walkFrame++; window.walkBounce = Math.sin(window.walkFrame * 0.4) * 4;
+            drawPlayers();
+            drawToolbar();
+            Object.keys(window.bounceButtons).forEach(key => {
+                const btn = window.bounceButtons[key]; btn.time--;
+                if (btn.time <= 0) { delete window.bounceButtons[key]; }
+                else { btn.scale = 1 + 0.2 * (btn.time / 5); }
+            });
+            for (const id in window.players) {
+                const p = window.players[id];
+                // ... existing code ...
+                // Draw trade icon if player is in trade
+                if (window.playersInTrade && window.playersInTrade.has(id)) {
+                    drawTradeIconAbove(p);
+                }
+            }
+        }
+        function inButton(x, y, btn) { return btn && x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h; }
+        function animateMovement() {
+            const player = window.players[window.socket.id];
+            if (!player || !window.target) return;
+            const dx = window.target.x - player.x, dy = window.target.y - player.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const speed = 6;
+            if (dist < speed) {
+                player.x = window.target.x;
+                player.y = window.target.y;
+                // אל תשנה את player.direction כאן! תשאיר את הכיוון האחרון
+                window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
+                window.target = null;
+            } else {
+                const angle = Math.atan2(dy, dx);
+                player.x += Math.cos(angle) * speed;
+                player.y += Math.sin(angle) * speed;
+                let angleDeg = angle * (180 / Math.PI);
+                if (angleDeg < 0) angleDeg += 360;
+                if (angleDeg >= 337.5 || angleDeg < 22.5) player.direction = 'right';
+                else if (angleDeg < 67.5) player.direction = 'down_right';
+                else if (angleDeg < 112.5) player.direction = 'down';
+                else if (angleDeg < 157.5) player.direction = 'down_left';
+                else if (angleDeg < 202.5) player.direction = 'left';
+                else if (angleDeg < 247.5) player.direction = 'up_left';
+                else if (angleDeg < 292.5) player.direction = 'up';
+                else if (angleDeg < 337.5) player.direction = 'up_right';
+                window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
+            }
+        }
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+             if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
+             this.beginPath(); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath();
+        };
+        function checkIdleDisconnect() {
+             const now = Date.now(); 
+             if (now - window.lastActivityTime > idleDisconnectTimeout) { 
+                 window.showNotification('התנתקת מהמשחק עקב חוסר פעילות.', 'error', 6000); 
+                 setTimeout(() => { window.location.href = '/'; }, 3000); 
+             }
+        }
+        function updateActivityTime() { window.lastActivityTime = Date.now(); }
+        document.addEventListener('mousemove', updateActivityTime);
+
+        function gameLoop() {
+            checkIdleDisconnect();
+            animateMovement();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+        // ---- אירועים על קנבס ----
+        window.canvas.addEventListener('click', (e) => {
+            window.lastActivityTime = Date.now();
+            const rect = window.canvas.getBoundingClientRect();
+            
+            // Convert screen coordinates to canvas coordinates
+            const scaleX = window.canvas.width / rect.width;
+            const scaleY = window.canvas.height / rect.height;
+            
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            
+            const clickXGlobal = e.clientX;
+            const clickYGlobal = e.clientY;
+            
+            // Check if click is on UI elements
+            if (window.isInventoryOpen && inventoryWindowElement) {
+                 const inventoryRect = inventoryWindowElement.getBoundingClientRect();
+                 if (clickXGlobal >= inventoryRect.left && clickXGlobal <= inventoryRect.right &&
+                     clickYGlobal >= inventoryRect.top && clickYGlobal <= inventoryRect.bottom) {
+                     return;
+                 }
+            }
+             if (window.isSettingsOpen && settingsMenuElement) {
+                 const settingsRect = settingsMenuElement.getBoundingClientRect();
+                 if (clickXGlobal >= settingsRect.left && clickXGlobal <= settingsRect.right &&
+                     clickYGlobal >= settingsRect.top && clickYGlobal <= settingsRect.bottom) {
+                     return; // Don't move character if clicking on settings menu
+                 } else {
+                     toggleSettingsMenu();
+                 }
+            }
+            
+            // Check if click is on toolbar
+            const toolbar = document.getElementById('toolbar');
+            if (toolbar) {
+                const toolbarRect = toolbar.getBoundingClientRect();
+                if (clickXGlobal >= toolbarRect.left && clickXGlobal <= toolbarRect.right &&
+                    clickYGlobal >= toolbarRect.top && clickYGlobal <= toolbarRect.bottom) {
+                    return; // Don't move character if clicking on toolbar
+                }
+            }
+            
+            // Check if click is on chat history panel
+            const chatHistoryPanel = document.getElementById('chatHistoryPanel');
+            if (chatHistoryPanel && window.isChatHistoryOpen) {
+                const panelRect = chatHistoryPanel.getBoundingClientRect();
+                if (clickXGlobal >= panelRect.left && clickXGlobal <= panelRect.right &&
+                    clickYGlobal >= panelRect.top && clickYGlobal <= panelRect.bottom) {
+                    return; // Don't move character if clicking on chat history panel
+                } else {
+                    toggleChatHistory();
+                }
+            }
+            
+            // Check if clicking on another player
+            let clickedOnPlayer = false;
+            if (window.players && !window.isInventoryOpen && !window.isSettingsOpen) {
+                const currentPlayer = window.players[window.socket.id];
+                for (let playerId in window.players) {
+                    const player = window.players[playerId];
+                    if (player && player.id !== currentPlayer?.id && playerId !== window.socket.id) {
+                        // Only allow clicking on players in the same room
+                        if (player.room !== currentPlayer?.room) {
+                            continue;
+                        }
+                        // Check if click is within player bounds (55x70 pixels)
+                        const playerScreenX = player.x * (window.canvas.width / 1200);
+                        const playerScreenY = player.y * (window.canvas.height / 680);
+                        
+                        // Use original size but with small margin for better click detection
+                        const clickAreaWidth = 65; // 55 + 10 (5px on each side)
+                        const clickAreaHeight = 80; // 70 + 10 (5px on each side)
+                        const clickAreaX = playerScreenX - 5;
+                        const clickAreaY = playerScreenY - 5;
+                        
+                        if (x >= clickAreaX && x <= clickAreaX + clickAreaWidth && 
+                            y >= clickAreaY && y <= clickAreaY + clickAreaHeight) {
+                            showPlayerCard(player);
+                            clickedOnPlayer = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Move character to clicked position if not clicking on a player
+            if (!clickedOnPlayer && !window.isInventoryOpen && !window.isSettingsOpen) {
+                window.target = { x, y };
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+             window.lastActivityTime = Date.now();
+             
+             // Handle Escape key for closing windows
+             if (e.key === 'Escape') {
+                  if (window.isSettingsOpen) toggleSettingsMenu();
+                  else if (window.isInventoryOpen) toggleInventory();
+                  else if (window.isChatHistoryOpen) toggleChatHistory();
+                  else if (document.getElementById('playerCardModal').style.display === 'flex') {
+                      closePlayerCard();
+                  }
+             }
+             
+             // Handle Enter key for sending messages
+             if (e.key === 'Enter' && !window.isInventoryOpen && !window.isSettingsOpen) {
+                 sendMessage();
+             }
+        });
+        // --- Emoji Panel Logic ---
+        const emojiPanel = document.getElementById('emojiPanel');
+        const emotesBtn = document.getElementById('emotesBtn');
+        const emojiPanelClose = document.getElementById('emojiPanelClose');
+        let emojiPanelOpen = false;
+        let emojiTimeouts = {};
+        // Hide panel by default
+        emojiPanel.style.display = 'none';
+        if (emotesBtn) {
+            emotesBtn.onclick = () => {
+                emojiPanelOpen = !emojiPanelOpen;
+                emojiPanel.style.display = emojiPanelOpen ? 'flex' : 'none';
+            };
+        }
+        if (emojiPanelClose) {
+            emojiPanelClose.onclick = () => {
+                emojiPanelOpen = false;
+                emojiPanel.style.display = 'none';
+            };
+        }
+        document.querySelectorAll('.emoji-btn').forEach(btn => {
+            btn.onclick = () => {
+                const emoji = btn.getAttribute('data-emoji');
+                emojiPanelOpen = false;
+                emojiPanel.style.display = 'none';
+                // Emit emoji to server so all users see it
+                const currentPlayer = window.players[window.socket.id];
+                if (currentPlayer) {
+                    console.log("📤 Sending emoji to server:", emoji);
+                    console.log("📤 Current player data:", { username: currentPlayer.username, socketId: window.socket.id });
+                    window.socket.emit('emojiUsed', { 
+                        emoji: emoji, 
+                        username: currentPlayer.username 
+                    });
+                } else {
+                    console.log("❌ No current player found, socket ID:", window.socket.id);
+                }
+            };
+        });
+        // Listen for emoji events from server
+        window.socket.on('showEmoji', ({ emoji, username }) => {
+            // Find player by username
+            const player = Object.values(window.players).find(p => p.username === username);
+            if (player) {
+                if (emojiTimeouts[player.id]) {
+                    clearTimeout(emojiTimeouts[player.id]);
+                }
+                player.currentEmoji = emoji;
+                player.emojiStartTime = Date.now();
+                emojiTimeouts[player.id] = setTimeout(() => {
+                    player.currentEmoji = null;
+                    player.emojiStartTime = null;
+                    delete emojiTimeouts[player.id];
+                }, 4000);
+            }
+        });
+        // Draw emoji popup in drawPlayers
+        const origDrawPlayers = drawPlayers;
+        drawPlayers = function() {
+            origDrawPlayers.apply(this, arguments);
+            Object.values(window.players).forEach(p => {
+                if (p.currentEmoji && p.emojiStartTime) {
+                    const elapsed = Date.now() - p.emojiStartTime;
+                    const duration = 4000; // 4 seconds
+                    const progress = elapsed / duration;
+                    if (progress < 1) {
+                        const fadeOut = progress > 0.7 ? (1 - progress) / 0.3 : 1;
+                        const floatUp = Math.sin(progress * Math.PI * 2) * 5;
+                        const yOffset = -40 + floatUp; // Much lower above character
+                        window.ctx.save();
+                        window.ctx.globalAlpha = fadeOut;
+                        window.ctx.font = '2.2rem serif';
+                        window.ctx.textAlign = 'center';
+                        window.ctx.textBaseline = 'bottom';
+                        window.ctx.fillText(p.currentEmoji, p.x, p.y + yOffset);
+                        window.ctx.globalAlpha = 1;
+                        window.ctx.restore();
+                    }
+                }
+            });
+        };
+        window.playersInTrade = new Set();
+        window.socket.on('playersInTrade', ids => {
+            window.playersInTrade = new Set(ids);
+        });
+        function drawTradeIconAbove(p) {
+            if (!window.ctx) return;
+            const iconY = p.y - 70; // Above head
+            const iconX = p.x;
+            // Draw a glowing circle
+            window.ctx.save();
+            window.ctx.beginPath();
+            window.ctx.arc(iconX, iconY, 22, 0, 2 * Math.PI);
+            window.ctx.shadowColor = '#4fd18b';
+            window.ctx.shadowBlur = 16;
+            window.ctx.fillStyle = 'white';
+            window.ctx.globalAlpha = 0.95;
+            window.ctx.fill();
+            window.ctx.globalAlpha = 1;
+            window.ctx.shadowBlur = 0;
+            // Draw trade icon (SVG or emoji)
+            window.ctx.font = '22px Arial';
+            window.ctx.textAlign = 'center';
+            window.ctx.textBaseline = 'middle';
+            window.ctx.fillStyle = '#4fd18b';
+            window.ctx.fillText('⇄', iconX, iconY+1);
+            window.ctx.restore();
+        }
+    </script>
+    <!-- Notification System -->
+    <script>
+    // ... existing code ...
+    // Notification System
+    window.showNotification = function(message, type = 'info', duration = 5000) {
+      const container = document.getElementById('notification-container');
+      const notif = document.createElement('div');
+      notif.className = `notification ${type}`;
+      
+      const icons = {
+        info: 'ℹ️',
+        success: '✅',
+        error: '❌'
+      };
+      
+      notif.innerHTML = `
+        <span class="icon">${icons[type]}</span>
+        <span>${message}</span>
+        <button class='close-btn' title='סגור'>&times;</button>
+      `;
+      
+      container.appendChild(notif);
+      setTimeout(() => notif.classList.add('show'), 10);
+      
+      let hideTimeout = setTimeout(() => remove(), duration);
+      function remove() {
+        notif.classList.remove('show');
+        setTimeout(() => { 
+          if (notif.parentNode) notif.parentNode.removeChild(notif); 
+        }, 400);
+      }
+      
+      notif.querySelector('.close-btn').onclick = (e) => { 
+        e.stopPropagation(); 
+        clearTimeout(hideTimeout); 
+        remove(); 
+      };
+    };
+
+    // Admin Panel Functions
+    window.toggleAdminPanel = function() {
+      const panel = document.getElementById('adminPanel');
+      if (panel.style.display === 'flex') {
+        panel.style.display = 'none';
+      } else {
+        panel.style.display = 'flex';
+      }
+    };
+
+    window.banUser = async function() {
+      const username = document.getElementById('banUsername').value;
+      if (!username) {
+        window.showNotification('נא להזין שם משתמש', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/admin/ban-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': 'YOUR_SECRET_ADMIN_TOKEN'
+          },
+          body: JSON.stringify({ username, ban: true })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.showNotification('המשתמש נחסם', 'success');
+        } else {
+          window.showNotification(data.error || 'שגיאה בחסימה', 'error');
+        }
+      } catch (e) {
+        window.showNotification('שגיאה בחסימה', 'error');
+      }
+    };
+
+    window.unbanUser = async function() {
+      const username = document.getElementById('banUsername').value;
+      if (!username) {
+        window.showNotification('נא להזין שם משתמש', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/admin/ban-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': 'YOUR_SECRET_ADMIN_TOKEN'
+          },
+          body: JSON.stringify({ username, ban: false })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.showNotification('המשתמש שוחרר', 'success');
+        } else {
+          window.showNotification(data.error || 'שגיאה בשחרור', 'error');
+        }
+      } catch (e) {
+        window.showNotification('שגיאה בשחרור', 'error');
+      }
+    };
+
+    window.addCoins = function() {
+      const username = document.getElementById('coinUsername').value;
+      const amount = parseInt(document.getElementById('coinAmount').value);
+      if (!username || isNaN(amount)) {
+        window.showNotification('נא להזין שם משתמש וכמות תקינים', 'error');
+        return;
+      }
+      window.socket.emit('adminAddCoins', { username, amount });
+      document.getElementById('coinUsername').value = '';
+      document.getElementById('coinAmount').value = '';
+    };
+
+    window.giveItem = function() {
+      const username = document.getElementById('itemUsername').value;
+      const category = document.getElementById('itemCategory').value;
+      const itemId = parseInt(document.getElementById('itemId').value);
+      if (!username || !category || isNaN(itemId)) {
+        window.showNotification('נא למלא את כל השדות', 'error');
+        return;
+      }
+      window.socket.emit('adminGiveItem', { username, category, itemId });
+      document.getElementById('itemUsername').value = '';
+      document.getElementById('itemCategory').value = '';
+      document.getElementById('itemId').value = '';
+    };
+
+    window.broadcastMessage = function(e) {
+      console.log('broadcastMessage called', e);
+      if (e) e.preventDefault();
+      const message = document.getElementById('broadcastMessage').value;
+      if (!message.trim()) {
+        window.showNotification('נא להזין הודעה', 'error');
+        return;
+      }
+      console.log('Emitting adminBroadcast:', message);
+      window.socket.emit('adminBroadcast', message);
+      document.getElementById('broadcastMessage').value = '';
+    };
+
+    // Replace all alert usages with notifications
+    window.socket.on('adminMessage', (msg) => {
+      // msg יכול להיות מחרוזת או אובייקט { message, username }
+      let message = msg;
+      let publishedBy = '';
+      let publisher = null;
+      if (typeof msg === 'object' && msg !== null) {
+        message = msg.message || '';
+        publishedBy = msg.username ? msg.username : '';
+        if (window.players) {
+          publisher = Object.values(window.players).find(p => p.username === publishedBy);
+        }
+      }
+      // Create a container for the notification
+      const container = document.getElementById('notification-container');
+      const notif = document.createElement('div');
+      notif.className = `notification info`;
+      notif.style.background = 'linear-gradient(135deg, #fafdff 0%, #eafff3 100%)';
+      notif.style.border = '1.5px solid #b2b2ff';
+      notif.style.boxShadow = '0 4px 24px rgba(120,144,255,0.13)';
+      notif.style.position = 'relative';
+      notif.style.display = 'flex';
+      notif.style.flexDirection = 'row';
+      notif.style.alignItems = 'center';
+      notif.style.gap = '24px';
+      notif.style.padding = '24px 32px 24px 24px';
+
+      // Add close button at top-right
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'close-btn';
+      closeBtn.title = 'סגור';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.position = 'absolute';
+      closeBtn.style.top = '12px';
+      closeBtn.style.right = '16px';
+      closeBtn.style.zIndex = '2';
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        notif.classList.remove('show');
+        setTimeout(() => { if (notif.parentNode) notif.parentNode.removeChild(notif); }, 400);
+      };
+      notif.appendChild(closeBtn);
+
+      // Avatar area
+      let avatarHtml = '';
+      if (publisher) {
+        // Create a canvas for the avatar
+        const avatarCanvas = document.createElement('canvas');
+        avatarCanvas.width = 64;
+        avatarCanvas.height = 80;
+        avatarCanvas.style.borderRadius = '12px';
+        avatarCanvas.style.background = '#f3f3f3';
+        avatarCanvas.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+        avatarCanvas.style.display = 'block';
+        avatarCanvas.style.marginBottom = '8px';
+        // Draw the avatar with equipped items
+        drawPlayerAvatarToCanvas(publisher, avatarCanvas);
+        const avatarDiv = document.createElement('div');
+        avatarDiv.style.display = 'flex';
+        avatarDiv.style.flexDirection = 'column';
+        avatarDiv.style.alignItems = 'center';
+        avatarDiv.appendChild(avatarCanvas);
+        const nameDiv = document.createElement('div');
+        nameDiv.style.fontSize = '1em';
+        nameDiv.style.color = '#444';
+        nameDiv.style.textAlign = 'center';
+        nameDiv.style.marginTop = '2px';
+        nameDiv.textContent = publishedBy;
+        avatarDiv.appendChild(nameDiv);
+        notif.appendChild(avatarDiv);
+      }
+
+      // Message area
+      const msgDiv = document.createElement('div');
+      msgDiv.style.display = 'flex';
+      msgDiv.style.flexDirection = 'column';
+      msgDiv.style.justifyContent = 'center';
+      msgDiv.style.alignItems = 'center';
+      msgDiv.style.flex = '1';
+      msgDiv.innerHTML = `<div style='white-space: pre-line; word-break: break-word; font-size:1.18em;line-height:1.6;text-align:center;'>${message}</div>`;
+      notif.appendChild(msgDiv);
+
+      container.appendChild(notif);
+      setTimeout(() => notif.classList.add('show'), 10);
+    });
+
+    // Helper to draw player avatar with equipped items
+    function drawPlayerAvatarToCanvas(player, canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Use the same draw order and offset logic as the main game
+      const order = ['sk','hd','ps','st','nk','hr','gs','ht'];
+      const previewDirection = 'front';
+      // Helper to get offset/size for an item
+      function getItemOffset(cat, itemId) {
+        let offset = { x: 0, y: 0, width: 1, height: 1 };
+        if (window.itemOffsets && window.itemOffsets[cat] && window.itemOffsets[cat][itemId] && window.itemOffsets[cat][itemId][previewDirection]) {
+          offset = { ...offset, ...window.itemOffsets[cat][itemId][previewDirection] };
+        } else if (window.itemsMetadata && window.itemsMetadata[cat] && window.itemsMetadata[cat][itemId] && window.itemsMetadata[cat][itemId].offsets && window.itemsMetadata[cat][itemId].offsets[previewDirection]) {
+          offset = { ...offset, ...window.itemsMetadata[cat][itemId].offsets[previewDirection] };
+        }
+        offset.width = offset.width || 1;
+        offset.height = offset.height || 1;
+        offset.x = offset.x || 0;
+        offset.y = offset.y || 0;
+        return offset;
+      }
+      // Center the character in the canvas
+      const charX = (canvas.width - 55) / 2;
+      const charY = (canvas.height - 70) / 2;
+      // Draw each item in order
+      order.forEach(cat => {
+        const itemId = player.equipped && player.equipped[cat];
+        if (itemId) {
+          const img = new window.Image();
+          img.src = `/items/${cat}/${itemId}/front.png`;
+          img.onload = function() {
+            const offset = getItemOffset(cat, itemId);
+            ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+          };
+        }
+      });
+      // Draw base character (if no hd equipped)
+      if (!player.equipped || !player.equipped.hd) {
+        const baseImg = new window.Image();
+        baseImg.src = 'assets/character_front.png';
+        baseImg.onload = function() {
+          ctx.drawImage(baseImg, charX, charY, 55, 70);
+        };
+      }
+    }
+
+    window.socket.on('forceDisconnect', () => { 
+      window.showNotification('אתה כבר מחובר ממכשיר אחר.', 'error', 8000); 
+      setTimeout(() => { window.location.href = '/'; }, 3000); 
+    });
+
+    window.socket.on('banned', (data) => { 
+      window.showNotification('החשבון שלך נחסם: ' + (data.message || 'No reason provided'), 'error', 8000); 
+      setTimeout(() => { window.location.href = '/'; }, 3000); 
+    });
+
+    window.socket.on('adminActionFeedback', (data) => {
+      if (data.success) {
+        window.showNotification(data.message, 'success', 5000);
+      } else {
+        window.showNotification(data.message, 'error', 6000);
+      }
+    });
+
+    // Listen for admin disconnect/ban messages
+    window.socket.on('adminDisconnected', (data) => {
+      window.showNotification(data.message, 'error', 10000);
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 3000);
+    });
+
+    window.socket.on('adminBanned', (data) => {
+      window.showNotification(data.message, 'error', 10000);
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 3000);
+    });
+
+
+    // Remove old alert usage in logout
+    if (logoutButtonElement) {
+      logoutButtonElement.addEventListener('click', () => {
+        window.showNotification('מתנתק...', 'info', 2000);
+        setTimeout(() => { window.location.href = '/'; }, 1000);
+      });
+    }
+
+    // Toolbar functions
+    function showComingSoon(feature) {
+      window.showNotification(`${feature} - בקרוב!`, 'info', 3000);
+    }
+
+    function logout() {
+      window.showNotification('מתנתק...', 'info', 2000);
+      setTimeout(() => { window.location.href = '/'; }, 1000);
+    }
+
+    // Update user info in toolbar
+    function updateUserInfo() {
+      const userInfoElement = document.getElementById('userInfo');
+      const currentPlayer = window.players[window.socket.id];
+      if (userInfoElement && currentPlayer) {
+        userInfoElement.textContent = currentPlayer.username;
+      }
+    }
+
+    // Call updateUserInfo when player data is available
+    const currentPlayer = window.players[window.socket.id];
+    if (currentPlayer) {
+      updateUserInfo();
+    }
+
+    // Initialize canvas resize after everything is loaded
+    setTimeout(resizeCanvas, 100);
+
+    // Player Card functionality
+    let selectedPlayer = null;
+
+    // Function to show player card
+    function showPlayerCard(player) {
+        selectedPlayer = player;
+        const modal = document.getElementById('playerCardModal');
+        const usernameElement = document.getElementById('playerCardUsername');
+        const avatarCanvas = document.getElementById('playerCardAvatar');
+        const adminActions = document.getElementById('playerCardAdminActions');
+        
+        if (modal && usernameElement && avatarCanvas) {
+            // Set username and admin badge if needed
+            if (player.isAdmin) {
+                usernameElement.innerHTML = `${player.username} <span style="display:inline-block;background:#e74c3c;color:#fff;border-radius:8px;padding:2px 8px;font-size:0.85em;margin-right:8px;vertical-align:middle;"><i class='fas fa-shield-alt' style='margin-left:4px;'></i>מנהל</span>`;
+            } else {
+                usernameElement.textContent = player.username;
+            }
+            
+            // Show admin actions only if current user is admin
+            const currentPlayer = window.players[window.socket.id];
+            if (adminActions) {
+                if (currentPlayer && currentPlayer.isAdmin) {
+                    adminActions.style.display = 'block';
+                } else {
+                    adminActions.style.display = 'none';
+                }
+            }
+            
+            // Draw player avatar
+            const ctx = avatarCanvas.getContext('2d');
+            ctx.clearRect(0, 0, 200, 200);
+            // Draw player character
+            drawPlayerAvatar(ctx, player, 100, 100);
+            modal.style.display = 'flex';
+        }
+    }
+
+    // Function to draw player avatar for card
+    function drawPlayerAvatar(ctx, player, centerX, centerY) {
+        // Clear canvas first
+        ctx.clearRect(0, 0, 200, 200);
+        
+        // Use the existing drawPlayerAvatarToCanvas function but adapt it for our canvas
+        const order = ['sk','hd','ps','st','nk','hr','gs','ht'];
+        const previewDirection = 'front';
+        
+        // Helper to get offset/size for an item
+        function getItemOffset(cat, itemId) {
+            let offset = { x: 0, y: 0, width: 1, height: 1 };
+            if (window.itemOffsets && window.itemOffsets[cat] && window.itemOffsets[cat][itemId] && window.itemOffsets[cat][itemId][previewDirection]) {
+                offset = { ...offset, ...window.itemOffsets[cat][itemId][previewDirection] };
+            } else if (window.itemsMetadata && window.itemsMetadata[cat] && window.itemsMetadata[cat][itemId] && window.itemsMetadata[cat][itemId].offsets && window.itemsMetadata[cat][itemId].offsets[previewDirection]) {
+                offset = { ...offset, ...window.itemsMetadata[cat][itemId].offsets[previewDirection] };
+            }
+            offset.width = offset.width || 1;
+            offset.height = offset.height || 1;
+            offset.x = offset.x || 0;
+            offset.y = offset.y || 0;
+            return offset;
+        }
+        
+        // Center the character in the canvas
+        const charX = centerX - 27.5; // Half of 55
+        const charY = centerY - 35;   // Half of 70
+        
+        // Draw each item in order
+        order.forEach(cat => {
+            const itemId = player.equipped && player.equipped[cat];
+            if (itemId) {
+                const img = new window.Image();
+                img.src = `/items/${cat}/${itemId}/front.png`;
+                img.onload = function() {
+                    const offset = getItemOffset(cat, itemId);
+                    ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                };
+                img.onerror = function() {
+                    console.log(`Failed to load item: ${cat}/${itemId}/front.png`);
+                };
+            }
+        });
+        
+        // Draw base character (if no hd equipped)
+        if (!player.equipped || !player.equipped.hd) {
+            const baseImg = new window.Image();
+            baseImg.src = '/assets/character_down.png';
+            baseImg.onload = function() {
+                ctx.drawImage(baseImg, charX, charY, 55, 70);
+            };
+        }
+    }
+
+    // Close player card
+    function closePlayerCard() {
+        const modal = document.getElementById('playerCardModal');
+        if (modal) {
+            modal.style.display = 'none';
+            selectedPlayer = null;
+        }
+    }
+
+    // Player card button event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        const closeBtn = document.getElementById('playerCardClose');
+        const homeBtn = document.getElementById('playerCardHome');
+        const tradeBtn = document.getElementById('playerCardTrade');
+        const addFriendBtn = document.getElementById('playerCardAddFriend');
+        const reportBtn = document.getElementById('playerCardReport');
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closePlayerCard);
+        }
+
+        if (homeBtn) {
+            homeBtn.addEventListener('click', () => {
+                window.showNotification('בית אישי - בקרוב!', 'info', 3000);
+            });
+        }
+
+        if (tradeBtn) {
+            tradeBtn.addEventListener('click', () => {
+                if (window.Trading && typeof window.Trading.sendTradeRequest === 'function' && selectedPlayer) {
+                    window.Trading.sendTradeRequest(selectedPlayer.id);
+                }
+            });
+        }
+
+        if (addFriendBtn) {
+            addFriendBtn.addEventListener('click', () => {
+                window.showNotification('הוספה לחברים - בקרוב!', 'info', 3000);
+            });
+        }
+
+        if (reportBtn) {
+            reportBtn.addEventListener('click', () => {
+                window.showNotification('דיווח - בקרוב!', 'info', 3000);
+            });
+        }
+
+        // Admin action buttons
+        const addCoinsBtn = document.getElementById('playerCardAddCoins');
+        const disconnectBtn = document.getElementById('playerCardDisconnect');
+        const banBtn = document.getElementById('playerCardBan');
+
+        if (addCoinsBtn) {
+            addCoinsBtn.addEventListener('click', () => {
+                if (selectedPlayer) {
+                    const amount = prompt(`כמה מטבעות להוסיף ל-${selectedPlayer.username}?`, '1000');
+                    if (amount && !isNaN(amount)) {
+                        window.socket.emit('adminAddCoins', {
+                            username: selectedPlayer.username,
+                            amount: parseInt(amount)
+                        });
+                        closePlayerCard();
+                    }
+                }
+            });
+        }
+
+        if (disconnectBtn) {
+            disconnectBtn.addEventListener('click', () => {
+                if (selectedPlayer) {
+                    if (confirm(`האם אתה בטוח שברצונך לנתק את ${selectedPlayer.username}?`)) {
+                        window.socket.emit('adminDisconnect', {
+                            username: selectedPlayer.username
+                        });
+                        closePlayerCard();
+                    }
+                }
+            });
+        }
+
+        if (banBtn) {
+            banBtn.addEventListener('click', () => {
+                if (selectedPlayer) {
+                    const reason = prompt(`סיבת הבאן ל-${selectedPlayer.username}:`, 'הפרת כללים');
+                    if (reason) {
+                        window.socket.emit('adminBan', {
+                            username: selectedPlayer.username,
+                            reason: reason
+                        });
+                        closePlayerCard();
+                    }
+                }
+            });
+        }
+
+        // Close modal when clicking outside
+        const modal = document.getElementById('playerCardModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closePlayerCard();
+                }
+            });
+        }
+    });
+
+    // Responsive canvas resizing
+    function resizeCanvas() {
+      const canvas = document.getElementById('gameCanvas');
+      const gameContainer = document.querySelector('.game-container');
+      
+      if (canvas && gameContainer) {
+        const containerRect = gameContainer.getBoundingClientRect();
+        const maxWidth = containerRect.width - 40; // 20px padding on each side
+        const maxHeight = containerRect.height - 40;
+        
+        // Calculate aspect ratio (1200:680 = 1.76:1)
+        const aspectRatio = 1200 / 680;
+        
+        let newWidth = maxWidth;
+        let newHeight = maxWidth / aspectRatio;
+        
+        if (newHeight > maxHeight) {
+          newHeight = maxHeight;
+          newWidth = maxHeight * aspectRatio;
+        }
+        
+        canvas.style.width = newWidth + 'px';
+        canvas.style.height = newHeight + 'px';
+        
+        // Force a reflow to update getBoundingClientRect
+        canvas.offsetHeight;
+      }
+    }
+
+    // Resize canvas on load and window resize
+    window.addEventListener('load', resizeCanvas);
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(resizeCanvas, 100);
+    });
+
+    // Also resize when the game container changes
+    const resizeObserver = new ResizeObserver(() => {
+      resizeCanvas();
+    });
+    
+    const gameContainer = document.querySelector('.game-container');
+    if (gameContainer) {
+      resizeObserver.observe(gameContainer);
+    }
+
+    // ... existing code ...
+    </script>
+
+    <!-- JS: שדרוג toggleSettingsMenu עם מיקום דינמי ורספונסיבי -->
+    <script>
+    // שדרוג toggleSettingsMenu להיות מודרנית
+    function toggleSettingsMenu() {
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsMenu = document.getElementById('settingsMenu');
+        
+        if (!settingsBtn || !settingsMenu) return;
+        
+        if (!window.isSettingsOpen) {
+            // פתיחת הפאנל מעל הכפתור
+            const btnRect = settingsBtn.getBoundingClientRect();
+            const menuRect = settingsMenu.getBoundingClientRect();
+            const scrollY = window.scrollY || window.pageYOffset;
+            const scrollX = window.scrollX || window.pageXOffset;
+            
+            // יישור לימין במסכים קטנים, יישור לאמצע במסכים גדולים
+            let left = btnRect.left + scrollX + btnRect.width/2 - menuRect.width/2;
+            if (window.innerWidth < 600) left = btnRect.left + scrollX;
+            
+            let top = btnRect.top + scrollY - menuRect.height - 12;
+            if (top < 10) top = btnRect.bottom + scrollY + 12;
+            
+            settingsMenu.style.left = left + 'px';
+            settingsMenu.style.top = top + 'px';
+            settingsMenu.classList.add('visible');
+            window.isSettingsOpen = true;
+            
+            // סגירת אינבנטורי אם פתוח
+            if(window.isInventoryOpen) toggleInventory();
+        } else {
+            // סגירת הפאנל
+            settingsMenu.classList.remove('visible');
+            window.isSettingsOpen = false;
+        }
+    }
+
+    // Event listeners לכפתור ההגדרות
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+    // כפתור ההגדרות
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSettingsMenu();
+        });
+    }
+    
+    // כפתור הסגירה
+    if (settingsCloseBtn) {
+        settingsCloseBtn.addEventListener('click', () => {
+            if (window.isSettingsOpen) toggleSettingsMenu();
+        });
+    }
+    
+    // סגירה בלחיצה מחוץ לחלון
+    document.addEventListener('click', (e) => {
+        const settingsMenu = document.getElementById('settingsMenu');
+        if (window.isSettingsOpen && settingsMenu && !settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+            toggleSettingsMenu();
+        }
+    });
+    
+    // כפתור מסך מלא
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            const elem = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) elem.requestFullscreen();
+                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+                else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
+            }
+        });
+    }
+    </script>
+
+    <!-- Player Card Modal -->
+    <div id="playerCardModal" class="modal-overlay" style="display: none;">
+        <div class="player-card">
+            <div class="player-card-header">
+                <h3 id="playerCardUsername">שם משתמש</h3>
+                <button id="playerCardClose" class="close-btn">×</button>
+            </div>
+            <div class="player-card-content">
+                <div class="player-card-avatar">
+                    <canvas id="playerCardAvatar" width="200" height="200"></canvas>
+                </div>
+                <div class="player-card-actions">
+                    <button id="playerCardHome" class="player-card-btn" title="בית אישי">
+                        <i class="fas fa-home"></i>
+                    </button>
+                    <button id="playerCardTrade" class="player-card-btn" title="שליחת החלפה">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
+                    <button id="playerCardAddFriend" class="player-card-btn" title="הוספה לחברים">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                    <button id="playerCardReport" class="player-card-btn" title="דיווח">
+                        <i class="fas fa-flag"></i>
+                    </button>
+                </div>
+                <!-- Admin Actions - Only visible to admins -->
+                <div id="playerCardAdminActions" class="player-card-admin-actions" style="display: none;">
+                    <div class="admin-actions-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>פעולות ניהול</span>
+                    </div>
+                    <div class="admin-actions-buttons">
+                        <button id="playerCardAddCoins" class="admin-btn-circle add-coins-btn" title="הוספת מטבעות">
+                            <i class="fas fa-coins"></i>
+                            <span class="admin-tooltip">הוספת מטבעות</span>
+                        </button>
+                        <button id="playerCardDisconnect" class="admin-btn-circle disconnect-btn" title="ניתוק שחקן">
+                            <i class="fas fa-user-times"></i>
+                            <span class="admin-tooltip">ניתוק שחקן</span>
+                        </button>
+                        <button id="playerCardBan" class="admin-btn-circle ban-btn" title="באן שחקן">
+                            <i class="fas fa-ban"></i>
+                            <span class="admin-tooltip">באן שחקן</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

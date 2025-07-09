@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בלוג - Jumpi</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <style>
+        .blog-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: right;
+        }
+        
+        .blog-card h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .blog-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        
+        .coming-soon {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .coming-soon-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .coming-soon h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .coming-soon p {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="container">
+            <div class="blog-card fade-in-up">
+                <div class="coming-soon">
+                    <div class="coming-soon-icon">📝</div>
+                    <h2>בלוג Jumpi</h2>
+                    <p>בלוג עם חדשות, עדכונים, טיפים ומדריכים על עולם Jumpi</p>
+                    <p><strong>בקרוב!</strong></p>
+                    <p>אנחנו עובדים על תוכן איכותי עבורכם. בקרוב תוכלו לקרוא:</p>
+                    <ul style="text-align: right; color: #666; line-height: 1.8;">
+                        <li>חדשות ועדכונים על המשחק</li>
+                        <li>טיפים ואסטרטגיות למשחק</li>
+                        <li>מדריכים לשיפור הדמות</li>
+                        <li>סיפורים מהקהילה</li>
+                        <li>ראיונות עם שחקנים מובילים</li>
+                    </ul>
+                </div>
+                
+                <div class="back-link">
+                    <a href="/" class="btn btn-secondary">← חזרה לדף הבית</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/components/Toolbar.js"></script>
+    <script>
+        // Initialize toolbar
+        new Toolbar();
+    </script>
+</body>
+</html> 

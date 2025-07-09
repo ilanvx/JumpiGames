@@ -1,0 +1,24 @@
+[
+  {
+    "id": "1751929469067",
+    "username": "ilan",
+    "email": "ilanvx@gmail.com",
+    "password": "$2b$10$kcIzxcnxgazFtmWqo1hAGe4jQn3W6d88dVEPtOOvDhkmKSgl7KGIq",
+    "skinColor": 2,
+    "shirt": 5,
+    "pants": 2,
+    "coins": 150,
+    "createdAt": "2025-07-07T23:04:29.067Z"
+  },
+  {
+    "id": "1751929553590",
+    "username": "Juju",
+    "email": "ilanvx1@gmail.com",
+    "password": "$2b$10$MvABXpZ3JHzXb0k7lWEQJubPqo959O.wJIFL7L9rl1i6eAQEurkMG",
+    "skinColor": 5,
+    "shirt": 5,
+    "pants": 4,
+    "coins": 150,
+    "createdAt": "2025-07-07T23:05:53.590Z"
+  }
+]

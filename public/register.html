@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>הרשמה - Jumpi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="register.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Varela Round', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      direction: rtl;
+      padding-top: 80px;
+    }
+
+    .register-container {
+      background: rgba(255,255,255,0.98);
+      border-radius: 28px;
+      box-shadow: 0 8px 40px rgba(120,144,255,0.13);
+      padding: 40px 32px 32px 32px;
+      max-width: 420px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .register-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #4b3869;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    .character-preview {
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      width: 120px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .character-preview img.base {
+      width: 55px;
+      height: 70px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+    }
+    .character-preview img.skin {
+      width: 55px;
+      height: 70px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      pointer-events: none;
+    }
+    .skin-options {
+      display: flex;
+      flex-direction: row;
+      gap: 18px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    .skin-option {
+      border: 2.5px solid transparent;
+      border-radius: 12px;
+      padding: 6px;
+      background: #f3f3f3;
+      cursor: pointer;
+      transition: border 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 6px rgba(120,144,255,0.08);
+      width: 55px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .skin-option.selected {
+      border: 2.5px solid #7c8aff;
+      box-shadow: 0 2px 12px rgba(120,144,255,0.18);
+      background: #e0e7ff;
+    }
+    .skin-option img {
+      width: 55px;
+      height: 70px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .continue-btn {
+      width: 100%;
+      padding: 18px 0;
+      font-size: 1.25rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #7c8aff 0%, #b494ff 100%);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(120,144,255,0.13);
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s, transform 0.15s;
+      letter-spacing: 1px;
+      outline: none;
+    }
+    .continue-btn:disabled {
+      background: #cfd8dc;
+      color: #888;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animated"></div>
+  <main class="register-main">
+    <section class="register-card" aria-label="הרשמה">
+      <header class="register-header">
+        <h1 class="register-app-title">Jumpi</h1>
+        <div class="register-stepper" id="registerStepper">
+          <div class="step" data-step="1">1</div>
+          <div class="step" data-step="2">2</div>
+          <div class="step" data-step="3">3</div>
+          <div class="step" data-step="4">4</div>
+          <div class="step" data-step="5">5</div>
+        </div>
+      </header>
+      
+      <div class="register-content">
+        <!-- Step 1: Skin Color Selection -->
+        <div id="step1" class="register-step active">
+          <div class="register-title">שלב 1: בחר צבע גוף לדמות שלך</div>
+          <div class="character-preview" id="characterPreview"></div>
+          <div class="skin-options" id="skinOptions"></div>
+          <button class="continue-btn" id="continueBtn" disabled>
+            המשך <i class="fas fa-arrow-left"></i>
+          </button>
+        </div>
+
+        <!-- Step 2: Shirt Selection -->
+        <div id="step2" class="register-step">
+          <div class="register-title">שלב 2: בחר חולצה</div>
+          <div class="character-preview" id="characterPreview2"></div>
+          <div class="skin-options" id="shirtOptions"></div>
+          <button class="continue-btn" id="continueBtn2" disabled>
+            המשך <i class="fas fa-arrow-left"></i>
+          </button>
+        </div>
+
+        <!-- Step 3: Pants Selection -->
+        <div id="step3" class="register-step">
+          <div class="register-title">שלב 3: בחר מכנסיים</div>
+          <div class="character-preview" id="characterPreview3"></div>
+          <div class="skin-options" id="pantsOptions"></div>
+          <button class="continue-btn" id="continueBtn3" disabled>
+            המשך <i class="fas fa-arrow-left"></i>
+          </button>
+        </div>
+
+        <!-- Step 4: User Details -->
+        <div id="step4" class="register-step">
+          <div class="register-title">שלב 4: פרטי משתמש</div>
+          <form id="detailsForm" class="details-form" autocomplete="off" novalidate>
+            <div class="form-fields">
+              <input type="text" id="regUsername" class="reg-input" placeholder="שם משתמש" autocomplete="username" required aria-label="שם משתמש">
+              <input type="email" id="regEmail" class="reg-input" placeholder="אימייל" autocomplete="email" required aria-label="אימייל">
+              <input type="password" id="regPassword" class="reg-input" placeholder="סיסמה" autocomplete="new-password" required aria-label="סיסמה">
+              <input type="password" id="regPassword2" class="reg-input" placeholder="אשר סיסמה" autocomplete="new-password" required aria-label="אשר סיסמה">
+            </div>
+            <label class="terms-label">
+              <input type="checkbox" id="regTerms" required aria-label="הסכמה לתקנון" class="reg-checkbox"> 
+              אני מסכים/ה לתקנון האתר
+            </label>
+            <button type="submit" class="continue-btn" id="submitBtn">הרשמה</button>
+          </form>
+        </div>
+
+        <!-- Step 5: Success Screen -->
+        <div id="step5" class="register-step">
+          <div class="success-screen">
+            <div class="success-icon">🎉</div>
+            <div class="success-message">ההרשמה בוצעה בהצלחה!</div>
+            <div class="character-preview" id="successCharacterPreview"></div>
+            <div class="success-coins">קיבלת 150 מטבעות התחלתיים!</div>
+            <div id="confetti"></div>
+            <div class="success-redirect">תועבר/י לעמוד ההתחברות בעוד רגע...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+  <script src="register.js"></script>
+  <script src="/components/Toolbar.js"></script>
+  <script>
+    // Initialize toolbar
+    new Toolbar();
+    
+    // Toolbar functions
+    function showComingSoon(feature) {
+      showToast(`${feature} - בקרוב!`, 'info');
+    }
+  </script>
+</body>
+</html> 

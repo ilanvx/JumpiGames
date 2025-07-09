@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>התחברות - Jumpi</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+</head>
+<body>
+    <div class="main-content">
+        <div class="container">
+            <div class="card fade-in-up">
+                <h1>התחברות</h1>
+                <p>ברוכים הבאים חזרה! התחבר/י לחשבון שלך כדי להמשיך את ההרפתקה.</p>
+                
+                <form id="loginForm" class="mt-20">
+                    <div class="form-group">
+                        <label for="username">שם משתמש</label>
+                        <input type="text" id="username" class="form-control" placeholder="הכנס/י את שם המשתמש שלך" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">סיסמה</label>
+                        <input type="password" id="password" class="form-control" placeholder="הכנס/י את הסיסמה שלך" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+                        התחברות
+                    </button>
+                </form>
+                
+                <div class="mt-20 text-center">
+                    <a href="/reset-password.html" class="link">שכחת סיסמה?</a>
+                </div>
+                
+                <div class="mt-20 text-center">
+                    <p style="color: #666; font-size: 0.9rem;">
+                        אין לך חשבון? <a href="/register.html" class="link">הרשמה חדשה</a>
+                    </p>
+                </div>
+                
+                <div class="mt-20 text-center">
+                    <a href="/" class="link">← חזרה לדף הבית</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>שגיאה</h3>
+            <p id="errorMessage"></p>
+            <button onclick="hideError()" class="btn btn-primary">אישור</button>
+        </div>
+    </div>
+
+    <script src="/components/Toolbar.js"></script>
+    <script>
+        // Initialize toolbar
+        new Toolbar();
+        
+        // Login form handling
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            submitBtn.textContent = 'מתחבר...';
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showError('נא למלא את כל השדות');
+                resetButton();
+                return;
+            }
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    window.location.href = '/game';
+                } else {
+                    showError(data.error || 'שם משתמש או סיסמה שגויים');
+                    resetButton();
+                }
+            } catch (error) {
+                showError('שגיאה בחיבור לשרת');
+                resetButton();
+            }
+        });
+
+        function resetButton() {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+            submitBtn.textContent = 'התחברות';
+        }
+
+        // Error handling
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+
+        function hideError() {
+            document.getElementById('errorModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('errorModal').addEventListener('click', (e) => {
+            if (e.target.id === 'errorModal') {
+                hideError();
+            }
+        });
+    </script>
+
+    <style>
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            margin: 20px;
+        }
+
+        .modal-content h3 {
+            color: #ff4757;
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</body>
+</html> 
