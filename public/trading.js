@@ -251,7 +251,7 @@
             baseImg.onload = function() {
                 ctx.drawImage(baseImg, charX, charY, 55, 70);
             };
-            baseImg.src = '/assets/character_front.png';
+            baseImg.src = '/assets/character_down.png';
         }
     }
     function updateTradeSlotsAndInventory(tradeData) {
