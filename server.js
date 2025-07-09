@@ -1,4 +1,5 @@
 // server.js
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -21,9 +22,12 @@ app.set('io', io);
 // This helps ensure consistency in data structures.
 const ITEM_CATEGORIES_SERVER_KEYS = ["ht", "ps", "st", "gs", "nk", "hd", "sk", "hr"];
 
-mongoose.connect('mongodb://localhost/jumpi')
-    .then(() => console.log('MongoDB connected successfully.'))
-    .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected successfully.'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 const sessionMiddleware = session({
  secret: 'jumpi_secret_key', // Consider a more secure, environment-variable-based secret
