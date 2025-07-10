@@ -2683,24 +2683,25 @@
             const characterPreview = document.createElement('div');
             characterPreview.style.cssText = `
                 width: 40px;
-                height: 40px;
-                border-radius: 50%;
+                height: 50px;
+                border-radius: 8px;
                 background: #f0f0f0;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 overflow: hidden;
                 position: relative;
+                border: 1px solid rgba(0,0,0,0.1);
             `;
             
             // Create character preview canvas
             const canvas = document.createElement('canvas');
             canvas.width = 40;
-            canvas.height = 40;
+            canvas.height = 50;
             canvas.style.cssText = `
                 width: 100%;
                 height: 100%;
-                border-radius: 50%;
+                border-radius: 8px;
             `;
             
             // Draw character preview
@@ -2907,31 +2908,21 @@
             // Start drawing the full character
             drawFullCharacter();
             
-            // Create circular mask for head-only preview
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2 * Math.PI);
-            ctx.clip();
+            // Scale down the full character to fit in the preview area
+            // Calculate scale to fit the character proportionally in the canvas
+            const scale = Math.min(canvas.width / tempCanvas.width, canvas.height / tempCanvas.height) * 0.8; // 80% of max fit for some padding
             
-            // Crop to show only the head area (top 40% of the character)
-            const sourceX = 0;
-            const sourceY = 0;
-            const sourceWidth = tempCanvas.width;
-            const sourceHeight = tempCanvas.height * 0.4; // Show top 40% for head focus
+            const scaledWidth = tempCanvas.width * scale;
+            const scaledHeight = tempCanvas.height * scale;
+            const destX = (canvas.width - scaledWidth) / 2;
+            const destY = (canvas.height - scaledHeight) / 2;
             
-            // Scale to fill the circle properly
-            const destWidth = canvas.width * 1.5; // Larger to fill circle
-            const destHeight = canvas.height * 1.5;
-            const destX = (canvas.width - destWidth) / 2;
-            const destY = (canvas.height - destHeight) / 2 - canvas.height * 0.1; // Move up slightly to center head
-            
+            // Draw the full character scaled down
             ctx.drawImage(
                 tempCanvas,
-                sourceX, sourceY, sourceWidth, sourceHeight,
-                destX, destY, destWidth, destHeight
+                0, 0, tempCanvas.width, tempCanvas.height,
+                destX, destY, scaledWidth, scaledHeight
             );
-            
-            ctx.restore();
         }
         
         // ==================== Friends Panel Functions ====================
