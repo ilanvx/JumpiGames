@@ -2920,15 +2920,15 @@
             // Draw the cropped head area from the temp canvas
             // Focus on the head area with better positioning
             const sourceX = 0;
-            const sourceY = 0; // Start from top to focus on head
+            const sourceY = tempCanvas.height * 0.2; // Start from 20% down to focus on head area
             const sourceWidth = tempCanvas.width;
-            const sourceHeight = tempCanvas.height * 0.5; // Show top 50% for better head focus
+            const sourceHeight = tempCanvas.height * 0.4; // Show middle 40% for head focus
             
             // Scale and position to fill the circle better
             const destWidth = canvas.width * 1.2; // Slightly larger to fill circle
             const destHeight = canvas.height * 1.2;
             const destX = (canvas.width - destWidth) / 2;
-            const destY = (canvas.height - destHeight) / 2;
+            const destY = (canvas.height - destHeight) / 2 - canvas.height * 0.1; // Move up slightly to center head
             
             ctx.drawImage(
                 tempCanvas,
