@@ -1765,7 +1765,7 @@
             
             <div class="toolbar-center">
                 <div class="chat-input-container">
-                    <input type="text" id="chatInput" placeholder="הקלד הודעה... (עברית/אנגלית/ספרות/תווים מיוחדים)" maxlength="50">
+                    <input type="text" id="chatInput" placeholder="הקלד הודעה..." maxlength="50">
                     <button class="send-btn" id="sendBtn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -2789,9 +2789,9 @@ Object.keys(serverPlayers).forEach(id => {
             loadItemOffsets();
             
             // Show chat rules notification
-            setTimeout(() => {
-                window.showNotification('💬 מערכת הצ\'אט מוגנת - רק עברית, אנגלית, ספרות ותווים מיוחדים מותרים', 'info', 6000);
-            }, 2000);
+            // setTimeout(() => {
+            //     window.showNotification('💬 מערכת הצ\'אט מוגנת - רק עברית, אנגלית, ספרות ותווים מיוחדים מותרים', 'info', 6000);
+            // }, 2000);
         });
         
         function triggerBounce(key) { window.bounceButtons[key] = { scale: 1.2, time: 5 }; }
