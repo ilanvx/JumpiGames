@@ -2654,6 +2654,16 @@
                 const userItem = createUserListItem(player);
                 onlineUsersList.appendChild(userItem);
             });
+            
+            // Store references to canvases for real-time updates
+            window.onlineUserCanvases = window.onlineUserCanvases || {};
+            const canvases = onlineUsersList.querySelectorAll('canvas');
+            canvases.forEach((canvas, index) => {
+                const player = onlinePlayers[index];
+                if (player) {
+                    window.onlineUserCanvases[player.username] = canvas;
+                }
+            });
         }
         
         function createUserListItem(player) {
@@ -2708,11 +2718,21 @@
             
             const username = document.createElement('span');
             username.textContent = player.username;
-            username.style.cssText = `
-                font-weight: 600;
-                color: #333;
-                font-size: 0.9rem;
-            `;
+            
+            // Apply admin styling if player is admin
+            if (player.isAdmin) {
+                username.style.cssText = `
+                    font-weight: 600;
+                    color: #dc3545;
+                    font-size: 0.9rem;
+                `;
+            } else {
+                username.style.cssText = `
+                    font-weight: 600;
+                    color: #333;
+                    font-size: 0.9rem;
+                `;
+            }
             
             const onlineStatus = document.createElement('div');
             onlineStatus.style.cssText = `
@@ -2722,7 +2742,13 @@
                 font-size: 0.75rem;
                 color: #28a745;
             `;
-            onlineStatus.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem;"></i>מקוון';
+            
+            // Add admin badge if player is admin
+            if (player.isAdmin) {
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem;"></i>מקוון <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; margin-right: 4px;">Admin</span>';
+            } else {
+                onlineStatus.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem;"></i>מקוון';
+            }
             
             userInfo.appendChild(username);
             userInfo.appendChild(onlineStatus);
@@ -2786,50 +2812,121 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Scale for preview
-            const scale = 0.4;
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
+            // Create a temporary canvas for full character rendering
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 110; // 2x the original character size
+            tempCanvas.height = 140;
+            const tempCtx = tempCanvas.getContext('2d');
             
-            // Draw character base (head)
-            ctx.fillStyle = '#ffdbac'; // Default skin color
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
-            ctx.fill();
+            // Set up the rendering context similar to the main game
+            tempCtx.save();
+            tempCtx.translate(55, 70); // Center of the temp canvas
             
-            // Draw equipped items if available
-            if (player.equipped) {
-                // Draw hat
-                if (player.equipped.ht) {
-                    ctx.fillStyle = '#4a90e2';
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY - 6, 10, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-                
-                // Draw glasses
-                if (player.equipped.gs) {
-                    ctx.fillStyle = '#333';
-                    ctx.beginPath();
-                    ctx.arc(centerX - 3, centerY - 1, 2.5, 0, 2 * Math.PI);
-                    ctx.arc(centerX + 3, centerY - 1, 2.5, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-                
-                // Draw hair
-                if (player.equipped.hr) {
-                    ctx.fillStyle = '#8B4513';
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY - 2, 8, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-                
-                // Draw shirt (small indicator)
-                if (player.equipped.st) {
-                    ctx.fillStyle = '#ff6b6b';
-                    ctx.fillRect(centerX - 4, centerY + 2, 8, 4);
+            // Use 'front' direction for consistent head view
+            const direction = 'front';
+            
+            // Draw base character sprite
+            function drawDefaultCharacter() {
+                const img = window.characterImages[direction] || window.characterImages['down'];
+                if (img && img.complete && img.naturalHeight > 0) {
+                    tempCtx.drawImage(img, -27.5, 0, 55, 70);
                 }
             }
+            
+            // Draw skin color (hd) if equipped
+            if (player.equipped && player.equipped.hd) {
+                const skinItemId = player.equipped.hd;
+                const itemMetadata = window.itemsMetadata?.hd?.[skinItemId];
+                let availableDirection = direction;
+                if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
+                    availableDirection = 'front';
+                }
+                const skinImagePath = `/items/hd/${skinItemId}/${availableDirection}.png`;
+                const key = `hd_${skinItemId}_${availableDirection}`;
+                if (!window.itemOverlays[key]) {
+                    const skinImage = new Image();
+                    skinImage.src = skinImagePath;
+                    skinImage.onerror = function() {};
+                    window.itemOverlays[key] = skinImage;
+                }
+                const skinImage = window.itemOverlays[key];
+                if (skinImage && skinImage.complete && skinImage.naturalHeight > 0) {
+                    const savedOffset = window.itemOffsets?.hd?.[skinItemId]?.[availableDirection];
+                    const metadataOffset = itemMetadata?.offsets?.[availableDirection];
+                    const offset = savedOffset || metadataOffset || { x: 0, y: 0 };
+                    const x = -27.5 + (offset.x || 0);
+                    const y = (offset.y || 0);
+                    const width = (offset.width || 1) * 55;
+                    const height = (offset.height || 1) * 70;
+                    tempCtx.drawImage(skinImage, x, y, width, height);
+                } else {
+                    drawDefaultCharacter();
+                }
+            } else {
+                drawDefaultCharacter();
+            }
+            
+            // Draw equipped items (only head-related items for preview)
+            if (player.equipped && window.itemsMetadata) {
+                // Only draw head-related items: ht (hat), hr (hair), gs (glasses)
+                for (const cat of ["ht", "hr", "gs"]) {
+                    const itemId = player.equipped[cat];
+                    if (!itemId) continue;
+                    
+                    const itemMetadata = window.itemsMetadata[cat]?.[itemId];
+                    let availableDirection = direction;
+                    if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
+                        availableDirection = 'front';
+                    }
+                    
+                    // Skip glasses for back view
+                    if (cat === "gs" && direction === "back") {
+                        continue;
+                    }
+                    
+                    const key = `${cat}_${itemId}_${availableDirection}`;
+                    if (!window.itemOverlays[key]) {
+                        const overlayImg = new Image();
+                        overlayImg.src = `/items/${cat}/${itemId}/${availableDirection}.png`;
+                        overlayImg.onerror = () => {};
+                        window.itemOverlays[key] = overlayImg;
+                    }
+                    const overlay = window.itemOverlays[key];
+                    if (overlay && overlay.complete && overlay.naturalHeight > 0) {
+                        const savedOffset = window.itemOffsets[cat]?.[itemId]?.[availableDirection];
+                        const metadataOffset = itemMetadata?.offsets?.[availableDirection];
+                        const offset = savedOffset || metadataOffset || { x: 0, y: 0 };
+                        const width = (offset.width || 1) * 55;
+                        const height = (offset.height || 1) * 70;
+                        const x = -27.5 + (offset.x || 0);
+                        const y = (offset.y || 0);
+                        tempCtx.drawImage(overlay, x, y, width, height);
+                    }
+                }
+            }
+            
+            tempCtx.restore();
+            
+            // Create circular mask for head-only preview
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2 * Math.PI);
+            ctx.clip();
+            
+            // Draw the cropped head area from the temp canvas
+            // Position to show mainly the head area (upper portion of the character)
+            const sourceX = 0;
+            const sourceY = 0;
+            const sourceWidth = tempCanvas.width;
+            const sourceHeight = tempCanvas.height * 0.6; // Show top 60% for head focus
+            
+            ctx.drawImage(
+                tempCanvas,
+                sourceX, sourceY, sourceWidth, sourceHeight,
+                0, 0, canvas.width, canvas.height
+            );
+            
+            ctx.restore();
         }
         
         // ==================== Friends Panel Functions ====================
@@ -3072,6 +3169,24 @@
                     currentPlayer.isAdmin = serverPlayer.isAdmin;
                 }
             });
+            
+            // Update character previews in online users list if it's open
+            const friendsPanelElement = document.getElementById('friendsPanel');
+            if (friendsPanelElement && friendsPanelElement.style.display !== 'none') {
+                const onlineUsersTabContent = document.getElementById('onlineUsersTabContent');
+                if (onlineUsersTabContent && onlineUsersTabContent.style.display !== 'none') {
+                    // Update character previews for online users
+                    if (window.onlineUserCanvases) {
+                        Object.keys(window.onlineUserCanvases).forEach(username => {
+                            const canvas = window.onlineUserCanvases[username];
+                            const player = Object.values(window.players).find(p => p.username === username);
+                            if (canvas && player) {
+                                drawCharacterPreview(canvas, player);
+                            }
+                        });
+                    }
+                }
+            }
             
             // Add new players
             Object.keys(serverPlayers).forEach(id => {
