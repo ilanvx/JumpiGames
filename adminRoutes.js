@@ -16,8 +16,8 @@ const requireAdmin = async (req, res, next) => {
             return res.status(401).json({ error: 'Authentication required' });
         }
         
-        // Check if user exists and is admin
-        const user = await User.findOne({ username });
+        // Check if user exists and is admin (case-insensitive)
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
         if (!user || !user.isAdmin) {
             return res.status(403).json({ error: 'Admin access required' });
         }
@@ -36,7 +36,8 @@ router.post('/toggle-admin', requireAdmin, async (req, res) => {
         return res.status(400).json({ error: 'Invalid parameters' });
     }
     try {
-        const user = await User.findOne({ username });
+        // Find user with case-insensitive username comparison
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -100,7 +101,7 @@ router.post('/ban-user', requireAdmin, async (req, res) => {
     }
     
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -131,7 +132,7 @@ router.post('/change-password', requireAdmin, async (req, res) => {
     }
     
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -159,7 +160,7 @@ router.post('/give-item', requireAdmin, async (req, res) => {
     }
     
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }

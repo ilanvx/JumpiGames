@@ -124,7 +124,8 @@ io.on('connection', async (socket) => {
 
  usernames[username] = socket.id;
 
- let dbUser = await User.findOne({ username });
+ // Find user with case-insensitive username comparison
+ let dbUser = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
 
  if (!dbUser) {
    const initialInventoryForNewUser = {};
@@ -176,7 +177,8 @@ io.on('connection', async (socket) => {
  io.emit('roomOccupancyUpdate', { rooms: Object.values(rooms) });
 
  socket.on('requestUserData', async () => {
-   const userFromDb = await User.findOne({ username: players[socket.id]?.username || username }); // use username from session as fallback
+   // Find user with case-insensitive username comparison
+   const userFromDb = await User.findOne({ username: { $regex: new RegExp(`^${players[socket.id]?.username || username}$`, 'i') } }); // use username from session as fallback
    if (userFromDb && players[socket.id]) { // Ensure player still connected
        const freshPlayerData = initializePlayerData(userFromDb);
        players[socket.id].coins = freshPlayerData.coins;
@@ -891,7 +893,8 @@ app.post('/register', async (req, res) => {
    return res.status(400).send({ error: 'הסיסמה חייבת להיות לפחות 6 תווים' });
  }
 
- const existing = await User.findOne({ username });
+ // Check if username already exists (case-insensitive)
+ const existing = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
  if (existing) return res.status(400).send({ error: 'שם המשתמש כבר תפוס' });
 
  try {
@@ -906,7 +909,7 @@ app.post('/register', async (req, res) => {
  ITEM_CATEGORIES_SERVER_KEYS.forEach(catKey => initialEquippedForNewUser[catKey] = null);
 
  const newUser = new User({
-   username,
+   username, // Save exactly as entered (preserve case)
      password: hashedPassword,
    coins: 0,
    inventory: initialInventoryForNewUser,
@@ -922,7 +925,8 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
  const { username, password } = req.body;
- const user = await User.findOne({ username });
+ // Find user with case-insensitive username comparison
+ const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
  
  if (!user) {
    return res.status(400).send({ error: 'שם משתמש או סיסמה שגויים' });
@@ -942,7 +946,7 @@ app.post('/login', async (req, res) => {
      return res.status(403).send({ error: 'המשתמש חסום' });
    }
 
- req.session.username = username;
+ req.session.username = user.username; // Use the original username from database (preserve case)
  req.session.save(err => { // Ensure session is saved before sending response
    if (err) {
        return res.status(500).send({ error: 'שגיאה בהתחברות' });
@@ -1029,16 +1033,16 @@ app.post('/api/register', async (req, res) => {
       });
     }
 
-    // Check if username already exists
-    const existingUser = await User.findOne({ username: username.toLowerCase() });
+    // Check if username already exists (case-insensitive)
+    const existingUser = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
     if (existingUser) {
       return res.status(400).json({ 
         message: 'שם משתמש כבר קיים במערכת' 
       });
     }
 
-    // Check if email already exists
-    const existingEmail = await User.findOne({ email: email.toLowerCase() });
+    // Check if email already exists (case-insensitive)
+    const existingEmail = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
     if (existingEmail) {
       return res.status(400).json({ 
         message: 'אימייל כבר קיים במערכת' 
@@ -1074,8 +1078,8 @@ app.post('/api/register', async (req, res) => {
 
     // Create new user in MongoDB
     const newUser = new User({
-      username: username.toLowerCase(),
-      email: email.toLowerCase(),
+      username: username, // Save exactly as entered (preserve case)
+      email: email.toLowerCase(), // Keep email lowercase for consistency
       password: hashedPassword,
       coins: 150,
       inventory: initialInventory,
