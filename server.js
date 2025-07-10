@@ -937,6 +937,38 @@ io.on('connection', async (socket) => {
      socket.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
  });
 
+ socket.on('room_change', ({ room }) => {
+     const currentPlayer = players[socket.id];
+     if (!currentPlayer) return;
+
+     // Update player's room
+     const currentRoomId = playerRooms[socket.id];
+     if (currentRoomId !== room) {
+         // Remove player from current room
+         if (currentRoomId) {
+             if (rooms[currentRoomId]) {
+                 rooms[currentRoomId].currentPlayers = Math.max(0, rooms[currentRoomId].currentPlayers - 1);
+             } else if (homeRooms[currentRoomId]) {
+                 homeRooms[currentRoomId].currentPlayers = Math.max(0, homeRooms[currentRoomId].currentPlayers - 1);
+             }
+         }
+
+         // Add player to new room
+         playerRooms[socket.id] = room;
+         if (rooms[room]) {
+             rooms[room].currentPlayers++;
+         } else if (homeRooms[room]) {
+             homeRooms[room].currentPlayers++;
+         }
+
+         // Immediately emit updated player data to all clients
+         emitPlayersWithRooms();
+         
+         // Broadcast updated room occupancy
+         io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
+     }
+ });
+
  socket.on('joinRoom', ({ roomId }) => {
      const currentPlayer = players[socket.id];
      if (!currentPlayer) {
@@ -976,6 +1008,9 @@ io.on('connection', async (socket) => {
 
      // Broadcast updated room occupancy to all clients
      io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
+
+     // Immediately emit updated player data to all clients
+     emitPlayersWithRooms();
 
      // Send success response to the joining player
      socket.emit('roomJoinResponse', { 
@@ -1044,6 +1079,9 @@ io.on('connection', async (socket) => {
      // Broadcast updated room occupancy
      io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
 
+     // Immediately emit updated player data to all clients
+     emitPlayersWithRooms();
+
      // Send success response
      socket.emit('homeResponse', { 
          success: true, 
@@ -1093,6 +1131,9 @@ io.on('connection', async (socket) => {
 
      // Broadcast updated room occupancy
      io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
+
+     // Immediately emit updated player data to all clients
+     emitPlayersWithRooms();
 
      // Send success response
      socket.emit('homeResponse', { 
@@ -1166,6 +1207,9 @@ io.on('connection', async (socket) => {
 
      // Broadcast updated room occupancy
      io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
+
+     // Immediately emit updated player data to all clients
+     emitPlayersWithRooms();
 
      // Send success response
      socket.emit('homeResponse', { 

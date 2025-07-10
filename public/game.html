@@ -3723,46 +3723,75 @@ Object.keys(serverPlayers).forEach(id => {
     function drawPlayerAvatarToCanvas(player, canvas) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Use the same draw order and offset logic as the main game
-      const order = ['hd','sk','ps','st','nk','hr','gs','ht'];
-      const previewDirection = 'front';
-      // Helper to get offset/size for an item
-      function getItemOffset(cat, itemId) {
-        let offset = { x: 0, y: 0, width: 1, height: 1 };
-        if (window.itemOffsets && window.itemOffsets[cat] && window.itemOffsets[cat][itemId] && window.itemOffsets[cat][itemId][previewDirection]) {
-          offset = { ...offset, ...window.itemOffsets[cat][itemId][previewDirection] };
-        } else if (window.itemsMetadata && window.itemsMetadata[cat] && window.itemsMetadata[cat][itemId] && window.itemsMetadata[cat][itemId].offsets && window.itemsMetadata[cat][itemId].offsets[previewDirection]) {
-          offset = { ...offset, ...window.itemsMetadata[cat][itemId].offsets[previewDirection] };
-        }
-        offset.width = offset.width || 1;
-        offset.height = offset.height || 1;
-        offset.x = offset.x || 0;
-        offset.y = offset.y || 0;
-        return offset;
-      }
+      
       // Center the character in the canvas
       const charX = (canvas.width - 55) / 2;
       const charY = (canvas.height - 70) / 2;
-      // Draw each item in order
+      
+      // Draw base character first (if no skin color equipped)
+      if (!player.equipped || !player.equipped.hd) {
+        const baseImg = new window.Image();
+        baseImg.onload = function() {
+          ctx.drawImage(baseImg, charX, charY, 55, 70);
+          // After base character is drawn, draw equipped items
+          drawEquippedItemsForNotification(ctx, charX, charY, player);
+        };
+        baseImg.onerror = function() {
+          // If base character fails to load, still try to draw equipped items
+          drawEquippedItemsForNotification(ctx, charX, charY, player);
+        };
+        baseImg.src = '/assets/character_down.png';
+      } else {
+        // If skin color is equipped, draw equipped items directly
+        drawEquippedItemsForNotification(ctx, charX, charY, player);
+      }
+    }
+    
+    function drawEquippedItemsForNotification(ctx, charX, charY, player) {
+      // Draw equipped items in order using proper offsets
+      const order = ['hd', 'sk', 'ps', 'st', 'nk', 'hr', 'gs', 'ht'];
+      let itemsToDraw = [];
+      
+      // Collect all items that need to be drawn
       order.forEach(cat => {
         const itemId = player.equipped && player.equipped[cat];
         if (itemId) {
-          const img = new window.Image();
-          img.src = `/items/${cat}/${itemId}/front.png`;
-          img.onload = function() {
-            const offset = getItemOffset(cat, itemId);
-            ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
-          };
+          itemsToDraw.push({ cat, itemId });
         }
       });
-      // Draw base character (if no hd equipped)
-      if (!player.equipped || !player.equipped.hd) {
-        const baseImg = new window.Image();
-        baseImg.src = 'assets/character_front.png';
-        baseImg.onload = function() {
-          ctx.drawImage(baseImg, charX, charY, 55, 70);
-        };
-      }
+      
+      // If no items to draw, we're done
+      if (itemsToDraw.length === 0) return;
+      
+      // Draw items synchronously in order
+      drawNextItemForNotification(ctx, charX, charY, itemsToDraw, 0);
+    }
+    
+    function drawNextItemForNotification(ctx, charX, charY, itemsToDraw, index) {
+      if (index >= itemsToDraw.length) return; // All items drawn
+      
+      const item = itemsToDraw[index];
+      const img = new window.Image();
+      
+      img.onload = function() {
+        // Use proper item offsets
+        const offsetData = window.itemOffsets?.[item.cat]?.[item.itemId]?.front;
+        const x = charX + (offsetData?.x || 0);
+        const y = charY + (offsetData?.y || 0);
+        const width = (offsetData?.width || 1) * 55;
+        const height = (offsetData?.height || 1) * 70;
+        ctx.drawImage(img, x, y, width, height);
+        
+        // Draw next item
+        drawNextItemForNotification(ctx, charX, charY, itemsToDraw, index + 1);
+      };
+      
+      img.onerror = function() {
+        // If this item fails to load, continue with next item
+        drawNextItemForNotification(ctx, charX, charY, itemsToDraw, index + 1);
+      };
+      
+      img.src = `/items/${item.cat}/${item.itemId}/front.png`;
     }
 
     window.socket.on('forceDisconnect', () => { 
@@ -3879,53 +3908,74 @@ Object.keys(serverPlayers).forEach(id => {
         // Clear canvas first
         ctx.clearRect(0, 0, 200, 200);
         
-        // Use the existing drawPlayerAvatarToCanvas function but adapt it for our canvas
-        const order = ['hd','sk','ps','st','nk','hr','gs','ht'];
-        const previewDirection = 'front';
-        
-        // Helper to get offset/size for an item
-        function getItemOffset(cat, itemId) {
-            let offset = { x: 0, y: 0, width: 1, height: 1 };
-            if (window.itemOffsets && window.itemOffsets[cat] && window.itemOffsets[cat][itemId] && window.itemOffsets[cat][itemId][previewDirection]) {
-                offset = { ...offset, ...window.itemOffsets[cat][itemId][previewDirection] };
-            } else if (window.itemsMetadata && window.itemsMetadata[cat] && window.itemsMetadata[cat][itemId] && window.itemsMetadata[cat][itemId].offsets && window.itemsMetadata[cat][itemId].offsets[previewDirection]) {
-                offset = { ...offset, ...window.itemsMetadata[cat][itemId].offsets[previewDirection] };
-            }
-            offset.width = offset.width || 1;
-            offset.height = offset.height || 1;
-            offset.x = offset.x || 0;
-            offset.y = offset.y || 0;
-            return offset;
-        }
-        
         // Center the character in the canvas
         const charX = centerX - 27.5; // Half of 55
         const charY = centerY - 35;   // Half of 70
         
-        // Draw each item in order
+        // Draw base character first (if no skin color equipped)
+        if (!player.equipped || !player.equipped.hd) {
+            const baseImg = new window.Image();
+            baseImg.onload = function() {
+                ctx.drawImage(baseImg, charX, charY, 55, 70);
+                // After base character is drawn, draw equipped items
+                drawEquippedItemsForCard(ctx, charX, charY, player);
+            };
+            baseImg.onerror = function() {
+                // If base character fails to load, still try to draw equipped items
+                drawEquippedItemsForCard(ctx, charX, charY, player);
+            };
+            baseImg.src = '/assets/character_down.png';
+        } else {
+            // If skin color is equipped, draw equipped items directly
+            drawEquippedItemsForCard(ctx, charX, charY, player);
+        }
+    }
+    
+    function drawEquippedItemsForCard(ctx, charX, charY, player) {
+        // Draw equipped items in order using proper offsets
+        const order = ['hd', 'sk', 'ps', 'st', 'nk', 'hr', 'gs', 'ht'];
+        let itemsToDraw = [];
+        
+        // Collect all items that need to be drawn
         order.forEach(cat => {
             const itemId = player.equipped && player.equipped[cat];
             if (itemId) {
-                const img = new window.Image();
-                img.src = `/items/${cat}/${itemId}/front.png`;
-                img.onload = function() {
-                    const offset = getItemOffset(cat, itemId);
-                    ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
-                };
-                img.onerror = function() {
-                    console.log(`Failed to load item: ${cat}/${itemId}/front.png`);
-                };
+                itemsToDraw.push({ cat, itemId });
             }
         });
         
-        // Draw base character (if no hd equipped)
-        if (!player.equipped || !player.equipped.hd) {
-            const baseImg = new window.Image();
-            baseImg.src = '/assets/character_down.png';
-            baseImg.onload = function() {
-                ctx.drawImage(baseImg, charX, charY, 55, 70);
-            };
-        }
+        // If no items to draw, we're done
+        if (itemsToDraw.length === 0) return;
+        
+        // Draw items synchronously in order
+        drawNextItemForCard(ctx, charX, charY, itemsToDraw, 0);
+    }
+    
+    function drawNextItemForCard(ctx, charX, charY, itemsToDraw, index) {
+        if (index >= itemsToDraw.length) return; // All items drawn
+        
+        const item = itemsToDraw[index];
+        const img = new window.Image();
+        
+        img.onload = function() {
+            // Use proper item offsets
+            const offsetData = window.itemOffsets?.[item.cat]?.[item.itemId]?.front;
+            const x = charX + (offsetData?.x || 0);
+            const y = charY + (offsetData?.y || 0);
+            const width = (offsetData?.width || 1) * 55;
+            const height = (offsetData?.height || 1) * 70;
+            ctx.drawImage(img, x, y, width, height);
+            
+            // Draw next item
+            drawNextItemForCard(ctx, charX, charY, itemsToDraw, index + 1);
+        };
+        
+        img.onerror = function() {
+            // If this item fails to load, continue with next item
+            drawNextItemForCard(ctx, charX, charY, itemsToDraw, index + 1);
+        };
+        
+        img.src = `/items/${item.cat}/${item.itemId}/front.png`;
     }
 
     // Close player card
