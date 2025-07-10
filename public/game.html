@@ -2814,104 +2814,98 @@
             
             // Create a temporary canvas for full character rendering
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = 220; // 4x the original character size for better quality
-            tempCanvas.height = 280;
+            tempCanvas.width = 110; // Same size as profile card
+            tempCanvas.height = 140;
             const tempCtx = tempCanvas.getContext('2d');
             
-            // Set up the rendering context similar to the main game
-            tempCtx.save();
-            tempCtx.translate(110, 140); // Center of the temp canvas
+            // Center the character in the temp canvas (same as profile card)
+            const charX = (tempCanvas.width - 55) / 2; // 55 is half the character width
+            const charY = (tempCanvas.height - 70) / 2; // 70 is half the character height
             
-            // Use 'front' direction for consistent head view
-            const direction = 'front';
+            // Define the correct drawing order for equipped items (same as profile card)
+            const ITEM_DRAW_ORDER = ["hd", "sk", "ps", "st", "nk", "hr", "gs", "ht"];
             
-            // Scale up the character for better visibility
-            const scale = 2.0; // 2x scale for larger preview
-            tempCtx.scale(scale, scale);
+            // For preview, always use 'front' direction
+            const previewDirection = 'front';
+            const baseDirection = 'down';
             
-            // Draw base character sprite
-            function drawDefaultCharacter() {
-                const img = window.characterImages[direction] || window.characterImages['down'];
-                if (img && img.complete && img.naturalHeight > 0) {
-                    tempCtx.drawImage(img, -27.5, 0, 55, 70);
+            // Helper to get offset/size for an item (same as profile card)
+            function getItemOffset(cat, itemId) {
+                let offset = { x: 0, y: 0, width: 1, height: 1 };
+                if (window.itemOffsets && window.itemOffsets[cat] && window.itemOffsets[cat][itemId] && window.itemOffsets[cat][itemId][previewDirection]) {
+                    offset = { ...offset, ...window.itemOffsets[cat][itemId][previewDirection] };
+                } else if (window.itemsMetadata && window.itemsMetadata[cat] && window.itemsMetadata[cat][itemId] && window.itemsMetadata[cat][itemId].offsets && window.itemsMetadata[cat][itemId].offsets[previewDirection]) {
+                    offset = { ...offset, ...window.itemsMetadata[cat][itemId].offsets[previewDirection] };
                 }
+                // Default width/height if not set
+                offset.width = offset.width || 1;
+                offset.height = offset.height || 1;
+                offset.x = offset.x || 0;
+                offset.y = offset.y || 0;
+                return offset;
             }
             
-            // Draw skin color (hd) if equipped
-            if (player.equipped && player.equipped.hd) {
-                const skinItemId = player.equipped.hd;
-                const itemMetadata = window.itemsMetadata?.hd?.[skinItemId];
-                let availableDirection = direction;
-                if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
-                    availableDirection = 'front';
-                }
-                const skinImagePath = `/items/hd/${skinItemId}/${availableDirection}.png`;
-                const key = `hd_${skinItemId}_${availableDirection}`;
-                if (!window.itemOverlays[key]) {
-                    const skinImage = new Image();
-                    skinImage.src = skinImagePath;
-                    skinImage.onerror = function() {};
-                    window.itemOverlays[key] = skinImage;
-                }
-                const skinImage = window.itemOverlays[key];
-                if (skinImage && skinImage.complete && skinImage.naturalHeight > 0) {
-                    const savedOffset = window.itemOffsets?.hd?.[skinItemId]?.[availableDirection];
-                    const metadataOffset = itemMetadata?.offsets?.[availableDirection];
-                    const offset = savedOffset || metadataOffset || { x: 0, y: 0 };
-                    const x = -27.5 + (offset.x || 0);
-                    const y = (offset.y || 0);
-                    const width = (offset.width || 1) * 55;
-                    const height = (offset.height || 1) * 70;
-                    tempCtx.drawImage(skinImage, x, y, width, height);
+            // Draw the full character on temp canvas (same logic as profile card)
+            function drawFullCharacter() {
+                // 1. Draw skateboard (sk) below everything
+                if (player.equipped && player.equipped.sk) {
+                    const itemId = player.equipped.sk;
+                    const img = new Image();
+                    img.onload = function() {
+                        const offset = getItemOffset('sk', itemId);
+                        tempCtx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                        drawRest();
+                    };
+                    img.onerror = function() { drawRest(); };
+                    img.src = `/items/sk/${itemId}/front.png`;
                 } else {
-                    drawDefaultCharacter();
+                    drawRest();
                 }
-            } else {
-                drawDefaultCharacter();
             }
             
-            // Draw equipped items in correct layering order (only head-related items for preview)
-            if (player.equipped && window.itemsMetadata) {
-                // Use the same draw order as the main game: ["hd", "sk", "st", "ps", "nk", "hr", "gs", "ht"]
-                // For preview, we only need head-related items: hr (hair), gs (glasses), ht (hat)
-                // Note: hd (skin) is already drawn above, sk (skateboard) is not needed for head preview
-                for (const cat of ["hr", "gs", "ht"]) {
-                    const itemId = player.equipped[cat];
+            function drawRest() {
+                // 2. Draw skin color (hd) as base, or default character
+                if (player.equipped && player.equipped.hd) {
+                    const itemId = player.equipped.hd;
+                    const img = new Image();
+                    img.onload = function() {
+                        const offset = getItemOffset('hd', itemId);
+                        tempCtx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                        drawEquipped();
+                    };
+                    img.onerror = function() { drawDefaultBase(); };
+                    img.src = `/items/hd/${itemId}/front.png`;
+                } else {
+                    drawDefaultBase();
+                }
+            }
+            
+            function drawDefaultBase() {
+                // Draw default character sprite
+                const img = window.characterImages[baseDirection] || window.characterImages['down'];
+                if (img && img.complete && img.naturalHeight > 0) {
+                    tempCtx.drawImage(img, charX, charY, 55, 70);
+                }
+                drawEquipped();
+            }
+            
+            function drawEquipped() {
+                // 3. Draw all other equipped items in order (except sk, hd)
+                for (const cat of ["ps", "st", "nk", "hr", "gs", "ht"]) {
+                    const itemId = player.equipped && player.equipped[cat];
                     if (!itemId) continue;
-                    
-                    const itemMetadata = window.itemsMetadata[cat]?.[itemId];
-                    let availableDirection = direction;
-                    if (!itemMetadata || !itemMetadata.availableDirections.includes(direction)) {
-                        availableDirection = 'front';
-                    }
-                    
-                    // Skip glasses for back view
-                    if (cat === "gs" && direction === "back") {
-                        continue;
-                    }
-                    
-                    const key = `${cat}_${itemId}_${availableDirection}`;
-                    if (!window.itemOverlays[key]) {
-                        const overlayImg = new Image();
-                        overlayImg.src = `/items/${cat}/${itemId}/${availableDirection}.png`;
-                        overlayImg.onerror = () => {};
-                        window.itemOverlays[key] = overlayImg;
-                    }
-                    const overlay = window.itemOverlays[key];
-                    if (overlay && overlay.complete && overlay.naturalHeight > 0) {
-                        const savedOffset = window.itemOffsets[cat]?.[itemId]?.[availableDirection];
-                        const metadataOffset = itemMetadata?.offsets?.[availableDirection];
-                        const offset = savedOffset || metadataOffset || { x: 0, y: 0 };
-                        const width = (offset.width || 1) * 55;
-                        const height = (offset.height || 1) * 70;
-                        const x = -27.5 + (offset.x || 0);
-                        const y = (offset.y || 0);
-                        tempCtx.drawImage(overlay, x, y, width, height);
-                    }
+                    const img = new Image();
+                    img.onload = function() {
+                        const offset = getItemOffset(cat, itemId);
+                        tempCtx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                    };
+                    img.onerror = function() {};
+                    img.src = `/items/${cat}/${itemId}/front.png`;
                 }
             }
             
-            tempCtx.restore();
+            // Start drawing the full character
+            drawFullCharacter();
             
             // Create circular mask for head-only preview
             ctx.save();
@@ -2919,18 +2913,17 @@
             ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2 * Math.PI);
             ctx.clip();
             
-            // Draw the cropped head area from the temp canvas
-            // Focus on the head area with better positioning
+            // Crop to show only the head area (top 40% of the character)
             const sourceX = 0;
-            const sourceY = tempCanvas.height * 0.15; // Start from 15% down to focus on head area
+            const sourceY = 0;
             const sourceWidth = tempCanvas.width;
-            const sourceHeight = tempCanvas.height * 0.35; // Show middle 35% for head focus
+            const sourceHeight = tempCanvas.height * 0.4; // Show top 40% for head focus
             
-            // Scale and position to fill the circle better
-            const destWidth = canvas.width * 1.2; // Slightly larger to fill circle
-            const destHeight = canvas.height * 1.2;
+            // Scale to fill the circle properly
+            const destWidth = canvas.width * 1.5; // Larger to fill circle
+            const destHeight = canvas.height * 1.5;
             const destX = (canvas.width - destWidth) / 2;
-            const destY = (canvas.height - destHeight) / 2 - canvas.height * 0.2; // Move up more to position head near top
+            const destY = (canvas.height - destHeight) / 2 - canvas.height * 0.1; // Move up slightly to center head
             
             ctx.drawImage(
                 tempCanvas,
