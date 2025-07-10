@@ -3148,13 +3148,13 @@ Object.keys(serverPlayers).forEach(id => {
                 window.ctx.fillStyle = 'white';
                 window.ctx.fillText(p.username, p.x, p.y + 55);
                 
-                // --- Draw house icon if player is in their home or visiting someone's home ---
-                if (window.isInHome && p.id === window.socket.id && p.room && p.room.startsWith('home_')) {
+                // --- Draw house icon only under the owner of the home ---
+                if (p.room && p.room.startsWith('home_') && p.homeOwner && p.username === p.homeOwner) {
                     window.ctx.save();
                     window.ctx.font = '24px Arial';
                     window.ctx.textAlign = 'center';
                     window.ctx.textBaseline = 'top';
-                    window.ctx.fillStyle = window.isVisitingHome ? '#ffa500' : '#4fd18b'; // Orange for visiting, green for own home
+                    window.ctx.fillStyle = '#4fd18b'; // Green for home owner
                     window.ctx.fillText('🏠', p.x, p.y + 80);
                     window.ctx.restore();
                 }

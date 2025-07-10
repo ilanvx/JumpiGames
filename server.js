@@ -1705,11 +1705,20 @@ function handleSecurityViolation(socketId, violationType, details = '') {
 function emitPlayersWithRooms() {
     const playersWithRooms = {};
     for (const [id, player] of Object.entries(players)) {
+        const roomId = playerRooms[id];
+        let homeOwner = null;
+        
+        // Check if player is in a home room and get the owner
+        if (roomId && roomId.startsWith('home_') && homeRooms[roomId]) {
+            homeOwner = homeRooms[roomId].owner;
+        }
+        
         playersWithRooms[id] = { 
             ...player, 
-            room: playerRooms[id],
+            room: roomId,
             targetX: player.targetX,
-            targetY: player.targetY
+            targetY: player.targetY,
+            homeOwner: homeOwner // Add home owner information
         };
     }
     io.emit('updatePlayers', playersWithRooms);
