@@ -1765,7 +1765,7 @@
             
             <div class="toolbar-center">
                 <div class="chat-input-container">
-                    <input type="text" id="chatInput" placeholder="Type your message..." maxlength="50">
+                    <input type="text" id="chatInput" placeholder="הקלד הודעה... (עברית/אנגלית/ספרות/תווים מיוחדים)" maxlength="50">
                     <button class="send-btn" id="sendBtn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -2482,17 +2482,49 @@
                     }
                 });
                 
-                // Update currentInput for compatibility
+                // Real-time character filtering
                 chatInput.addEventListener('input', (e) => {
-                    window.currentInput = e.target.value;
+                    const value = e.target.value;
+                    window.currentInput = value;
+                    
+                    // Filter out disallowed characters in real-time
+                    const filteredValue = value.replace(/[^a-zA-Z0-9\u0590-\u05FF\s!?,.()*%$#@^+-]/g, '');
+                    if (filteredValue !== value) {
+                        e.target.value = filteredValue;
+                        window.currentInput = filteredValue;
+                    }
                 });
             }
+        }
+        
+        // Client-side chat filtering
+        const allowedCharsRegex = /^[a-zA-Z0-9\u0590-\u05FF\s!?,.()*%$#@^+-]+$/;
+        
+        function validateChatMessage(message) {
+            if (!message || typeof message !== 'string') {
+                return { valid: false, reason: 'הודעה לא תקינה' };
+            }
+            
+            // Check for allowed characters only
+            if (!allowedCharsRegex.test(message)) {
+                return { valid: false, reason: 'רק אותיות בעברית, אנגלית, ספרות ותווים מיוחדים מותרים' };
+            }
+            
+            return { valid: true, reason: null };
         }
         
         function sendMessage() {
             const chatInput = document.getElementById('chatInput');
             if (chatInput && chatInput.value.trim() !== '') {
                 const message = chatInput.value.trim();
+                
+                // Client-side validation
+                const validation = validateChatMessage(message);
+                if (!validation.valid) {
+                    window.showNotification(validation.reason, 'error', 4000);
+                    return;
+                }
+                
                 window.socket.emit('chat', message);
                 chatInput.value = '';
                 window.currentInput = '';
@@ -2710,6 +2742,12 @@ Object.keys(serverPlayers).forEach(id => {
             }
         });
         
+        // Chat filtering events
+        window.socket.on('chatFiltered', (data) => {
+            console.log('Chat message filtered:', data);
+            window.showNotification(data.reason || 'הודעה נחסמה', 'error', 4000);
+        });
+        
         // Home System Events
         window.socket.on('homeResponse', (data) => {
             console.log('Received home response:', data);
@@ -2749,6 +2787,11 @@ Object.keys(serverPlayers).forEach(id => {
             window.socket.emit('requestUserData');
             loadItemsMetadata();
             loadItemOffsets();
+            
+            // Show chat rules notification
+            setTimeout(() => {
+                window.showNotification('💬 מערכת הצ\'אט מוגנת - רק עברית, אנגלית, ספרות ותווים מיוחדים מותרים', 'info', 6000);
+            }, 2000);
         });
         
         function triggerBounce(key) { window.bounceButtons[key] = { scale: 1.2, time: 5 }; }

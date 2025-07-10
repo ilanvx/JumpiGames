@@ -108,6 +108,59 @@ const pendingTradeRequests = [];
 const activeTrades = {}; // Store active trades: { tradeId: { player1, player2, offers, locked, confirmed } }
 const playersInTrade = new Set();
 
+// --- Chat Filtering System ---
+const profanityFilter = {
+    // Hebrew profanity list
+    hebrew: [
+        'זבל', 'בן זונה', 'בת זונה', 'כוס', 'זין', 'תחת', 'זין עליך', 'כוס אמא שלך',
+        'בן של זונה', 'בת של זונה', 'זבל אנושי', 'חתיכת זבל', 'בן כלבה', 'בת כלבה',
+        'כלב', 'כלבה', 'זבל אנושי', 'חתיכת זבל', 'בן זונה', 'בת זונה', 'כוס אמא שלך',
+        'זין עליך', 'תחת שלך', 'כוס שלך', 'זין שלך', 'בן של כלבה', 'בת של כלבה',
+        'חתיכת זונה', 'בן זונה', 'בת זונה', 'כוס אמא שלך', 'זין עליך', 'תחת שלך'
+    ],
+    // English profanity list
+    english: [
+        'fuck', 'shit', 'bitch', 'ass', 'dick', 'pussy', 'cock', 'cunt', 'whore', 'slut',
+        'motherfucker', 'fucker', 'bastard', 'son of a bitch', 'piece of shit', 'dumbass',
+        'fucking', 'shitty', 'bitchy', 'asshole', 'dickhead', 'pussy', 'cock', 'cunt',
+        'whore', 'slut', 'motherfucker', 'fucker', 'bastard', 'son of a bitch',
+        'piece of shit', 'dumbass', 'fucking', 'shitty', 'bitchy', 'asshole', 'dickhead'
+    ]
+};
+
+// Allowed characters for chat
+const allowedChars = /^[a-zA-Z0-9\u0590-\u05FF\s!?,.()*%$#@^+-]+$/;
+
+function filterChatMessage(message) {
+    if (!message || typeof message !== 'string') {
+        return { filtered: false, reason: 'Invalid message format' };
+    }
+    
+    // Check for allowed characters only
+    if (!allowedChars.test(message)) {
+        return { filtered: false, reason: 'רק אותיות בעברית, אנגלית, ספרות ותווים מיוחדים מותרים' };
+    }
+    
+    // Convert to lowercase for checking
+    const lowerMessage = message.toLowerCase();
+    
+    // Check Hebrew profanity
+    for (const word of profanityFilter.hebrew) {
+        if (lowerMessage.includes(word.toLowerCase())) {
+            return { filtered: true, reason: 'הודעה מכילה תוכן לא הולם' };
+        }
+    }
+    
+    // Check English profanity
+    for (const word of profanityFilter.english) {
+        if (lowerMessage.includes(word.toLowerCase())) {
+            return { filtered: true, reason: 'הודעה מכילה תוכן לא הולם' };
+        }
+    }
+    
+    return { filtered: false, reason: null };
+}
+
 io.on('connection', async (socket) => {
  const sess = socket.request.session;
  const username = sess.username;
@@ -337,6 +390,15 @@ io.on('connection', async (socket) => {
        // Just ignore invalid messages, don't disconnect
        return;
      }
+     
+     // Apply chat filtering
+     const filterResult = filterChatMessage(text.trim());
+     if (filterResult.filtered) {
+       // Send warning to player about filtered message
+       socket.emit('chatFiltered', { reason: filterResult.reason });
+       return;
+     }
+     
      // Reset AFK status when player chats
      if (players[socket.id].isAFK) {
        players[socket.id].isAFK = false;
