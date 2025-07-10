@@ -22,6 +22,10 @@ app.set('io', io);
 // This helps ensure consistency in data structures.
 const ITEM_CATEGORIES_SERVER_KEYS = ["ht", "ps", "st", "gs", "nk", "hd", "sk", "hr"];
 
+// New movement system constants
+const SERVER_SPEED = 6; // Pixels per tick
+const GAME_TICK_INTERVAL = 50; // Milliseconds between game ticks
+
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jumpi', {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -89,8 +93,8 @@ function initializePlayerData(dbUser) {
         username: dbUser.username,
         x: 300,
         y: 300,
-        targetX: 300,
-        targetY: 300,
+        target: null, // New: target position for movement
+        state: 'idle', // New: movement state ('idle' or 'walking')
         direction: 'front',
         message: '',
         messageTime: 0,
@@ -304,95 +308,41 @@ io.on('connection', async (socket) => {
    }
  });
 
- socket.on('move', (pos) => {
+ // New movement system - request_move replaces the old move system
+ socket.on('request_move', (data) => {
    // Security: Verify the socket.id matches the actual user
    const currentPlayer = players[socket.id];
    if (!currentPlayer || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
        console.log('SERVER: Unauthorized move attempt from socket:', socket.id);
-       // Disconnect immediately for unauthorized access
        socket.disconnect(true);
        return;
    }
    
    if (players[socket.id]) {
-     const p = players[socket.id];
+     const player = players[socket.id];
      
-     // Security: Validate position data
-     if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
-       isNaN(pos.x) || isNaN(pos.y) ||
-       pos.x < -1000 || pos.y < -1000 || pos.x > 3000 || pos.y > 2000) {
-     console.log('SERVER: Invalid position data from socket:', socket.id, pos);
-     p.spamCounter = (p.spamCounter || 0) + 1;
-     if (p.spamCounter >= 10) {
-       console.log('SERVER: Disconnecting spammer for invalid data:', socket.id);
-       socket.disconnect(true);
+     // Validate move request
+     if (!isMoveValid(data)) {
+       console.log('SERVER: Invalid move request from socket:', socket.id, data);
        return;
      }
-     return;
+     
+     // Reset AFK status when player requests movement
+     if (player.isAFK) {
+       player.isAFK = false;
+     }
+     
+     // Set new target and start walking
+     player.target = { x: data.x, y: data.y };
+     player.state = 'walking';
    }
-     
-     // Security: Validate movement speed and distance
-     const dx = pos.x - p.x;
-     const dy = pos.y - p.y;
-     const distance = Math.sqrt(dx * dx + dy * dy);
-     const maxSpeed = 1000; // Maximum allowed movement per update
-     
-     if (distance > maxSpeed) {
-       // Just ignore the move, don't disconnect
-       return;
-     }
-     
-     // Additional security: Check for suspicious movement patterns (disabled for normal movement)
-     // if (distance > 200 && timeSinceLastMove < 50) {
-     //   console.log('SERVER: Suspicious movement pattern from socket:', socket.id, 'distance:', distance, 'time:', timeSinceLastMove);
-     //   return;
-     // }
-     
-     // Security: Prevent teleporting - check if movement is reasonable
-     if (distance > 0 && distance < 1) {
-       // Very small movements are fine, no need to log
-     }
-     
-     // Security: Rate limiting - prevent too many move events
-     const now = Date.now();
-     if (!p.lastMoveTime) p.lastMoveTime = 0;
-     const timeSinceLastMove = now - p.lastMoveTime;
-     const minMoveInterval = 16; // Minimum 16ms between moves (60 FPS)
-     
-     if (timeSinceLastMove < minMoveInterval) {
-       // Just ignore the move, don't disconnect
-       return;
-     }
-     p.lastMoveTime = now;
-     
-     // Security: Validate direction
-     const validDirections = ['front', 'back', 'left', 'right', 'up_left', 'up_right', 'down_left', 'down_right', 'up', 'down'];
-     const direction = validDirections.includes(pos.direction) ? pos.direction : 'front';
-     
-     // Security: Final validation before updating target (disabled for normal movement)
-     // if (Math.abs(pos.x - p.x) > maxSpeed || Math.abs(pos.y - p.y) > maxSpeed) {
-     //   console.log('SERVER: Position change too large from socket:', socket.id, 'dx:', Math.abs(pos.x - p.x), 'dy:', Math.abs(pos.y - p.y));
-     //   return;
-     // }
-     
-     // Reset AFK status when player moves
-     if (p.isAFK) {
-       p.isAFK = false;
-     }
-     
-     // Update target position for smooth movement (keep current position)
-     p.targetX = pos.x;
-     p.targetY = pos.y;
-     p.direction = direction;
-     
-     // Emit updates at regular intervals for smooth animation
-     const currentTime = Date.now();
-     if (!p.lastEmitTime) p.lastEmitTime = 0;
-     if (currentTime - p.lastEmitTime > 100) { // Emit every 100ms
-       p.lastEmitTime = currentTime;
-       emitPlayersWithRooms();
-     }
-   }
+ });
+
+ // Legacy move command - now ignored for security
+ socket.on('move', (pos) => {
+   // Ignore all legacy move commands for security
+   console.log('SERVER: Legacy move command ignored from socket:', socket.id);
+   return;
  });
 
  socket.on('chat', (text) => {
@@ -1761,8 +1711,8 @@ function emitPlayersWithRooms() {
         playersWithRooms[id] = { 
             ...player, 
             room: roomId,
-            targetX: player.targetX,
-            targetY: player.targetY,
+            target: player.target, // New movement system target
+            state: player.state, // New movement system state
             homeOwner: homeOwner, // Add home owner information
             homeId: player.homeId // Add homeId for Friends Panel
         };
@@ -1779,3 +1729,61 @@ function getAllRooms() {
     });
     return allRooms;
 }
+
+// New movement system functions
+function isMoveValid(data) {
+    if (!data || typeof data.x !== 'number' || typeof data.y !== 'number') {
+        return false;
+    }
+    
+    // Validate position bounds
+    if (isNaN(data.x) || isNaN(data.y) || 
+        data.x < -1000 || data.y < -1000 || data.x > 3000 || data.y > 2000) {
+        return false;
+    }
+    
+    return true;
+}
+
+// Game tick function - runs every 50ms
+function gameTick() {
+    for (const id in players) {
+        const player = players[id];
+        if (player.state === 'walking' && player.target) {
+            const dx = player.target.x - player.x;
+            const dy = player.target.y - player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < SERVER_SPEED) {
+                // Reached target
+                player.x = player.target.x;
+                player.y = player.target.y;
+                player.state = 'idle';
+                player.target = null;
+            } else {
+                // Move towards target
+                const angle = Math.atan2(dy, dx);
+                player.x += Math.cos(angle) * SERVER_SPEED;
+                player.y += Math.sin(angle) * SERVER_SPEED;
+                
+                // Update direction based on movement
+                let angleDeg = angle * (180 / Math.PI);
+                if (angleDeg < 0) angleDeg += 360;
+                if (angleDeg >= 337.5 || angleDeg < 22.5) player.direction = 'right';
+                else if (angleDeg < 67.5) player.direction = 'down_right';
+                else if (angleDeg < 112.5) player.direction = 'down';
+                else if (angleDeg < 157.5) player.direction = 'down_left';
+                else if (angleDeg < 202.5) player.direction = 'left';
+                else if (angleDeg < 247.5) player.direction = 'up_left';
+                else if (angleDeg < 292.5) player.direction = 'up';
+                else if (angleDeg < 337.5) player.direction = 'up_right';
+            }
+        }
+    }
+    
+    // Emit updated positions to all clients
+    io.emit('updatePlayers', players);
+}
+
+// Start the game tick loop
+setInterval(gameTick, GAME_TICK_INTERVAL);

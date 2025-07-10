@@ -2036,7 +2036,6 @@
         window.bg.src = 'rooms/sea.png';
 
         window.players = {};
-        window.target = null;
         window.toolbarButtons = {};
         window.currentInput = '';
         window.bounceButtons = {};
@@ -3171,14 +3170,12 @@
                     // New player - initialize with current position
                     window.players[id] = serverPlayer;
                     currentPlayer = window.players[id];
-                    currentPlayer.targetX = currentPlayer.x;
-                    currentPlayer.targetY = currentPlayer.y;
                 } else {
-                    // Update target for smooth movement
-                    if (serverPlayer.targetX !== undefined && serverPlayer.targetY !== undefined) {
-                        currentPlayer.targetX = serverPlayer.targetX;
-                        currentPlayer.targetY = serverPlayer.targetY;
-                    }
+                    // Update position and movement state from server
+                    currentPlayer.x = serverPlayer.x;
+                    currentPlayer.y = serverPlayer.y;
+                    currentPlayer.target = serverPlayer.target;
+                    currentPlayer.state = serverPlayer.state;
                     currentPlayer.direction = serverPlayer.direction;
                     // Update other properties
                     currentPlayer.username = serverPlayer.username;
@@ -3435,7 +3432,7 @@
                 .sort((a, b) => a.y - b.y);
             sortedPlayers.forEach(p => {
                 const isLocal = p.id === window.socket.id;
-                const isMoving = isLocal && window.target;
+                const isMoving = isLocal && p.state === 'walking';
                 const scaleY = isMoving ? 1 : window.breathScale;
                 const bounceY = isMoving ? window.walkBounce : 0;
                 window.ctx.save();
@@ -3733,7 +3730,15 @@
             }
             window.breathScale += 0.002 * window.breathDirection;
             if (window.breathScale >= 1.05 || window.breathScale <= 1) window.breathDirection *= -1;
-            window.walkFrame++; window.walkBounce = Math.sin(window.walkFrame * 0.4) * 4;
+            
+            // Update walk bounce only when local player is moving
+            const localPlayer = window.players[window.socket.id];
+            if (localPlayer && localPlayer.state === 'walking') {
+                window.walkFrame++; 
+                window.walkBounce = Math.sin(window.walkFrame * 0.4) * 4;
+            } else {
+                window.walkBounce = 0;
+            }
             drawPlayers();
             drawToolbar();
             Object.keys(window.bounceButtons).forEach(key => {
@@ -3755,64 +3760,15 @@
             const player = window.players[window.socket.id];
             if (!player) return;
             
-            // Handle local player movement to target
-            if (window.target) {
-                const dx = window.target.x - player.x, dy = window.target.y - player.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const speed = 6;
-                
-                if (dist < speed) {
-                    player.x = window.target.x;
-                    player.y = window.target.y;
-                    window.target = null;
-                    // Send final position to server
-                    window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
-                } else {
-                    const angle = Math.atan2(dy, dx);
-                    player.x += Math.cos(angle) * speed;
-                    player.y += Math.sin(angle) * speed;
-                    
-                    // Update direction based on movement
-                    let angleDeg = angle * (180 / Math.PI);
-                    if (angleDeg < 0) angleDeg += 360;
-                    if (angleDeg >= 337.5 || angleDeg < 22.5) player.direction = 'right';
-                    else if (angleDeg < 67.5) player.direction = 'down_right';
-                    else if (angleDeg < 112.5) player.direction = 'down';
-                    else if (angleDeg < 157.5) player.direction = 'down_left';
-                    else if (angleDeg < 202.5) player.direction = 'left';
-                    else if (angleDeg < 247.5) player.direction = 'up_left';
-                    else if (angleDeg < 292.5) player.direction = 'up';
-                    else if (angleDeg < 337.5) player.direction = 'up_right';
-                    
-                    // Send real-time position updates during movement
-                    if (!window.lastMoveEmit || Date.now() - window.lastMoveEmit > 16) {
-                        window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
-                        window.lastMoveEmit = Date.now();
-                    }
-                }
-            }
+            // New movement system - client only handles click events and sends requests
+            // Server handles all movement logic
             
-            // Handle other players' smooth movement to targets
+            // Handle other players' movement (server-controlled)
             Object.values(window.players).forEach(otherPlayer => {
                 if (otherPlayer.id === window.socket.id) return; // Skip local player
                 
-                // Smooth interpolation to target
-                if (otherPlayer.targetX !== undefined && otherPlayer.targetY !== undefined) {
-                    const dx = otherPlayer.targetX - otherPlayer.x;
-                    const dy = otherPlayer.targetY - otherPlayer.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (dist > 1) {
-                        // Smooth interpolation factor
-                        const speed = 0.1;
-                        otherPlayer.x += dx * speed;
-                        otherPlayer.y += dy * speed;
-                    } else {
-                        // Close enough, snap to target
-                        otherPlayer.x = otherPlayer.targetX;
-                        otherPlayer.y = otherPlayer.targetY;
-                    }
-                }
+                // Other players' positions are now fully controlled by server
+                // No client-side interpolation needed
             });
         }
         CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
@@ -3926,7 +3882,8 @@
             
             // Move character to clicked position if not clicking on a player
             if (!clickedOnPlayer && !window.isInventoryOpen && !window.isSettingsOpen) {
-                window.target = { x, y };
+                // Send move request to server instead of setting local target
+                window.socket.emit('request_move', { x: x, y: y });
             }
         });
         document.addEventListener('keydown', (e) => {
