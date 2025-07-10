@@ -2870,10 +2870,12 @@
                 drawDefaultCharacter();
             }
             
-            // Draw equipped items (only head-related items for preview)
+            // Draw equipped items in correct layering order (only head-related items for preview)
             if (player.equipped && window.itemsMetadata) {
-                // Only draw head-related items: ht (hat), hr (hair), gs (glasses)
-                for (const cat of ["ht", "hr", "gs"]) {
+                // Use the same draw order as the main game: ["hd", "sk", "st", "ps", "nk", "hr", "gs", "ht"]
+                // For preview, we only need head-related items: hr (hair), gs (glasses), ht (hat)
+                // Note: hd (skin) is already drawn above, sk (skateboard) is not needed for head preview
+                for (const cat of ["hr", "gs", "ht"]) {
                     const itemId = player.equipped[cat];
                     if (!itemId) continue;
                     
@@ -2920,15 +2922,15 @@
             // Draw the cropped head area from the temp canvas
             // Focus on the head area with better positioning
             const sourceX = 0;
-            const sourceY = tempCanvas.height * 0.2; // Start from 20% down to focus on head area
+            const sourceY = tempCanvas.height * 0.15; // Start from 15% down to focus on head area
             const sourceWidth = tempCanvas.width;
-            const sourceHeight = tempCanvas.height * 0.4; // Show middle 40% for head focus
+            const sourceHeight = tempCanvas.height * 0.35; // Show middle 35% for head focus
             
             // Scale and position to fill the circle better
             const destWidth = canvas.width * 1.2; // Slightly larger to fill circle
             const destHeight = canvas.height * 1.2;
             const destX = (canvas.width - destWidth) / 2;
-            const destY = (canvas.height - destHeight) / 2 - canvas.height * 0.1; // Move up slightly to center head
+            const destY = (canvas.height - destHeight) / 2 - canvas.height * 0.2; // Move up more to position head near top
             
             ctx.drawImage(
                 tempCanvas,
