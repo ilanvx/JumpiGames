@@ -135,7 +135,8 @@ const profanityFilter = {
         'חתיכת זבל', 'חתיכת זונה', 'חתיכת כלבה', 'חתיכת זבל אנושי',
         'כוס אמא שלך', 'זין אמא שלך', 'תחת אמא שלך',
         'כוס אבא שלך', 'זין אבא שלך', 'תחת אבא שלך',
-        'כוס המשפחה שלך', 'זין המשפחה שלך', 'תחת המשפחה שלך'
+        'כוס המשפחה שלך', 'זין המשפחה שלך', 'תחת המשפחה שלך',
+        'שרמוטה', 'שרמוט', 'שרמוטות', 'שרמוטים'
     ],
     // English profanity list
     english: [
@@ -1102,6 +1103,81 @@ io.on('connection', async (socket) => {
      });
 
      console.log(`Player ${currentPlayer.username} exited home to ${previousRoomId}`);
+ });
+
+ // Visit other player's home
+ socket.on('visitHome', async ({ targetUsername }) => {
+     const currentPlayer = players[socket.id];
+     if (!currentPlayer) {
+         socket.emit('homeResponse', { success: false, message: 'Player not found' });
+         return;
+     }
+
+     if (!targetUsername || typeof targetUsername !== 'string') {
+         socket.emit('homeResponse', { success: false, message: 'Invalid target username' });
+         return;
+     }
+
+     // Find target user in database to get their homeId
+     const targetUser = await User.findOne({ username: { $regex: new RegExp(`^${targetUsername}$`, 'i') } });
+     if (!targetUser || !targetUser.homeId) {
+         socket.emit('homeResponse', { success: false, message: 'Target user or their home not found' });
+         return;
+     }
+
+     const targetHomeId = targetUser.homeId;
+     const currentRoomId = playerRooms[socket.id];
+
+     // Store previous room for exit functionality
+     if (currentRoomId && currentRoomId !== targetHomeId) {
+         playerPreviousRooms[socket.id] = currentRoomId;
+     }
+
+     // Create target home room if it doesn't exist
+     if (!homeRooms[targetHomeId]) {
+         homeRooms[targetHomeId] = {
+             id: targetHomeId,
+             name: `${targetUsername}'s Home`,
+             background: 'rooms/house.png',
+             maxCapacity: 1,
+             currentPlayers: 0,
+             owner: targetUsername
+         };
+     }
+
+     // Remove player from current room
+     if (currentRoomId) {
+         if (rooms[currentRoomId]) {
+             rooms[currentRoomId].currentPlayers = Math.max(0, rooms[currentRoomId].currentPlayers - 1);
+         } else if (homeRooms[currentRoomId]) {
+             homeRooms[currentRoomId].currentPlayers = Math.max(0, homeRooms[currentRoomId].currentPlayers - 1);
+         }
+     }
+
+     // Add player to target home room
+     playerRooms[socket.id] = targetHomeId;
+     homeRooms[targetHomeId].currentPlayers++;
+
+     // Update player position to center of target home
+     players[socket.id].x = 600;
+     players[socket.id].y = 340;
+     players[socket.id].targetX = 600;
+     players[socket.id].targetY = 340;
+
+     // Broadcast updated room occupancy
+     io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
+
+     // Send success response
+     socket.emit('homeResponse', { 
+         success: true, 
+         roomId: targetHomeId,
+         message: `Visiting ${targetUsername}'s home!`,
+         background: 'rooms/house.png',
+         isVisiting: true,
+         visitedUsername: targetUsername
+     });
+
+     console.log(`Player ${currentPlayer.username} is visiting ${targetUsername}'s home ${targetHomeId}`);
  });
 });
 

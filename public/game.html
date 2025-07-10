@@ -2249,9 +2249,10 @@
         
         function toggleHome() {
             if (window.isInHome) {
-                // Exit home
+                // Exit home (works for both own home and visiting)
                 window.socket.emit('exitHome');
-                window.showNotification('יוצא מהבית...', 'info', 2000);
+                const message = window.isVisitingHome ? 'יוצא מבית של ' + window.visitedUsername + '...' : 'יוצא מהבית...';
+                window.showNotification(message, 'info', 2000);
             } else {
                 // Enter home
                 window.socket.emit('enterHome');
@@ -2407,7 +2408,15 @@
                 });
                 
                 // Update home button tooltip based on state
-                homeBtn.title = window.isInHome ? 'Exit Home' : 'Enter Home';
+                if (window.isInHome) {
+                    if (window.isVisitingHome && window.visitedUsername) {
+                        homeBtn.title = `Exit ${window.visitedUsername}'s Home`;
+                    } else {
+                        homeBtn.title = 'Exit Home';
+                    }
+                } else {
+                    homeBtn.title = 'Enter Home';
+                }
             }
             
             // Chat button
@@ -2753,21 +2762,40 @@ Object.keys(serverPlayers).forEach(id => {
             console.log('Received home response:', data);
             if (data.success) {
                 if (data.roomId && data.roomId.startsWith('home_')) {
-                    // Entered home
+                    // Entered home or visiting someone's home
                     window.isInHome = true;
                     window.currentHomeId = data.roomId;
                     window.bg.src = data.background || 'rooms/house.png';
-                    window.showNotification(data.message, 'success', 3000);
                     
-                    // Update home button tooltip
-                    const homeBtn = document.getElementById('homeBtn');
-                    if (homeBtn) {
-                        homeBtn.title = 'Exit Home';
+                    // Check if visiting someone else's home
+                    if (data.isVisiting && data.visitedUsername) {
+                        window.isVisitingHome = true;
+                        window.visitedUsername = data.visitedUsername;
+                        window.showNotification(data.message, 'success', 3000);
+                        
+                        // Update home button tooltip
+                        const homeBtn = document.getElementById('homeBtn');
+                        if (homeBtn) {
+                            homeBtn.title = `Exit ${data.visitedUsername}'s Home`;
+                        }
+                    } else {
+                        // Entered own home
+                        window.isVisitingHome = false;
+                        window.visitedUsername = null;
+                        window.showNotification(data.message, 'success', 3000);
+                        
+                        // Update home button tooltip
+                        const homeBtn = document.getElementById('homeBtn');
+                        if (homeBtn) {
+                            homeBtn.title = 'Exit Home';
+                        }
                     }
                 } else {
                     // Exited home
                     window.isInHome = false;
+                    window.isVisitingHome = false;
                     window.currentHomeId = null;
+                    window.visitedUsername = null;
                     window.bg.src = data.background || 'rooms/sea.png';
                     window.showNotification(data.message, 'success', 3000);
                     
@@ -3120,13 +3148,13 @@ Object.keys(serverPlayers).forEach(id => {
                 window.ctx.fillStyle = 'white';
                 window.ctx.fillText(p.username, p.x, p.y + 55);
                 
-                // --- Draw house icon if player is in their home ---
+                // --- Draw house icon if player is in their home or visiting someone's home ---
                 if (window.isInHome && p.id === window.socket.id && p.room && p.room.startsWith('home_')) {
                     window.ctx.save();
                     window.ctx.font = '24px Arial';
                     window.ctx.textAlign = 'center';
                     window.ctx.textBaseline = 'top';
-                    window.ctx.fillStyle = '#4fd18b';
+                    window.ctx.fillStyle = window.isVisitingHome ? '#ffa500' : '#4fd18b'; // Orange for visiting, green for own home
                     window.ctx.fillText('🏠', p.x, p.y + 80);
                     window.ctx.restore();
                 }
@@ -3923,7 +3951,12 @@ Object.keys(serverPlayers).forEach(id => {
 
         if (homeBtn) {
             homeBtn.addEventListener('click', () => {
-                window.showNotification('בית אישי - בקרוב!', 'info', 3000);
+                if (selectedPlayer) {
+                    // Visit the selected player's home
+                    window.socket.emit('visitHome', { targetUsername: selectedPlayer.username });
+                    closePlayerCard();
+                    window.showNotification(`מבקר בבית של ${selectedPlayer.username}...`, 'info', 2000);
+                }
             });
         }
 
