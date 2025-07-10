@@ -2975,7 +2975,7 @@
             }
         });
 
-        window.socket.on('updatePlayers', (serverPlayers) => {
+                window.socket.on('updatePlayers', (serverPlayers) => {
             // שמור אימוג'י קיים
             Object.keys(serverPlayers).forEach(id => {
                 if (window.players && window.players[id]) {
@@ -2996,34 +2996,82 @@
                 }
             });
             
-// Update all players' positions and properties in real-time
-Object.keys(serverPlayers).forEach(id => {
-    const serverPlayer = serverPlayers[id];
-    let currentPlayer = window.players[id];
-    if (!currentPlayer) {
-        // New player - initialize with current position
-        window.players[id] = serverPlayer;
-        currentPlayer = window.players[id];
-        currentPlayer.targetX = currentPlayer.x;
-        currentPlayer.targetY = currentPlayer.y;
-    } else {
-        // Update target for smooth movement
-        if (serverPlayer.targetX !== undefined && serverPlayer.targetY !== undefined) {
-            currentPlayer.targetX = serverPlayer.targetX;
-            currentPlayer.targetY = serverPlayer.targetY;
-        }
-        currentPlayer.direction = serverPlayer.direction;
-        // Update other properties
-        currentPlayer.username = serverPlayer.username;
-        currentPlayer.message = serverPlayer.message;
-        currentPlayer.messageTime = serverPlayer.messageTime;
-        currentPlayer.inventory = serverPlayer.inventory;
-        currentPlayer.equipped = serverPlayer.equipped;
-        currentPlayer.coins = serverPlayer.coins;
-        currentPlayer.room = serverPlayer.room;
-        currentPlayer.isAdmin = serverPlayer.isAdmin;
-    }
-});
+            // Check if local player has left home and reset home state
+            const localPlayer = serverPlayers[window.socket.id];
+            if (localPlayer) {
+                const currentRoom = localPlayer.room;
+                
+                // Check if player has left home
+                if (window.isInHome && (!currentRoom || !currentRoom.startsWith('home_'))) {
+                    window.isInHome = false;
+                    window.isVisitingHome = false;
+                    window.currentHomeId = null;
+                    window.visitedUsername = null;
+                    
+                    // Update home button tooltip
+                    const homeBtn = document.getElementById('homeBtn');
+                    if (homeBtn) {
+                        homeBtn.title = 'Enter Home';
+                    }
+                    
+                    console.log('Player left home via room change, resetting home state');
+                }
+                
+                // Check if player has entered a home room (for cases where they enter via map)
+                if (!window.isInHome && currentRoom && currentRoom.startsWith('home_')) {
+                    window.isInHome = true;
+                    window.currentHomeId = currentRoom;
+                    
+                    // Determine if visiting someone else's home or own home
+                    const isOwnHome = window.currentHomeId === currentRoom;
+                    if (isOwnHome) {
+                        window.isVisitingHome = false;
+                        window.visitedUsername = null;
+                        const homeBtn = document.getElementById('homeBtn');
+                        if (homeBtn) {
+                            homeBtn.title = 'Exit Home';
+                        }
+                    } else {
+                        // Visiting someone else's home - we don't have the username here, so use a generic message
+                        window.isVisitingHome = true;
+                        const homeBtn = document.getElementById('homeBtn');
+                        if (homeBtn) {
+                            homeBtn.title = 'Exit Home';
+                        }
+                    }
+                    
+                    console.log('Player entered home via room change, updating home state');
+                }
+            }
+            
+            // Update all players' positions and properties in real-time
+            Object.keys(serverPlayers).forEach(id => {
+                const serverPlayer = serverPlayers[id];
+                let currentPlayer = window.players[id];
+                if (!currentPlayer) {
+                    // New player - initialize with current position
+                    window.players[id] = serverPlayer;
+                    currentPlayer = window.players[id];
+                    currentPlayer.targetX = currentPlayer.x;
+                    currentPlayer.targetY = currentPlayer.y;
+                } else {
+                    // Update target for smooth movement
+                    if (serverPlayer.targetX !== undefined && serverPlayer.targetY !== undefined) {
+                        currentPlayer.targetX = serverPlayer.targetX;
+                        currentPlayer.targetY = serverPlayer.targetY;
+                    }
+                    currentPlayer.direction = serverPlayer.direction;
+                    // Update other properties
+                    currentPlayer.username = serverPlayer.username;
+                    currentPlayer.message = serverPlayer.message;
+                    currentPlayer.messageTime = serverPlayer.messageTime;
+                    currentPlayer.inventory = serverPlayer.inventory;
+                    currentPlayer.equipped = serverPlayer.equipped;
+                    currentPlayer.coins = serverPlayer.coins;
+                    currentPlayer.room = serverPlayer.room;
+                    currentPlayer.isAdmin = serverPlayer.isAdmin;
+                }
+            });
             
             // Add new players
             Object.keys(serverPlayers).forEach(id => {
