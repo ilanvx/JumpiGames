@@ -2832,10 +2832,17 @@
             }
         }
         
+        // ==================== Friends Panel Functions ====================
         function showUserProfile(player) {
-            // This would open the user's profile card
-            // For now, just show a notification
-            window.showNotification(`פרופיל של ${player.username}`, 'info', 3000);
+            // Open the player's profile card exactly like clicking on their character
+            if (typeof showPlayerCard === 'function') {
+                showPlayerCard(player);
+                // Close the Friends Panel after opening the profile card
+                toggleFriendsPanel();
+            } else {
+                // Fallback if showPlayerCard is not yet available
+                window.showNotification(`פרופיל של ${player.username}`, 'info', 3000);
+            }
         }
         
         function showComingSoon(feature) {
@@ -2843,12 +2850,11 @@
         }
         
         function visitUserHome(player) {
-            // Visit the user's home
-            if (player.homeId) {
-                window.socket.emit('joinHome', { homeId: player.homeId });
-            } else {
-                window.showNotification('לא ניתן לבקר בבית של משתמש זה', 'error', 3000);
-            }
+            // Visit the user's home exactly like clicking the home button in their profile card
+            window.socket.emit('visitHome', { targetUsername: player.username });
+            // Close the Friends Panel after initiating home visit
+            toggleFriendsPanel();
+            window.showNotification(`מבקר בבית של ${player.username}...`, 'info', 2000);
         }
         
         // Initialize Friends Panel tabs
@@ -2904,6 +2910,7 @@
                 });
             }
         }
+
 
         // ==================== סוקטים ====================
         // Security: Prevent client-side speed hacks (disabled temporarily to fix movement)
@@ -4642,5 +4649,82 @@ Object.keys(serverPlayers).forEach(id => {
             </div>
         </div>
     </div>
+
+    <!-- Friends Panel Functions -->
+    <script>
+        // Friends Panel Functions - Added after showPlayerCard is defined
+        function showUserProfile(player) {
+            // Open the player's profile card exactly like clicking on their character
+            showPlayerCard(player);
+            // Close the Friends Panel after opening the profile card
+            toggleFriendsPanel();
+        }
+        
+        function showComingSoon(feature) {
+            window.showNotification(`${feature} - בקרוב!`, 'info', 3000);
+        }
+        
+        function visitUserHome(player) {
+            // Visit the user's home exactly like clicking the home button in their profile card
+            window.socket.emit('visitHome', { targetUsername: player.username });
+            // Close the Friends Panel after initiating home visit
+            toggleFriendsPanel();
+            window.showNotification(`מבקר בבית של ${player.username}...`, 'info', 2000);
+        }
+        
+        // Initialize Friends Panel tabs
+        function initializeFriendsPanel() {
+            const friendsTab = document.getElementById('friendsTab');
+            const onlineUsersTab = document.getElementById('onlineUsersTab');
+            const friendsTabContent = document.getElementById('friendsTabContent');
+            const onlineUsersTabContent = document.getElementById('onlineUsersTabContent');
+            const friendsPanelClose = document.getElementById('friendsPanelClose');
+            
+            if (friendsTab) {
+                friendsTab.addEventListener('click', () => {
+                    // Switch to friends tab
+                    friendsTab.classList.add('active');
+                    friendsTab.style.color = '#667eea';
+                    friendsTab.style.fontWeight = '600';
+                    friendsTab.style.borderBottom = '2px solid #667eea';
+                    
+                    onlineUsersTab.classList.remove('active');
+                    onlineUsersTab.style.color = '#666';
+                    onlineUsersTab.style.fontWeight = '500';
+                    onlineUsersTab.style.borderBottom = 'none';
+                    
+                    friendsTabContent.style.display = 'block';
+                    onlineUsersTabContent.style.display = 'none';
+                });
+            }
+            
+            if (onlineUsersTab) {
+                onlineUsersTab.addEventListener('click', () => {
+                    // Switch to online users tab
+                    onlineUsersTab.classList.add('active');
+                    onlineUsersTab.style.color = '#667eea';
+                    onlineUsersTab.style.fontWeight = '600';
+                    onlineUsersTab.style.borderBottom = '2px solid #667eea';
+                    
+                    friendsTab.classList.remove('active');
+                    friendsTab.style.color = '#666';
+                    friendsTab.style.fontWeight = '500';
+                    friendsTab.style.borderBottom = 'none';
+                    
+                    onlineUsersTabContent.style.display = 'block';
+                    friendsTabContent.style.display = 'none';
+                    
+                    // Update online users list when switching to this tab
+                    updateOnlineUsersList();
+                });
+            }
+            
+            if (friendsPanelClose) {
+                friendsPanelClose.addEventListener('click', () => {
+                    toggleFriendsPanel();
+                });
+            }
+        }
+    </script>
 </body>
 </html>
