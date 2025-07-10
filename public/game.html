@@ -197,6 +197,26 @@
                 height: 50px;
                 padding: 8px 20px;
             }
+        }
+        
+        /* Friends Panel Styles */
+        .friends-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .friends-tab.active {
+            color: #667eea !important;
+            font-weight: 600 !important;
+            border-bottom: 2px solid #667eea !important;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
 
             .game-container {
                 height: calc(100vh - 60px);
@@ -1755,6 +1775,9 @@
                 <button class="toolbar-btn" id="homeBtn" title="Home">
                     <i class="fas fa-home"></i>
                 </button>
+                <button class="toolbar-btn" id="friendsBtn" title="Friends">
+                    <i class="fas fa-users"></i>
+                </button>
                 <button class="toolbar-btn" id="chatBtn" title="Chat">
                     <i class="fas fa-comments"></i>
                 </button>
@@ -1872,6 +1895,48 @@
         </div>
     </div>
     <div id="notification-container"></div>
+    <!-- Friends Panel -->
+    <div id="friendsPanel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1500; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 8px 32px rgba(120,144,255,0.18); border: 1.5px solid rgba(255,255,255,0.22); backdrop-filter: blur(18px); min-width: 400px; max-width: 600px; max-height: 80vh;">
+        <div class="friends-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid rgba(120,144,255,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-users" style="color: #667eea; font-size: 1.3rem;"></i>
+                <span style="font-weight: 600; color: #333; font-size: 1.2rem;">חברים</span>
+            </div>
+            <button class="close-btn" id="friendsPanelClose" style="background: rgba(255,255,255,0.2); border: none; color: #666; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="friends-tabs" style="display: flex; border-bottom: 1px solid rgba(120,144,255,0.1);">
+            <button class="friends-tab active" id="friendsTab" style="flex: 1; padding: 15px 20px; background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer; border-bottom: 2px solid #667eea; transition: all 0.2s;">
+                <i class="fas fa-user-friends"></i>
+                חברים
+            </button>
+            <button class="friends-tab" id="onlineUsersTab" style="flex: 1; padding: 15px 20px; background: none; border: none; color: #666; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                <i class="fas fa-circle"></i>
+                משתמשים מקוונים
+            </button>
+        </div>
+        
+        <div class="friends-content" style="padding: 20px 25px; max-height: 400px; overflow-y: auto;">
+            <!-- Friends Tab Content -->
+            <div id="friendsTabContent" class="tab-content active" style="display: block;">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; color: #666;">
+                    <i class="fas fa-lock" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                    <h3 style="margin: 0 0 10px 0; color: #333; font-size: 1.1rem;">בקרוב</h3>
+                    <p style="margin: 0; color: #888; font-size: 0.9rem;">מערכת החברים תהיה זמינה בקרוב</p>
+                </div>
+            </div>
+            
+            <!-- Online Users Tab Content -->
+            <div id="onlineUsersTabContent" class="tab-content" style="display: none;">
+                <div id="onlineUsersList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Online users will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Panel -->
     <div id="adminPanel">
       <div class="admin-header">
@@ -2378,6 +2443,8 @@
             
             // Initialize modern toolbar
             initializeToolbar();
+            // Initialize Friends Panel
+            initializeFriendsPanel();
             // Initialize trading system
             if (window.Trading && typeof window.Trading.initTradingSystem === 'function') {
                 window.Trading.initTradingSystem();
@@ -2392,6 +2459,7 @@
             const adminBtn = document.getElementById('adminBtn');
             const sendBtn = document.getElementById('sendBtn');
             const chatInput = document.getElementById('chatInput');
+            const friendsBtn = document.getElementById('friendsBtn');
             
             // Inventory button
             if (inventoryBtn) {
@@ -2417,6 +2485,13 @@
                 } else {
                     homeBtn.title = 'Enter Home';
                 }
+            }
+            
+            // Friends button
+            if (friendsBtn) {
+                friendsBtn.addEventListener('click', () => {
+                    toggleFriendsPanel();
+                });
             }
             
             // Chat button
@@ -2537,6 +2612,296 @@
                 window.socket.emit('chat', message);
                 chatInput.value = '';
                 window.currentInput = '';
+            }
+        }
+        
+        // ==================== Friends Panel Functions ====================
+        function toggleFriendsPanel() {
+            const friendsPanel = document.getElementById('friendsPanel');
+            if (!friendsPanel) return;
+            
+            const isOpen = friendsPanel.style.display !== 'none';
+            if (isOpen) {
+                friendsPanel.style.display = 'none';
+            } else {
+                friendsPanel.style.display = 'block';
+                updateOnlineUsersList();
+            }
+        }
+        
+        function updateOnlineUsersList() {
+            const onlineUsersList = document.getElementById('onlineUsersList');
+            if (!onlineUsersList) return;
+            
+            onlineUsersList.innerHTML = '';
+            
+            // Get all online players except the current user
+            const onlinePlayers = Object.values(window.players).filter(player => 
+                player.username !== window.currentUserInfo?.username
+            );
+            
+            if (onlinePlayers.length === 0) {
+                onlineUsersList.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #666;">
+                        <i class="fas fa-users" style="font-size: 2rem; color: #ccc; margin-bottom: 10px;"></i>
+                        <p style="margin: 0; color: #888;">אין משתמשים מקוונים כרגע</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            onlinePlayers.forEach(player => {
+                const userItem = createUserListItem(player);
+                onlineUsersList.appendChild(userItem);
+            });
+        }
+        
+        function createUserListItem(player) {
+            const userItem = document.createElement('div');
+            userItem.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 16px;
+                background: rgba(255,255,255,0.6);
+                border-radius: 12px;
+                border: 1px solid rgba(120,144,255,0.1);
+                transition: all 0.2s;
+            `;
+            
+            // Character preview
+            const characterPreview = document.createElement('div');
+            characterPreview.style.cssText = `
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #f0f0f0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                position: relative;
+            `;
+            
+            // Create character preview canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = 40;
+            canvas.height = 40;
+            canvas.style.cssText = `
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+            `;
+            
+            // Draw character preview
+            drawCharacterPreview(canvas, player);
+            characterPreview.appendChild(canvas);
+            
+            // User info
+            const userInfo = document.createElement('div');
+            userInfo.style.cssText = `
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            `;
+            
+            const username = document.createElement('span');
+            username.textContent = player.username;
+            username.style.cssText = `
+                font-weight: 600;
+                color: #333;
+                font-size: 0.9rem;
+            `;
+            
+            const onlineStatus = document.createElement('div');
+            onlineStatus.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.75rem;
+                color: #28a745;
+            `;
+            onlineStatus.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem;"></i>מקוון';
+            
+            userInfo.appendChild(username);
+            userInfo.appendChild(onlineStatus);
+            
+            // Action buttons
+            const actionButtons = document.createElement('div');
+            actionButtons.style.cssText = `
+                display: flex;
+                gap: 8px;
+            `;
+            
+            const profileBtn = document.createElement('button');
+            profileBtn.innerHTML = '<i class="fas fa-user"></i>';
+            profileBtn.title = 'פרופיל';
+            profileBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                border: none;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                transition: all 0.2s;
+            `;
+            profileBtn.onclick = () => showUserProfile(player);
+            
+            const houseBtn = document.createElement('button');
+            houseBtn.innerHTML = '<i class="fas fa-home"></i>';
+            houseBtn.title = 'בית';
+            houseBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                border: none;
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                transition: all 0.2s;
+            `;
+            houseBtn.onclick = () => visitUserHome(player);
+            
+            actionButtons.appendChild(profileBtn);
+            actionButtons.appendChild(houseBtn);
+            
+            userItem.appendChild(characterPreview);
+            userItem.appendChild(userInfo);
+            userItem.appendChild(actionButtons);
+            
+            return userItem;
+        }
+        
+        function drawCharacterPreview(canvas, player) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Scale for preview
+            const scale = 0.4;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Draw character base (head)
+            ctx.fillStyle = '#ffdbac'; // Default skin color
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw equipped items if available
+            if (player.equipped) {
+                // Draw hat
+                if (player.equipped.ht) {
+                    ctx.fillStyle = '#4a90e2';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY - 6, 10, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                // Draw glasses
+                if (player.equipped.gs) {
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath();
+                    ctx.arc(centerX - 3, centerY - 1, 2.5, 0, 2 * Math.PI);
+                    ctx.arc(centerX + 3, centerY - 1, 2.5, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                // Draw hair
+                if (player.equipped.hr) {
+                    ctx.fillStyle = '#8B4513';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY - 2, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                // Draw shirt (small indicator)
+                if (player.equipped.st) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.fillRect(centerX - 4, centerY + 2, 8, 4);
+                }
+            }
+        }
+        
+        function showUserProfile(player) {
+            // This would open the user's profile card
+            // For now, just show a notification
+            window.showNotification(`פרופיל של ${player.username}`, 'info', 3000);
+        }
+        
+        function showComingSoon(feature) {
+            window.showNotification(`${feature} - בקרוב!`, 'info', 3000);
+        }
+        
+        function visitUserHome(player) {
+            // Visit the user's home
+            if (player.homeId) {
+                window.socket.emit('joinHome', { homeId: player.homeId });
+            } else {
+                window.showNotification('לא ניתן לבקר בבית של משתמש זה', 'error', 3000);
+            }
+        }
+        
+        // Initialize Friends Panel tabs
+        function initializeFriendsPanel() {
+            const friendsTab = document.getElementById('friendsTab');
+            const onlineUsersTab = document.getElementById('onlineUsersTab');
+            const friendsTabContent = document.getElementById('friendsTabContent');
+            const onlineUsersTabContent = document.getElementById('onlineUsersTabContent');
+            const friendsPanelClose = document.getElementById('friendsPanelClose');
+            
+            if (friendsTab) {
+                friendsTab.addEventListener('click', () => {
+                    // Switch to friends tab
+                    friendsTab.classList.add('active');
+                    friendsTab.style.color = '#667eea';
+                    friendsTab.style.fontWeight = '600';
+                    friendsTab.style.borderBottom = '2px solid #667eea';
+                    
+                    onlineUsersTab.classList.remove('active');
+                    onlineUsersTab.style.color = '#666';
+                    onlineUsersTab.style.fontWeight = '500';
+                    onlineUsersTab.style.borderBottom = 'none';
+                    
+                    friendsTabContent.style.display = 'block';
+                    onlineUsersTabContent.style.display = 'none';
+                });
+            }
+            
+            if (onlineUsersTab) {
+                onlineUsersTab.addEventListener('click', () => {
+                    // Switch to online users tab
+                    onlineUsersTab.classList.add('active');
+                    onlineUsersTab.style.color = '#667eea';
+                    onlineUsersTab.style.fontWeight = '600';
+                    onlineUsersTab.style.borderBottom = '2px solid #667eea';
+                    
+                    friendsTab.classList.remove('active');
+                    friendsTab.style.color = '#666';
+                    friendsTab.style.fontWeight = '500';
+                    friendsTab.style.borderBottom = 'none';
+                    
+                    onlineUsersTabContent.style.display = 'block';
+                    friendsTabContent.style.display = 'none';
+                    
+                    // Update online users list when switching to this tab
+                    updateOnlineUsersList();
+                });
+            }
+            
+            if (friendsPanelClose) {
+                friendsPanelClose.addEventListener('click', () => {
+                    toggleFriendsPanel();
+                });
             }
         }
 
@@ -2669,6 +3034,12 @@ Object.keys(serverPlayers).forEach(id => {
             
             if (window.isInventoryOpen) {
                 updateInventoryInfo();
+            }
+            
+            // Update Friends Panel if it's open
+            const friendsPanel = document.getElementById('friendsPanel');
+            if (friendsPanel && friendsPanel.style.display !== 'none') {
+                updateOnlineUsersList();
             }
         });
 

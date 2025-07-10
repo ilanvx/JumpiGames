@@ -99,7 +99,8 @@ function initializePlayerData(dbUser) {
         equipped: initialEquipped,
         id: '', // Will be set to socket.id
         isAdmin: !!dbUser.isAdmin,
-        isAFK: false
+        isAFK: false,
+        homeId: dbUser.homeId || null
     };
 }
 
@@ -1762,7 +1763,8 @@ function emitPlayersWithRooms() {
             room: roomId,
             targetX: player.targetX,
             targetY: player.targetY,
-            homeOwner: homeOwner // Add home owner information
+            homeOwner: homeOwner, // Add home owner information
+            homeId: player.homeId // Add homeId for Friends Panel
         };
     }
     io.emit('updatePlayers', playersWithRooms);
