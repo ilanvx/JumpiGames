@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
   coins: { type: Number, default: 0 },
   inventory: { type: mongoose.Schema.Types.Mixed, default: {} },
   equipped: { type: mongoose.Schema.Types.Mixed, default: {} },
-  isAdmin: { type: Boolean, default: false }
+  isAdmin: { type: Boolean, default: false },
+  homeId: { type: String, default: null }
 });
 
 module.exports = mongoose.model('User', userSchema);

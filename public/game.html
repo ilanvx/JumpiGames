@@ -1752,6 +1752,9 @@
                 <button class="toolbar-btn" id="inventoryBtn" title="Inventory">
                     <i class="fas fa-briefcase"></i>
                 </button>
+                <button class="toolbar-btn" id="homeBtn" title="Home">
+                    <i class="fas fa-home"></i>
+                </button>
                 <button class="toolbar-btn" id="chatBtn" title="Chat">
                     <i class="fas fa-comments"></i>
                 </button>
@@ -1983,6 +1986,8 @@
 
         window.isInventoryOpen = false;
         window.isChatHistoryOpen = false;
+        window.isInHome = false;
+        window.currentHomeId = null;
         let inventoryWindowElement;
         let characterPreviewImageElement;
         let inventoryCloseButtonElement;
@@ -2242,6 +2247,18 @@
             }
         }
         
+        function toggleHome() {
+            if (window.isInHome) {
+                // Exit home
+                window.socket.emit('exitHome');
+                window.showNotification('יוצא מהבית...', 'info', 2000);
+            } else {
+                // Enter home
+                window.socket.emit('enterHome');
+                window.showNotification('נכנס לבית...', 'info', 2000);
+            }
+        }
+        
         function toggleChatHistory() {
             window.isChatHistoryOpen = !window.isChatHistoryOpen;
             const chatHistoryPanel = document.getElementById('chatHistoryPanel');
@@ -2382,6 +2399,17 @@
                 });
             }
             
+            // Home button
+            const homeBtn = document.getElementById('homeBtn');
+            if (homeBtn) {
+                homeBtn.addEventListener('click', () => {
+                    toggleHome();
+                });
+                
+                // Update home button tooltip based on state
+                homeBtn.title = window.isInHome ? 'Exit Home' : 'Enter Home';
+            }
+            
             // Chat button
             if (chatBtn) {
                 chatBtn.addEventListener('click', () => {
@@ -2517,6 +2545,11 @@
         window.socket.on('userInfo', (userInfo) => {
             window.currentUserInfo = userInfo;
             console.log('Received user info:', userInfo);
+            
+            // Store homeId if provided
+            if (userInfo.homeId) {
+                window.currentHomeId = userInfo.homeId;
+            }
             
             // Update admin button visibility based on server-provided info
             const adminBtn = document.getElementById('adminBtn');
@@ -2674,6 +2707,40 @@ Object.keys(serverPlayers).forEach(id => {
             if (data && data.username && data.message) {
                 const isAdmin = data.isAdmin || false;
                 addToChatHistory(data.username, data.message, isAdmin);
+            }
+        });
+        
+        // Home System Events
+        window.socket.on('homeResponse', (data) => {
+            console.log('Received home response:', data);
+            if (data.success) {
+                if (data.roomId && data.roomId.startsWith('home_')) {
+                    // Entered home
+                    window.isInHome = true;
+                    window.currentHomeId = data.roomId;
+                    window.bg.src = data.background || 'rooms/house.png';
+                    window.showNotification(data.message, 'success', 3000);
+                    
+                    // Update home button tooltip
+                    const homeBtn = document.getElementById('homeBtn');
+                    if (homeBtn) {
+                        homeBtn.title = 'Exit Home';
+                    }
+                } else {
+                    // Exited home
+                    window.isInHome = false;
+                    window.currentHomeId = null;
+                    window.bg.src = data.background || 'rooms/sea.png';
+                    window.showNotification(data.message, 'success', 3000);
+                    
+                    // Update home button tooltip
+                    const homeBtn = document.getElementById('homeBtn');
+                    if (homeBtn) {
+                        homeBtn.title = 'Enter Home';
+                    }
+                }
+            } else {
+                window.showNotification(data.message || 'שגיאה בבית', 'error', 3000);
             }
         });
 
@@ -3009,6 +3076,17 @@ Object.keys(serverPlayers).forEach(id => {
 
                 window.ctx.fillStyle = 'white';
                 window.ctx.fillText(p.username, p.x, p.y + 55);
+                
+                // --- Draw house icon if player is in their home ---
+                if (window.isInHome && p.id === window.socket.id && p.room && p.room.startsWith('home_')) {
+                    window.ctx.save();
+                    window.ctx.font = '24px Arial';
+                    window.ctx.textAlign = 'center';
+                    window.ctx.textBaseline = 'top';
+                    window.ctx.fillStyle = '#4fd18b';
+                    window.ctx.fillText('🏠', p.x, p.y + 80);
+                    window.ctx.restore();
+                }
             });
         }
 

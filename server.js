@@ -62,6 +62,10 @@ const rooms = {
     park: { id: 'park', name: 'Park', background: 'rooms/park.png', maxCapacity: 50, currentPlayers: 0 }
 };
 
+// Home System
+const homeRooms = {}; // Store individual home rooms: { homeId: { id: homeId, name: 'Home', background: 'rooms/house.png', maxCapacity: 1, currentPlayers: 0, owner: username } }
+const playerPreviousRooms = {}; // Track previous room for each player: { socketId: previousRoomId }
+
 // Track which room each player is in
 const playerRooms = {}; // socketId -> roomId
 
@@ -163,18 +167,37 @@ io.on('connection', async (socket) => {
  playerRooms[socket.id] = 'beach';
  rooms.beach.currentPlayers++;
 
+ // Generate homeId for new users if they don't have one
+ if (!dbUser.homeId) {
+   dbUser.homeId = `home_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+   await dbUser.save();
+ }
+
+ // Create home room for this user if it doesn't exist
+ if (!homeRooms[dbUser.homeId]) {
+   homeRooms[dbUser.homeId] = {
+     id: dbUser.homeId,
+     name: `${players[socket.id].username}'s Home`,
+     background: 'rooms/house.png',
+     maxCapacity: 1,
+     currentPlayers: 0,
+     owner: players[socket.id].username
+   };
+ }
+
  socket.emit('updateInventory', players[socket.id].inventory);
  socket.emit('updateEquipped', players[socket.id].equipped);
  socket.emit('updateCoins', players[socket.id].coins);
  socket.emit('userInfo', { 
    username: players[socket.id].username,
    isAdmin: players[socket.id].isAdmin,
-   socketId: socket.id 
+   socketId: socket.id,
+   homeId: dbUser.homeId
  });
  emitPlayersWithRooms();
  
  // Broadcast updated room occupancy
- io.emit('roomOccupancyUpdate', { rooms: Object.values(rooms) });
+ io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
 
  socket.on('requestUserData', async () => {
    // Find user with case-insensitive username comparison
@@ -614,7 +637,7 @@ io.on('connection', async (socket) => {
        }
        delete playerRooms[socket.id];
        // Broadcast updated room occupancy
-       io.emit('roomOccupancyUpdate', { rooms: Object.values(rooms) });
+       io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
    }
    
    emitPlayersWithRooms();
@@ -829,7 +852,7 @@ io.on('connection', async (socket) => {
 
  // --- Room Management Events ---
  socket.on('requestRoomOccupancy', () => {
-     socket.emit('roomOccupancyUpdate', { rooms: Object.values(rooms) });
+     socket.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
  });
 
  socket.on('joinRoom', ({ roomId }) => {
@@ -870,7 +893,7 @@ io.on('connection', async (socket) => {
      room.currentPlayers++;
 
      // Broadcast updated room occupancy to all clients
-     io.emit('roomOccupancyUpdate', { rooms: Object.values(rooms) });
+     io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
 
      // Send success response to the joining player
      socket.emit('roomJoinResponse', { 
@@ -880,6 +903,124 @@ io.on('connection', async (socket) => {
      });
 
      console.log(`Player ${currentPlayer.username} joined room ${roomId} (${room.currentPlayers}/${room.maxCapacity})`);
+ });
+
+ // Home System Events
+ socket.on('enterHome', async () => {
+     const currentPlayer = players[socket.id];
+     if (!currentPlayer) {
+         socket.emit('homeResponse', { success: false, message: 'Player not found' });
+         return;
+     }
+
+     // Find user in database to get homeId
+     const dbUser = await User.findOne({ username: { $regex: new RegExp(`^${currentPlayer.username}$`, 'i') } });
+     if (!dbUser || !dbUser.homeId) {
+         socket.emit('homeResponse', { success: false, message: 'Home not found' });
+         return;
+     }
+
+     const homeId = dbUser.homeId;
+     const currentRoomId = playerRooms[socket.id];
+
+     // Store previous room for exit functionality
+     if (currentRoomId && currentRoomId !== homeId) {
+         playerPreviousRooms[socket.id] = currentRoomId;
+     }
+
+     // Create home room if it doesn't exist
+     if (!homeRooms[homeId]) {
+         homeRooms[homeId] = {
+             id: homeId,
+             name: `${currentPlayer.username}'s Home`,
+             background: 'rooms/house.png',
+             maxCapacity: 1,
+             currentPlayers: 0,
+             owner: currentPlayer.username
+         };
+     }
+
+     // Remove player from current room
+     if (currentRoomId) {
+         if (rooms[currentRoomId]) {
+             rooms[currentRoomId].currentPlayers = Math.max(0, rooms[currentRoomId].currentPlayers - 1);
+         } else if (homeRooms[currentRoomId]) {
+             homeRooms[currentRoomId].currentPlayers = Math.max(0, homeRooms[currentRoomId].currentPlayers - 1);
+         }
+     }
+
+     // Add player to home room
+     playerRooms[socket.id] = homeId;
+     homeRooms[homeId].currentPlayers++;
+
+     // Update player position to center of home
+     players[socket.id].x = 600;
+     players[socket.id].y = 340;
+     players[socket.id].targetX = 600;
+     players[socket.id].targetY = 340;
+
+     // Broadcast updated room occupancy
+     io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
+
+     // Send success response
+     socket.emit('homeResponse', { 
+         success: true, 
+         roomId: homeId,
+         message: `Welcome to your home!`,
+         background: 'rooms/house.png'
+     });
+
+     console.log(`Player ${currentPlayer.username} entered home ${homeId}`);
+ });
+
+ socket.on('exitHome', () => {
+     const currentPlayer = players[socket.id];
+     if (!currentPlayer) {
+         socket.emit('homeResponse', { success: false, message: 'Player not found' });
+         return;
+     }
+
+     const currentRoomId = playerRooms[socket.id];
+     const previousRoomId = playerPreviousRooms[socket.id] || 'beach'; // Default to beach if no previous room
+
+     // Check if player is actually in their home
+     if (!currentRoomId || !currentRoomId.startsWith('home_')) {
+         socket.emit('homeResponse', { success: false, message: 'You are not in your home' });
+         return;
+     }
+
+     // Remove player from current home room
+     if (homeRooms[currentRoomId]) {
+         homeRooms[currentRoomId].currentPlayers = Math.max(0, homeRooms[currentRoomId].currentPlayers - 1);
+     }
+
+     // Add player to previous room
+     playerRooms[socket.id] = previousRoomId;
+     if (rooms[previousRoomId]) {
+         rooms[previousRoomId].currentPlayers++;
+     }
+
+     // Update player position to center of previous room
+     players[socket.id].x = 600;
+     players[socket.id].y = 340;
+     players[socket.id].targetX = 600;
+     players[socket.id].targetY = 340;
+
+     // Clear previous room tracking
+     delete playerPreviousRooms[socket.id];
+
+     // Broadcast updated room occupancy
+     io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
+
+     // Send success response
+     socket.emit('homeResponse', { 
+         success: true, 
+         roomId: previousRoomId,
+         message: `Returned to ${rooms[previousRoomId] ? rooms[previousRoomId].name : 'Beach'}!`,
+         background: rooms[previousRoomId] ? rooms[previousRoomId].background : 'rooms/sea.png'
+     });
+
+     console.log(`Player ${currentPlayer.username} exited home to ${previousRoomId}`);
  });
 });
 
@@ -1415,4 +1556,14 @@ function emitPlayersWithRooms() {
         };
     }
     io.emit('updatePlayers', playersWithRooms);
+}
+
+// Helper function to get all rooms (including home rooms)
+function getAllRooms() {
+    const allRooms = { ...rooms };
+    // Add home rooms
+    Object.keys(homeRooms).forEach(homeId => {
+        allRooms[homeId] = homeRooms[homeId];
+    });
+    return allRooms;
 }
