@@ -2814,16 +2814,20 @@
             
             // Create a temporary canvas for full character rendering
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = 110; // 2x the original character size
-            tempCanvas.height = 140;
+            tempCanvas.width = 220; // 4x the original character size for better quality
+            tempCanvas.height = 280;
             const tempCtx = tempCanvas.getContext('2d');
             
             // Set up the rendering context similar to the main game
             tempCtx.save();
-            tempCtx.translate(55, 70); // Center of the temp canvas
+            tempCtx.translate(110, 140); // Center of the temp canvas
             
             // Use 'front' direction for consistent head view
             const direction = 'front';
+            
+            // Scale up the character for better visibility
+            const scale = 2.0; // 2x scale for larger preview
+            tempCtx.scale(scale, scale);
             
             // Draw base character sprite
             function drawDefaultCharacter() {
@@ -2914,16 +2918,22 @@
             ctx.clip();
             
             // Draw the cropped head area from the temp canvas
-            // Position to show mainly the head area (upper portion of the character)
+            // Focus on the head area with better positioning
             const sourceX = 0;
-            const sourceY = 0;
+            const sourceY = 0; // Start from top to focus on head
             const sourceWidth = tempCanvas.width;
-            const sourceHeight = tempCanvas.height * 0.6; // Show top 60% for head focus
+            const sourceHeight = tempCanvas.height * 0.5; // Show top 50% for better head focus
+            
+            // Scale and position to fill the circle better
+            const destWidth = canvas.width * 1.2; // Slightly larger to fill circle
+            const destHeight = canvas.height * 1.2;
+            const destX = (canvas.width - destWidth) / 2;
+            const destY = (canvas.height - destHeight) / 2;
             
             ctx.drawImage(
                 tempCanvas,
                 sourceX, sourceY, sourceWidth, sourceHeight,
-                0, 0, canvas.width, canvas.height
+                destX, destY, destWidth, destHeight
             );
             
             ctx.restore();
