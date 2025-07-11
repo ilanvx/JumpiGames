@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>נחש | Jumpi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: 'Varela Round', 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .game-container {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border: 2px solid #4a90e2;
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .game-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      color: #4ecdc4;
+    }
+
+    .canvas-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    #gameCanvas {
+      border: 3px solid #4a90e2;
+      border-radius: 10px;
+      background: #1a1a2e;
+    }
+
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    }
+
+    .btn.secondary:hover {
+      box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+    }
+
+    .instructions {
+      margin-top: 20px;
+      color: #bdc3c7;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+      .game-container {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      #gameCanvas {
+        width: 300px;
+        height: 300px;
+      }
+
+      .game-title {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="/arcade" class="back-btn">
+    <i class="fas fa-arrow-right"></i> חזרה לארקייד
+  </a>
+
+  <div class="game-container">
+    <h1 class="game-title">
+      <i class="fas fa-snake"></i> נחש
+    </h1>
+    
+    <div class="game-info">
+      <div>ניקוד: <span id="score">0</span></div>
+      <div>אורך: <span id="length">1</span></div>
+    </div>
+    
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+    </div>
+    
+    <div class="instructions">
+      <p>השתמש במקשי החצים כדי לשלוט בנחש</p>
+      <p>אכל את האוכל (🍎) כדי לגדול ולקבל נקודות</p>
+      <p>הימנע מהתנגשות בעצמך או בקירות!</p>
+    </div>
+    
+    <div class="controls">
+      <button class="btn" onclick="startGame()">
+        <i class="fas fa-play"></i> התחל משחק
+      </button>
+      <button class="btn secondary" onclick="window.location.href='/arcade'">
+        <i class="fas fa-home"></i> חזרה לארקייד
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+    const lengthElement = document.getElementById('length');
+
+    const gridSize = 20;
+    const tileCount = canvas.width / gridSize;
+
+    let snake = [
+      { x: 10, y: 10 }
+    ];
+    let food = { x: 15, y: 15 };
+    let dx = 0;
+    let dy = 0;
+    let score = 0;
+    let gameRunning = false;
+    let gameCompleted = false;
+
+    function drawGame() {
+      // Clear canvas
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw snake
+      ctx.fillStyle = '#4ecdc4';
+      snake.forEach(segment => {
+        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+      });
+
+      // Draw food
+      ctx.fillStyle = '#ff6b6b';
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+    }
+
+    function moveSnake() {
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      // Check wall collision
+      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        gameOver();
+        return;
+      }
+
+      // Check self collision
+      for (let i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+          gameOver();
+          return;
+        }
+      }
+
+      snake.unshift(head);
+
+      // Check food collision
+      if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        scoreElement.textContent = score;
+        lengthElement.textContent = snake.length;
+        generateFood();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function generateFood() {
+      food = {
+        x: Math.floor(Math.random() * tileCount),
+        y: Math.floor(Math.random() * tileCount)
+      };
+
+      // Make sure food doesn't spawn on snake
+      for (let segment of snake) {
+        if (food.x === segment.x && food.y === segment.y) {
+          generateFood();
+          return;
+        }
+      }
+    }
+
+    function gameOver() {
+      gameRunning = false;
+      alert(`משחק הסתיים! ניקוד: ${score}, אורך: ${snake.length}`);
+      
+      if (!gameCompleted && score > 0) {
+        awardCoins();
+        gameCompleted = true;
+      }
+    }
+
+    function startGame() {
+      snake = [{ x: 10, y: 10 }];
+      dx = 0;
+      dy = 0;
+      score = 0;
+      gameRunning = true;
+      gameCompleted = false;
+      scoreElement.textContent = score;
+      lengthElement.textContent = snake.length;
+      generateFood();
+      gameLoop();
+    }
+
+    function gameLoop() {
+      if (gameRunning) {
+        moveSnake();
+        drawGame();
+        setTimeout(gameLoop, 150);
+      }
+    }
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (!gameRunning) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          if (dy !== 1) { dx = 0; dy = -1; }
+          break;
+        case 'ArrowDown':
+          if (dy !== -1) { dx = 0; dy = 1; }
+          break;
+        case 'ArrowLeft':
+          if (dx !== 1) { dx = -1; dy = 0; }
+          break;
+        case 'ArrowRight':
+          if (dx !== -1) { dx = 1; dy = 0; }
+          break;
+      }
+    });
+
+    async function awardCoins() {
+      try {
+        const response = await fetch('/api/arcade/award-coins', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            gameType: 'snake',
+            amount: Math.min(20, Math.floor(score / 10))
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setTimeout(() => {
+            alert(`כל הכבוד! הרווחת ${Math.min(20, Math.floor(score / 10))} מטבעות!`);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error awarding coins:', error);
+      }
+    }
+
+    // Check authentication
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          alert('עליך להתחבר כדי לשחק');
+          window.location.href = '/login.html';
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/login.html';
+      }
+    }
+
+    // Initialize game
+    checkAuth();
+    drawGame();
+  </script>
+</body>
+</html> 

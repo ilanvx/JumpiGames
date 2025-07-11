@@ -1471,6 +1471,34 @@ app.post('/api/arcade/award-coins', async (req, res) => {
     }
 });
 
+// API route to get connected users for arcade
+app.get('/api/arcade/connected-users', async (req, res) => {
+    if (!req.session.username) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    try {
+        // Get all connected users from socket.io
+        const connectedUsers = [];
+        
+        // Add all connected players
+        for (const [socketId, player] of Object.entries(players)) {
+            if (player && player.username) {
+                connectedUsers.push({
+                    username: player.username,
+                    socketId: socketId
+                });
+            }
+        }
+        
+        res.json(connectedUsers);
+        
+    } catch (error) {
+        console.error('Error getting connected users:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.static('public'));
@@ -1762,6 +1790,16 @@ app.get('/games/tictactoe', (req, res) => {
 app.get('/games/connectfour', (req, res) => {
   if (!req.session.username) return res.redirect('/login.html');
   res.sendFile(path.join(__dirname, 'public', 'games', 'connectfour.html'));
+});
+
+app.get('/games/snake', (req, res) => {
+  if (!req.session.username) return res.redirect('/login.html');
+  res.sendFile(path.join(__dirname, 'public', 'games', 'snake.html'));
+});
+
+app.get('/games/memory', (req, res) => {
+  if (!req.session.username) return res.redirect('/login.html');
+  res.sendFile(path.join(__dirname, 'public', 'games', 'memory.html'));
 });
 
 // Email configuration

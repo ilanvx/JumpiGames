@@ -18,9 +18,24 @@
     }
 
     .arcade-container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 30px;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     /* User Info Bar */
@@ -142,15 +157,15 @@
 
     .games-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
       margin-top: 40px;
     }
 
     .game-card {
       background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
       border-radius: 20px;
-      padding: 30px;
+      padding: 25px;
       text-align: center;
       border: 2px solid #4a90e2;
       transition: all 0.3s ease;
@@ -182,31 +197,39 @@
     }
 
     .game-icon {
-      font-size: 4rem;
-      margin-bottom: 20px;
+      font-size: 3.5rem;
+      margin-bottom: 15px;
       color: #4ecdc4;
     }
 
     .game-title {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: bold;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       color: #ffffff;
     }
 
     .game-description {
       color: #bdc3c7;
-      margin-bottom: 25px;
-      line-height: 1.6;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .game-reward {
+      color: #ffd700;
+      font-weight: bold;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
     }
 
     .play-btn {
       background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
       color: white;
       border: none;
-      padding: 12px 30px;
+      padding: 10px 25px;
       border-radius: 12px;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -218,7 +241,93 @@
       box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
     }
 
+    /* Sidebar Cards */
+    .sidebar-card {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-radius: 15px;
+      padding: 20px;
+      border: 2px solid #4a90e2;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #4ecdc4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .user-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(-5px);
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4ecdc4, #44a08d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .user-name {
+      flex: 1;
+      font-size: 0.95rem;
+      color: #ffffff;
+    }
+
+    .user-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2ecc71;
+    }
+
+    .coming-soon {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .coming-soon .play-btn {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      cursor: not-allowed;
+    }
+
     /* Responsive Design */
+    @media (max-width: 1200px) {
+      .arcade-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .sidebar {
+        order: -1;
+      }
+    }
+
     @media (max-width: 768px) {
       .user-info-bar {
         flex-direction: column;
@@ -279,89 +388,203 @@
 </head>
 <body>
   <div class="arcade-container">
-    <!-- User Info Bar (shown when logged in) -->
-    <div id="userInfoBar" style="display: none;">
-      <div class="user-info-bar">
-        <div class="user-stats">
-          <div class="stat-item username">
-            <i class="fas fa-user stat-icon"></i>
-            <span id="username">משתמש</span>
+    <div class="main-content">
+      <!-- User Info Bar (shown when logged in) -->
+      <div id="userInfoBar" style="display: none;">
+        <div class="user-info-bar">
+          <div class="user-stats">
+            <div class="stat-item username">
+              <i class="fas fa-user stat-icon"></i>
+              <span id="username">משתמש</span>
+            </div>
+            <div class="stat-item coins">
+              <i class="fas fa-coins stat-icon"></i>
+              <span id="coins">0</span>
+            </div>
+            <div class="stat-item diamonds">
+              <i class="fas fa-gem stat-icon"></i>
+              <span id="diamonds">0</span>
+            </div>
+            <div class="stat-item level">
+              <i class="fas fa-star stat-icon"></i>
+              <span id="level">1</span>
+            </div>
           </div>
-          <div class="stat-item coins">
-            <i class="fas fa-coins stat-icon"></i>
-            <span id="coins">0</span>
+          <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> התנתקות
+          </button>
+        </div>
+      </div>
+
+      <!-- Login Required Message (shown when not logged in) -->
+      <div id="loginRequired" style="display: none;">
+        <div class="login-required">
+          <h2><i class="fas fa-lock"></i> התחברות נדרשת</h2>
+          <p>עליך להתחבר כדי לשחק במשחקי הארקייד</p>
+          <a href="/login.html" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i> התחברות
+          </a>
+        </div>
+      </div>
+
+      <!-- Games Section -->
+      <div id="gamesSection" style="display: none;">
+        <h1 class="section-title">
+          <i class="fas fa-gamepad"></i> ארקייד המשחקים
+        </h1>
+        
+        <div class="games-grid">
+          <div class="game-card" onclick="playGame('tictactoe')">
+            <div class="game-icon">
+              <i class="fas fa-th"></i>
+            </div>
+            <div class="game-title">איקס עיגול</div>
+            <div class="game-description">
+              משחק קלאסי נגד בוט. נסה ליצור שורה של שלושה סימנים!
+            </div>
+            <div class="game-reward">🏆 פרס: 10 מטבעות</div>
+            <button class="play-btn">
+              <i class="fas fa-play"></i> שחק עכשיו
+            </button>
           </div>
-          <div class="stat-item diamonds">
-            <i class="fas fa-gem stat-icon"></i>
-            <span id="diamonds">0</span>
+
+          <div class="game-card" onclick="playGame('connectfour')">
+            <div class="game-icon">
+              <i class="fas fa-circle"></i>
+            </div>
+            <div class="game-title">ארבע בשורה</div>
+            <div class="game-description">
+              נסה לחבר ארבעה עיגולים בשורה, בטור או באלכסון!
+            </div>
+            <div class="game-reward">🏆 פרס: 15 מטבעות</div>
+            <button class="play-btn">
+              <i class="fas fa-play"></i> שחק עכשיו
+            </button>
           </div>
-          <div class="stat-item level">
-            <i class="fas fa-star stat-icon"></i>
-            <span id="level">1</span>
+
+          <div class="game-card" onclick="playGame('snake')">
+            <div class="game-icon">
+              <i class="fas fa-snake"></i>
+            </div>
+            <div class="game-title">נחש</div>
+            <div class="game-description">
+              משחק הנחש הקלאסי! אכל אוכל וגדל, אבל אל תתנגש בעצמך!
+            </div>
+            <div class="game-reward">🏆 פרס: 20 מטבעות</div>
+            <button class="play-btn">
+              <i class="fas fa-play"></i> שחק עכשיו
+            </button>
+          </div>
+
+          <div class="game-card" onclick="playGame('tetris')">
+            <div class="game-icon">
+              <i class="fas fa-th-large"></i>
+            </div>
+            <div class="game-title">טטריס</div>
+            <div class="game-description">
+              סדר בלוקים בשורות מלאות כדי לנקות אותן!
+            </div>
+            <div class="game-reward">🏆 פרס: 25 מטבעות</div>
+            <button class="play-btn">
+              <i class="fas fa-play"></i> שחק עכשיו
+            </button>
+          </div>
+
+          <div class="game-card" onclick="playGame('memory')">
+            <div class="game-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <div class="game-title">משחק הזיכרון</div>
+            <div class="game-description">
+              מצא זוגות של כרטיסים זהים! תרגל את הזיכרון שלך.
+            </div>
+            <div class="game-reward">🏆 פרס: 12 מטבעות</div>
+            <button class="play-btn">
+              <i class="fas fa-play"></i> שחק עכשיו
+            </button>
+          </div>
+
+          <div class="game-card" onclick="playGame('puzzle')">
+            <div class="game-icon">
+              <i class="fas fa-puzzle-piece"></i>
+            </div>
+            <div class="game-title">פאזל מספרים</div>
+            <div class="game-description">
+              סדר את המספרים בסדר הנכון! משחק לוגיקה מאתגר.
+            </div>
+            <div class="game-reward">🏆 פרס: 18 מטבעות</div>
+            <button class="play-btn">
+              <i class="fas fa-play"></i> שחק עכשיו
+            </button>
+          </div>
+
+          <!-- Placeholder for future games -->
+          <div class="game-card coming-soon">
+            <div class="game-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="game-title">משחקים מרובי משתתפים</div>
+            <div class="game-description">
+              משחקים נגד חברים אמיתיים! בקרוב...
+            </div>
+            <div class="game-reward">🏆 פרס: משתנה</div>
+            <button class="play-btn" disabled>
+              <i class="fas fa-clock"></i> בקרוב
+            </button>
           </div>
         </div>
-        <button class="logout-btn" onclick="logout()">
-          <i class="fas fa-sign-out-alt"></i> התנתקות
-        </button>
       </div>
     </div>
 
-    <!-- Login Required Message (shown when not logged in) -->
-    <div id="loginRequired" style="display: none;">
-      <div class="login-required">
-        <h2><i class="fas fa-lock"></i> התחברות נדרשת</h2>
-        <p>עליך להתחבר כדי לשחק במשחקי הארקייד</p>
-        <a href="/login.html" class="login-btn">
-          <i class="fas fa-sign-in-alt"></i> התחברות
-        </a>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Connected Users -->
+      <div class="sidebar-card">
+        <div class="sidebar-title">
+          <i class="fas fa-users"></i> מחוברים עכשיו
+        </div>
+        <div class="user-list" id="connectedUsers">
+          <div class="user-item">
+            <div class="user-avatar">J</div>
+            <div class="user-name">JumpiBot</div>
+            <div class="user-status"></div>
+          </div>
+          <!-- More users will be loaded dynamically -->
+        </div>
       </div>
-    </div>
 
-    <!-- Games Section -->
-    <div id="gamesSection" style="display: none;">
-      <h1 class="section-title">
-        <i class="fas fa-gamepad"></i> ארקייד המשחקים
-      </h1>
-      
-      <div class="games-grid">
-        <div class="game-card" onclick="playGame('tictactoe')">
-          <div class="game-icon">
-            <i class="fas fa-th"></i>
-          </div>
-          <div class="game-title">איקס עיגול</div>
-          <div class="game-description">
-            משחק קלאסי של איקס עיגול. נסה ליצור שורה של שלושה סימנים!
-          </div>
-          <button class="play-btn">
-            <i class="fas fa-play"></i> שחק עכשיו
-          </button>
+      <!-- Friends List -->
+      <div class="sidebar-card">
+        <div class="sidebar-title">
+          <i class="fas fa-heart"></i> חברים
         </div>
-
-        <div class="game-card" onclick="playGame('connectfour')">
-          <div class="game-icon">
-            <i class="fas fa-circle"></i>
+        <div class="user-list" id="friendsList">
+          <div class="user-item">
+            <div class="user-avatar">?</div>
+            <div class="user-name">רשימת חברים</div>
+            <div class="user-status" style="background: #f39c12;"></div>
           </div>
-          <div class="game-title">ארבע בשורה</div>
-          <div class="game-description">
-            נסה לחבר ארבעה עיגולים בשורה, בטור או באלכסון!
+          <div style="color: #bdc3c7; font-size: 0.9rem; text-align: center; margin-top: 10px;">
+            תכונה זו תהיה זמינה בקרוב!
           </div>
-          <button class="play-btn">
-            <i class="fas fa-play"></i> שחק עכשיו
-          </button>
         </div>
+      </div>
 
-        <!-- Placeholder for future games -->
-        <div class="game-card" style="opacity: 0.6; cursor: not-allowed;">
-          <div class="game-icon">
-            <i class="fas fa-puzzle-piece"></i>
+      <!-- Quick Stats -->
+      <div class="sidebar-card">
+        <div class="sidebar-title">
+          <i class="fas fa-chart-bar"></i> סטטיסטיקות
+        </div>
+        <div style="color: #bdc3c7; font-size: 0.9rem;">
+          <div style="margin-bottom: 8px;">
+            <i class="fas fa-gamepad"></i> משחקים ששיחקת: <span id="gamesPlayed">0</span>
           </div>
-          <div class="game-title">משחקים נוספים</div>
-          <div class="game-description">
-            משחקים נוספים יגיעו בקרוב! הישארו מעודכנים.
+          <div style="margin-bottom: 8px;">
+            <i class="fas fa-trophy"></i> ניצחונות: <span id="wins">0</span>
           </div>
-          <button class="play-btn" disabled>
-            <i class="fas fa-clock"></i> בקרוב
-          </button>
+          <div style="margin-bottom: 8px;">
+            <i class="fas fa-coins"></i> מטבעות שהרווחת: <span id="totalCoins">0</span>
+          </div>
         </div>
       </div>
     </div>
@@ -380,6 +603,7 @@
         if (response.ok) {
           userData = await response.json();
           showLoggedInState();
+          loadConnectedUsers();
         } else {
           showLoginRequired();
         }
@@ -422,9 +646,58 @@
         window.location.href = '/games/tictactoe';
       } else if (gameType === 'connectfour') {
         window.location.href = '/games/connectfour';
+      } else if (gameType === 'snake') {
+        window.location.href = '/games/snake';
+      } else if (gameType === 'tetris') {
+        window.location.href = '/games/tetris';
+      } else if (gameType === 'memory') {
+        window.location.href = '/games/memory';
+      } else if (gameType === 'puzzle') {
+        window.location.href = '/games/puzzle';
       } else {
         alert(`משחק ${gameType} ייפתח בקרוב!`);
       }
+    }
+
+    async function loadConnectedUsers() {
+      try {
+        const response = await fetch('/api/arcade/connected-users', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const users = await response.json();
+          updateConnectedUsersList(users);
+        }
+      } catch (error) {
+        console.error('Error loading connected users:', error);
+      }
+    }
+
+    function updateConnectedUsersList(users) {
+      const container = document.getElementById('connectedUsers');
+      container.innerHTML = '';
+      
+      // Add bot user
+      container.innerHTML = `
+        <div class="user-item">
+          <div class="user-avatar">J</div>
+          <div class="user-name">JumpiBot</div>
+          <div class="user-status"></div>
+        </div>
+      `;
+      
+      // Add real users
+      users.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.className = 'user-item';
+        userElement.innerHTML = `
+          <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
+          <div class="user-name">${user.username}</div>
+          <div class="user-status"></div>
+        `;
+        container.appendChild(userElement);
+      });
     }
 
     async function awardCoins(gameType, amount) {
@@ -454,6 +727,9 @@
 
     // Initialize page
     checkAuth();
+    
+    // Refresh connected users every 30 seconds
+    setInterval(loadConnectedUsers, 30000);
   </script>
 </body>
 </html> 
