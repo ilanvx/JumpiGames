@@ -2096,3 +2096,83 @@ function getAllRooms() {
     });
     return allRooms;
 }
+
+// Arcade API routes
+app.get('/api/arcade/connected-users', (req, res) => {
+  // For now, return a mock list of connected users
+  // In a real app, this would track actual connected users
+  const mockUsers = [
+    { username: 'JumpiBot', status: 'online' },
+    { username: 'GameMaster', status: 'online' },
+    { username: 'ArcadeFan', status: 'online' }
+  ];
+  res.json(mockUsers);
+});
+
+app.post('/api/arcade/award-coins', async (req, res) => {
+  try {
+    const { gameType, amount } = req.body;
+    
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'לא מחובר' });
+    }
+
+    const user = await User.findById(req.session.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'משתמש לא נמצא' });
+    }
+
+    // Validate amount based on game type
+    let maxAmount = 0;
+    switch (gameType) {
+      case 'tictactoe':
+        maxAmount = 10;
+        break;
+      case 'connectfour':
+        maxAmount = 15;
+        break;
+      case 'snake':
+        maxAmount = 20;
+        break;
+      case 'memory':
+        maxAmount = 20;
+        break;
+      default:
+        maxAmount = 10;
+    }
+
+    const finalAmount = Math.min(amount, maxAmount);
+    user.coins = (user.coins || 0) + finalAmount;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      newCoins: user.coins, 
+      awarded: finalAmount 
+    });
+  } catch (error) {
+    console.error('Error awarding coins:', error);
+    res.status(500).json({ error: 'שגיאה בשרת' });
+  }
+});
+
+// Game routes
+app.get('/games/tictactoe', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'games', 'tictactoe.html'));
+});
+
+app.get('/games/connectfour', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'games', 'connectfour.html'));
+});
+
+app.get('/games/snake', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'games', 'snake.html'));
+});
+
+app.get('/games/memory', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'games', 'memory.html'));
+});
+
+app.get('/arcade', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'arcade.html'));
+});

@@ -151,6 +151,14 @@
       to { box-shadow: 0 0 30px rgba(78, 205, 196, 0.8); }
     }
 
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      color: #4ecdc4;
+    }
+
     @media (max-width: 600px) {
       .game-container {
         padding: 20px;
@@ -179,7 +187,12 @@
       <i class="fas fa-th"></i> איקס עיגול
     </h1>
     
-    <div class="status" id="status">תור של X</div>
+    <div class="game-info">
+      <div>אתה: <span style="color: #ff6b6b;">X</span></div>
+      <div>בוט: <span style="color: #4ecdc4;">O</span></div>
+    </div>
+    
+    <div class="status" id="status">תור שלך!</div>
     
     <div class="board" id="board">
       <div class="cell" data-index="0"></div>
@@ -208,6 +221,8 @@
     let gameBoard = ['', '', '', '', '', '', '', '', ''];
     let gameActive = true;
     let gameCompleted = false;
+    let playerSymbol = 'X';
+    let botSymbol = 'O';
 
     const winningCombinations = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
@@ -226,15 +241,16 @@
     });
 
     function makeMove(index) {
-      if (gameBoard[index] !== '' || !gameActive) return;
+      if (gameBoard[index] !== '' || !gameActive || currentPlayer !== playerSymbol) return;
 
-      gameBoard[index] = currentPlayer;
-      cells[index].textContent = currentPlayer;
-      cells[index].classList.add(currentPlayer.toLowerCase());
+      // Player's move
+      gameBoard[index] = playerSymbol;
+      cells[index].textContent = playerSymbol;
+      cells[index].classList.add(playerSymbol.toLowerCase());
 
       if (checkWinner()) {
         gameActive = false;
-        status.textContent = `המנצח הוא ${currentPlayer}!`;
+        status.textContent = 'ניצחת! 🎉';
         highlightWinner();
         if (!gameCompleted) {
           awardCoins();
@@ -245,12 +261,84 @@
 
       if (checkDraw()) {
         gameActive = false;
-        status.textContent = 'תיקו!';
+        status.textContent = 'תיקו! 🤝';
         return;
       }
 
-      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-      status.textContent = `תור של ${currentPlayer}`;
+      // Bot's turn
+      currentPlayer = botSymbol;
+      status.textContent = 'תור הבוט...';
+      
+      setTimeout(() => {
+        makeBotMove();
+      }, 500);
+    }
+
+    function makeBotMove() {
+      if (!gameActive) return;
+
+      const bestMove = findBestMove();
+      gameBoard[bestMove] = botSymbol;
+      cells[bestMove].textContent = botSymbol;
+      cells[bestMove].classList.add(botSymbol.toLowerCase());
+
+      if (checkWinner()) {
+        gameActive = false;
+        status.textContent = 'הבוט ניצח! 😔';
+        highlightWinner();
+        return;
+      }
+
+      if (checkDraw()) {
+        gameActive = false;
+        status.textContent = 'תיקו! 🤝';
+        return;
+      }
+
+      currentPlayer = playerSymbol;
+      status.textContent = 'תור שלך!';
+    }
+
+    function findBestMove() {
+      // First, try to win
+      for (let i = 0; i < 9; i++) {
+        if (gameBoard[i] === '') {
+          gameBoard[i] = botSymbol;
+          if (checkWinner()) {
+            gameBoard[i] = '';
+            return i;
+          }
+          gameBoard[i] = '';
+        }
+      }
+
+      // Second, block player's winning move
+      for (let i = 0; i < 9; i++) {
+        if (gameBoard[i] === '') {
+          gameBoard[i] = playerSymbol;
+          if (checkWinner()) {
+            gameBoard[i] = '';
+            return i;
+          }
+          gameBoard[i] = '';
+        }
+      }
+
+      // Third, take center if available
+      if (gameBoard[4] === '') {
+        return 4;
+      }
+
+      // Fourth, take corners
+      const corners = [0, 2, 6, 8];
+      const availableCorners = corners.filter(i => gameBoard[i] === '');
+      if (availableCorners.length > 0) {
+        return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+      }
+
+      // Finally, take any available space
+      const availableMoves = gameBoard.map((cell, index) => cell === '' ? index : -1).filter(i => i !== -1);
+      return availableMoves[Math.floor(Math.random() * availableMoves.length)];
     }
 
     function checkWinner() {
@@ -279,14 +367,14 @@
       gameBoard = ['', '', '', '', '', '', '', '', ''];
       gameActive = true;
       gameCompleted = false;
-      currentPlayer = 'X';
+      currentPlayer = playerSymbol;
       
       cells.forEach(cell => {
         cell.textContent = '';
         cell.classList.remove('x', 'o', 'winner');
       });
       
-      status.textContent = 'תור של X';
+      status.textContent = 'תור שלך!';
     }
 
     async function awardCoins() {

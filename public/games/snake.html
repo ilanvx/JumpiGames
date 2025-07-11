@@ -45,7 +45,7 @@
       display: flex;
       justify-content: space-between;
       margin-bottom: 20px;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: #4ecdc4;
     }
 
@@ -117,11 +117,27 @@
       box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
     }
 
-    .instructions {
-      margin-top: 20px;
-      color: #bdc3c7;
-      font-size: 0.9rem;
-      line-height: 1.5;
+    .game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      display: none;
+    }
+
+    .game-over h2 {
+      color: #ff6b6b;
+      margin-bottom: 20px;
+    }
+
+    .game-over p {
+      color: #4ecdc4;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
     }
 
     @media (max-width: 600px) {
@@ -130,13 +146,13 @@
         margin: 20px;
       }
 
+      .game-title {
+        font-size: 2rem;
+      }
+
       #gameCanvas {
         width: 300px;
         height: 300px;
-      }
-
-      .game-title {
-        font-size: 2rem;
       }
     }
   </style>
@@ -160,12 +176,6 @@
       <canvas id="gameCanvas" width="400" height="400"></canvas>
     </div>
     
-    <div class="instructions">
-      <p>השתמש במקשי החצים כדי לשלוט בנחש</p>
-      <p>אכל את האוכל (🍎) כדי לגדול ולקבל נקודות</p>
-      <p>הימנע מהתנגשות בעצמך או בקירות!</p>
-    </div>
-    
     <div class="controls">
       <button class="btn" onclick="startGame()">
         <i class="fas fa-play"></i> התחל משחק
@@ -176,11 +186,21 @@
     </div>
   </div>
 
+  <div class="game-over" id="gameOver">
+    <h2>המשחק נגמר!</h2>
+    <p>ניקוד: <span id="finalScore">0</span></p>
+    <p>אורך: <span id="finalLength">1</span></p>
+    <button class="btn" onclick="startGame()">שחק שוב</button>
+  </div>
+
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
     const lengthElement = document.getElementById('length');
+    const gameOverElement = document.getElementById('gameOver');
+    const finalScoreElement = document.getElementById('finalScore');
+    const finalLengthElement = document.getElementById('finalLength');
 
     const gridSize = 20;
     const tileCount = canvas.width / gridSize;
@@ -193,25 +213,35 @@
     let dy = 0;
     let score = 0;
     let gameRunning = false;
-    let gameCompleted = false;
+    let gameLoop;
 
-    function drawGame() {
-      // Clear canvas
-      ctx.fillStyle = '#1a1a2e';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw snake
-      ctx.fillStyle = '#4ecdc4';
-      snake.forEach(segment => {
-        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
-      });
-
-      // Draw food
-      ctx.fillStyle = '#ff6b6b';
-      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+    function startGame() {
+      snake = [{ x: 10, y: 10 }];
+      food = generateFood();
+      dx = 0;
+      dy = 0;
+      score = 0;
+      gameRunning = true;
+      gameOverElement.style.display = 'none';
+      updateScore();
+      gameLoop = setInterval(update, 150);
     }
 
-    function moveSnake() {
+    function generateFood() {
+      let newFood;
+      do {
+        newFood = {
+          x: Math.floor(Math.random() * tileCount),
+          y: Math.floor(Math.random() * tileCount)
+        };
+      } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+      return newFood;
+    }
+
+    function update() {
+      if (!gameRunning) return;
+
+      // Move snake
       const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
       // Check wall collision
@@ -221,11 +251,9 @@
       }
 
       // Check self collision
-      for (let i = 0; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-          gameOver();
-          return;
-        }
+      if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+        gameOver();
+        return;
       }
 
       snake.unshift(head);
@@ -233,81 +261,58 @@
       // Check food collision
       if (head.x === food.x && head.y === food.y) {
         score += 10;
-        scoreElement.textContent = score;
-        lengthElement.textContent = snake.length;
-        generateFood();
+        food = generateFood();
+        updateScore();
       } else {
         snake.pop();
       }
+
+      draw();
     }
 
-    function generateFood() {
-      food = {
-        x: Math.floor(Math.random() * tileCount),
-        y: Math.floor(Math.random() * tileCount)
-      };
+    function draw() {
+      // Clear canvas
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Make sure food doesn't spawn on snake
-      for (let segment of snake) {
-        if (food.x === segment.x && food.y === segment.y) {
-          generateFood();
-          return;
+      // Draw snake
+      ctx.fillStyle = '#4ecdc4';
+      snake.forEach((segment, index) => {
+        if (index === 0) {
+          // Head
+          ctx.fillStyle = '#ff6b6b';
+        } else {
+          ctx.fillStyle = '#4ecdc4';
         }
-      }
+        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+      });
+
+      // Draw food
+      ctx.fillStyle = '#f1c40f';
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+    }
+
+    function updateScore() {
+      scoreElement.textContent = score;
+      lengthElement.textContent = snake.length;
     }
 
     function gameOver() {
       gameRunning = false;
-      alert(`משחק הסתיים! ניקוד: ${score}, אורך: ${snake.length}`);
+      clearInterval(gameLoop);
       
-      if (!gameCompleted && score > 0) {
-        awardCoins();
-        gameCompleted = true;
+      finalScoreElement.textContent = score;
+      finalLengthElement.textContent = snake.length;
+      gameOverElement.style.display = 'block';
+      
+      // Award coins based on score
+      const coins = Math.floor(score / 10);
+      if (coins > 0) {
+        awardCoins(coins);
       }
     }
 
-    function startGame() {
-      snake = [{ x: 10, y: 10 }];
-      dx = 0;
-      dy = 0;
-      score = 0;
-      gameRunning = true;
-      gameCompleted = false;
-      scoreElement.textContent = score;
-      lengthElement.textContent = snake.length;
-      generateFood();
-      gameLoop();
-    }
-
-    function gameLoop() {
-      if (gameRunning) {
-        moveSnake();
-        drawGame();
-        setTimeout(gameLoop, 150);
-      }
-    }
-
-    // Keyboard controls
-    document.addEventListener('keydown', (e) => {
-      if (!gameRunning) return;
-
-      switch (e.key) {
-        case 'ArrowUp':
-          if (dy !== 1) { dx = 0; dy = -1; }
-          break;
-        case 'ArrowDown':
-          if (dy !== -1) { dx = 0; dy = 1; }
-          break;
-        case 'ArrowLeft':
-          if (dx !== 1) { dx = -1; dy = 0; }
-          break;
-        case 'ArrowRight':
-          if (dx !== -1) { dx = 1; dy = 0; }
-          break;
-      }
-    });
-
-    async function awardCoins() {
+    async function awardCoins(amount) {
       try {
         const response = await fetch('/api/arcade/award-coins', {
           method: 'POST',
@@ -317,20 +322,82 @@
           credentials: 'include',
           body: JSON.stringify({
             gameType: 'snake',
-            amount: Math.min(20, Math.floor(score / 10))
+            amount: amount
           })
         });
 
         if (response.ok) {
-          const result = await response.json();
           setTimeout(() => {
-            alert(`כל הכבוד! הרווחת ${Math.min(20, Math.floor(score / 10))} מטבעות!`);
+            alert(`כל הכבוד! הרווחת ${amount} מטבעות על הניקוד שלך!`);
           }, 500);
         }
       } catch (error) {
         console.error('Error awarding coins:', error);
       }
     }
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (!gameRunning) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          if (dy !== 1) { dx = 0; dy = -1; }
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          if (dy !== -1) { dx = 0; dy = 1; }
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          if (dx !== 1) { dx = -1; dy = 0; }
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          if (dx !== -1) { dx = 1; dy = 0; }
+          break;
+      }
+    });
+
+    // Touch controls for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+    });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!gameRunning) return;
+
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (deltaX > 0 && dx !== -1) { dx = 1; dy = 0; }
+        else if (deltaX < 0 && dx !== 1) { dx = -1; dy = 0; }
+      } else {
+        // Vertical swipe
+        if (deltaY > 0 && dy !== -1) { dx = 0; dy = 1; }
+        else if (deltaY < 0 && dy !== 1) { dx = 0; dy = -1; }
+      }
+    });
 
     // Check authentication
     async function checkAuth() {
@@ -351,7 +418,7 @@
 
     // Initialize game
     checkAuth();
-    drawGame();
+    draw();
   </script>
 </body>
 </html> 

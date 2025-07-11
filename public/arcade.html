@@ -22,7 +22,7 @@
       margin: 0 auto;
       padding: 20px;
       display: grid;
-      grid-template-columns: 1fr 300px;
+      grid-template-columns: 1fr 320px;
       gap: 30px;
     }
 
@@ -36,6 +36,9 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      height: fit-content;
+      position: sticky;
+      top: 20px;
     }
 
     /* User Info Bar */
@@ -43,7 +46,7 @@
       background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       border-radius: 20px;
       padding: 20px 30px;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
       border: 2px solid #4a90e2;
       display: flex;
@@ -66,6 +69,9 @@
       gap: 8px;
       font-size: 1.1rem;
       font-weight: bold;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
     }
 
     .stat-icon {
@@ -140,12 +146,12 @@
 
     /* Games Grid */
     .games-section {
-      margin-top: 40px;
+      margin-top: 20px;
     }
 
     .section-title {
       text-align: center;
-      font-size: 3rem;
+      font-size: 2.8rem;
       font-weight: bold;
       margin-bottom: 40px;
       background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
@@ -157,9 +163,9 @@
 
     .games-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 25px;
-      margin-top: 40px;
+      margin-top: 30px;
     }
 
     .game-card {
@@ -172,6 +178,10 @@
       cursor: pointer;
       position: relative;
       overflow: hidden;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .game-card::before {
@@ -190,7 +200,7 @@
     }
 
     .game-card:hover {
-      transform: translateY(-10px) scale(1.02);
+      transform: translateY(-8px) scale(1.02);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       border-color: #00ffff;
       box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
@@ -211,9 +221,10 @@
 
     .game-description {
       color: #bdc3c7;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       line-height: 1.5;
       font-size: 0.95rem;
+      flex-grow: 1;
     }
 
     .game-reward {
@@ -221,19 +232,24 @@
       font-weight: bold;
       margin-bottom: 15px;
       font-size: 0.9rem;
+      background: rgba(255, 215, 0, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: inline-block;
     }
 
     .play-btn {
       background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
       color: white;
       border: none;
-      padding: 10px 25px;
+      padding: 12px 25px;
       border-radius: 12px;
       font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+      width: 100%;
     }
 
     .play-btn:hover {
@@ -316,6 +332,12 @@
       cursor: not-allowed;
     }
 
+    .game-status {
+      font-size: 0.8rem;
+      color: #4ecdc4;
+      margin-top: 8px;
+    }
+
     /* Responsive Design */
     @media (max-width: 1200px) {
       .arcade-container {
@@ -325,6 +347,7 @@
       
       .sidebar {
         order: -1;
+        position: static;
       }
     }
 
@@ -344,11 +367,12 @@
       }
 
       .section-title {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
       }
 
       .game-card {
         padding: 20px;
+        min-height: 250px;
       }
     }
 
@@ -366,7 +390,7 @@
       }
 
       .section-title {
-        font-size: 2rem;
+        font-size: 1.8rem;
       }
     }
 
@@ -440,9 +464,10 @@
             </div>
             <div class="game-title">איקס עיגול</div>
             <div class="game-description">
-              משחק קלאסי נגד בוט. נסה ליצור שורה של שלושה סימנים!
+              משחק קלאסי נגד בוט חכם! נסה ליצור שורה של שלושה סימנים כדי לנצח.
             </div>
             <div class="game-reward">🏆 פרס: 10 מטבעות</div>
+            <div class="game-status">✅ זמין - נגד בוט</div>
             <button class="play-btn">
               <i class="fas fa-play"></i> שחק עכשיו
             </button>
@@ -454,9 +479,10 @@
             </div>
             <div class="game-title">ארבע בשורה</div>
             <div class="game-description">
-              נסה לחבר ארבעה עיגולים בשורה, בטור או באלכסון!
+              נסה לחבר ארבעה עיגולים בשורה, בטור או באלכסון! משחק אסטרטגיה נגד בוט.
             </div>
             <div class="game-reward">🏆 פרס: 15 מטבעות</div>
+            <div class="game-status">✅ זמין - נגד בוט</div>
             <button class="play-btn">
               <i class="fas fa-play"></i> שחק עכשיו
             </button>
@@ -468,23 +494,10 @@
             </div>
             <div class="game-title">נחש</div>
             <div class="game-description">
-              משחק הנחש הקלאסי! אכל אוכל וגדל, אבל אל תתנגש בעצמך!
+              משחק הנחש הקלאסי! אכל אוכל וגדל, אבל אל תתנגש בעצמך או בקירות!
             </div>
-            <div class="game-reward">🏆 פרס: 20 מטבעות</div>
-            <button class="play-btn">
-              <i class="fas fa-play"></i> שחק עכשיו
-            </button>
-          </div>
-
-          <div class="game-card" onclick="playGame('tetris')">
-            <div class="game-icon">
-              <i class="fas fa-th-large"></i>
-            </div>
-            <div class="game-title">טטריס</div>
-            <div class="game-description">
-              סדר בלוקים בשורות מלאות כדי לנקות אותן!
-            </div>
-            <div class="game-reward">🏆 פרס: 25 מטבעות</div>
+            <div class="game-reward">🏆 פרס: עד 20 מטבעות</div>
+            <div class="game-status">✅ זמין - משחק יחיד</div>
             <button class="play-btn">
               <i class="fas fa-play"></i> שחק עכשיו
             </button>
@@ -496,25 +509,42 @@
             </div>
             <div class="game-title">משחק הזיכרון</div>
             <div class="game-description">
-              מצא זוגות של כרטיסים זהים! תרגל את הזיכרון שלך.
+              מצא זוגות של כרטיסים זהים! תרגל את הזיכרון שלך וקבל פרסים.
             </div>
-            <div class="game-reward">🏆 פרס: 12 מטבעות</div>
+            <div class="game-reward">🏆 פרס: 12-20 מטבעות</div>
+            <div class="game-status">✅ זמין - משחק יחיד</div>
             <button class="play-btn">
               <i class="fas fa-play"></i> שחק עכשיו
             </button>
           </div>
 
-          <div class="game-card" onclick="playGame('puzzle')">
+          <div class="game-card coming-soon">
+            <div class="game-icon">
+              <i class="fas fa-th-large"></i>
+            </div>
+            <div class="game-title">טטריס</div>
+            <div class="game-description">
+              סדר בלוקים בשורות מלאות כדי לנקות אותן! משחק קלאסי עם פרסים.
+            </div>
+            <div class="game-reward">🏆 פרס: 25 מטבעות</div>
+            <div class="game-status">⏳ בקרוב</div>
+            <button class="play-btn" disabled>
+              <i class="fas fa-clock"></i> בקרוב
+            </button>
+          </div>
+
+          <div class="game-card coming-soon">
             <div class="game-icon">
               <i class="fas fa-puzzle-piece"></i>
             </div>
             <div class="game-title">פאזל מספרים</div>
             <div class="game-description">
-              סדר את המספרים בסדר הנכון! משחק לוגיקה מאתגר.
+              סדר את המספרים בסדר הנכון! משחק לוגיקה מאתגר עם פרסים.
             </div>
             <div class="game-reward">🏆 פרס: 18 מטבעות</div>
-            <button class="play-btn">
-              <i class="fas fa-play"></i> שחק עכשיו
+            <div class="game-status">⏳ בקרוב</div>
+            <button class="play-btn" disabled>
+              <i class="fas fa-clock"></i> בקרוב
             </button>
           </div>
 
@@ -525,9 +555,10 @@
             </div>
             <div class="game-title">משחקים מרובי משתתפים</div>
             <div class="game-description">
-              משחקים נגד חברים אמיתיים! בקרוב...
+              משחקים נגד חברים אמיתיים! בקרוב תוכל לשחק נגד חברים אמיתיים.
             </div>
             <div class="game-reward">🏆 פרס: משתנה</div>
+            <div class="game-status">⏳ בקרוב</div>
             <button class="play-btn" disabled>
               <i class="fas fa-clock"></i> בקרוב
             </button>
@@ -648,12 +679,8 @@
         window.location.href = '/games/connectfour';
       } else if (gameType === 'snake') {
         window.location.href = '/games/snake';
-      } else if (gameType === 'tetris') {
-        window.location.href = '/games/tetris';
       } else if (gameType === 'memory') {
         window.location.href = '/games/memory';
-      } else if (gameType === 'puzzle') {
-        window.location.href = '/games/puzzle';
       } else {
         alert(`משחק ${gameType} ייפתח בקרוב!`);
       }

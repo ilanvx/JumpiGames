@@ -48,6 +48,14 @@
       font-weight: bold;
     }
 
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      color: #4ecdc4;
+    }
+
     .board-container {
       display: flex;
       flex-direction: column;
@@ -191,7 +199,12 @@
       <i class="fas fa-circle"></i> ארבע בשורה
     </h1>
     
-    <div class="status" id="status">תור של אדום</div>
+    <div class="game-info">
+      <div>אתה: <span style="color: #e74c3c;">🔴</span></div>
+      <div>בוט: <span style="color: #f1c40f;">🟡</span></div>
+    </div>
+    
+    <div class="status" id="status">תור שלך!</div>
     
     <div class="board-container">
       <div class="board" id="board">
@@ -216,6 +229,8 @@
     let currentPlayer = 'red';
     let gameActive = true;
     let gameCompleted = false;
+    let playerSymbol = 'red';
+    let botSymbol = 'yellow';
 
     const boardElement = document.getElementById('board');
     const statusElement = document.getElementById('status');
@@ -245,18 +260,19 @@
     }
 
     function makeMove(col) {
-      if (!gameActive) return;
+      if (!gameActive || currentPlayer !== playerSymbol) return;
 
       const row = getLowestEmptyRow(col);
       if (row === -1) return; // Column is full
 
-      board[row][col] = currentPlayer;
-      updateCell(row, col, currentPlayer);
+      // Player's move
+      board[row][col] = playerSymbol;
+      updateCell(row, col, playerSymbol);
 
-      if (checkWinner(row, col)) {
+      if (checkWinner()) {
         gameActive = false;
-        statusElement.textContent = `המנצח הוא ${currentPlayer === 'red' ? 'אדום' : 'צהוב'}!`;
-        highlightWinner(row, col);
+        statusElement.textContent = 'ניצחת! 🎉';
+        highlightWinner();
         if (!gameCompleted) {
           awardCoins();
           gameCompleted = true;
@@ -266,12 +282,83 @@
 
       if (checkDraw()) {
         gameActive = false;
-        statusElement.textContent = 'תיקו!';
+        statusElement.textContent = 'תיקו! 🤝';
         return;
       }
 
-      currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
-      statusElement.textContent = `תור של ${currentPlayer === 'red' ? 'אדום' : 'צהוב'}`;
+      // Bot's turn
+      currentPlayer = botSymbol;
+      statusElement.textContent = 'תור הבוט...';
+      
+      setTimeout(() => {
+        makeBotMove();
+      }, 800);
+    }
+
+    function makeBotMove() {
+      if (!gameActive) return;
+
+      const bestMove = findBestMove();
+      const row = getLowestEmptyRow(bestMove);
+      
+      if (row !== -1) {
+        board[row][bestMove] = botSymbol;
+        updateCell(row, bestMove, botSymbol);
+
+        if (checkWinner()) {
+          gameActive = false;
+          statusElement.textContent = 'הבוט ניצח! 😔';
+          highlightWinner();
+          return;
+        }
+
+        if (checkDraw()) {
+          gameActive = false;
+          statusElement.textContent = 'תיקו! 🤝';
+          return;
+        }
+      }
+
+      currentPlayer = playerSymbol;
+      statusElement.textContent = 'תור שלך!';
+    }
+
+    function findBestMove() {
+      // First, try to win
+      for (let col = 0; col < COLS; col++) {
+        const row = getLowestEmptyRow(col);
+        if (row !== -1) {
+          board[row][col] = botSymbol;
+          if (checkWinner()) {
+            board[row][col] = '';
+            return col;
+          }
+          board[row][col] = '';
+        }
+      }
+
+      // Second, block player's winning move
+      for (let col = 0; col < COLS; col++) {
+        const row = getLowestEmptyRow(col);
+        if (row !== -1) {
+          board[row][col] = playerSymbol;
+          if (checkWinner()) {
+            board[row][col] = '';
+            return col;
+          }
+          board[row][col] = '';
+        }
+      }
+
+      // Third, prefer center columns
+      const centerCols = [3, 2, 4, 1, 5, 0, 6];
+      for (let col of centerCols) {
+        if (getLowestEmptyRow(col) !== -1) {
+          return col;
+        }
+      }
+
+      return 0;
     }
 
     function getLowestEmptyRow(col) {
@@ -289,7 +376,7 @@
       cell.textContent = player === 'red' ? '🔴' : '🟡';
     }
 
-    function checkWinner(row, col) {
+    function checkWinner() {
       const directions = [
         [[0, 1], [0, -1]], // Horizontal
         [[1, 0], [-1, 0]], // Vertical
@@ -370,7 +457,7 @@
       initializeBoard();
       gameActive = true;
       gameCompleted = false;
-      currentPlayer = 'red';
+      currentPlayer = playerSymbol;
       
       const cells = document.querySelectorAll('.cell');
       cells.forEach(cell => {
@@ -378,7 +465,7 @@
         cell.classList.remove('red', 'yellow', 'winner');
       });
       
-      statusElement.textContent = 'תור של אדום';
+      statusElement.textContent = 'תור שלך!';
     }
 
     async function awardCoins() {
