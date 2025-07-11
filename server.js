@@ -95,6 +95,7 @@ function initializePlayerData(dbUser) {
         message: '',
         messageTime: 0,
         coins: (typeof dbUser.coins === 'number') ? dbUser.coins : 0,
+        diamonds: (typeof dbUser.diamonds === 'number') ? dbUser.diamonds : 0,
         inventory: initialInventory,
         equipped: initialEquipped,
         id: '', // Will be set to socket.id
@@ -262,11 +263,13 @@ io.on('connection', async (socket) => {
  socket.emit('updateInventory', players[socket.id].inventory);
  socket.emit('updateEquipped', players[socket.id].equipped);
  socket.emit('updateCoins', players[socket.id].coins);
+ socket.emit('updateDiamonds', players[socket.id].diamonds);
  socket.emit('userInfo', { 
    username: players[socket.id].username,
    isAdmin: players[socket.id].isAdmin,
    socketId: socket.id,
-   homeId: dbUser.homeId
+   homeId: dbUser.homeId,
+   diamonds: players[socket.id].diamonds
  });
  emitPlayersWithRooms();
  
@@ -281,12 +284,13 @@ io.on('connection', async (socket) => {
        players[socket.id].coins = freshPlayerData.coins;
        players[socket.id].inventory = freshPlayerData.inventory;
        players[socket.id].equipped = freshPlayerData.equipped;
+       players[socket.id].diamonds = freshPlayerData.diamonds;
 
      socket.emit('updateInventory', freshPlayerData.inventory);
      socket.emit('updateEquipped', freshPlayerData.equipped);
      socket.emit('updateCoins', freshPlayerData.coins);
-     // No need to emit updatePlayers here unless other properties changed globally
-   } else if (!userFromDb) {
+     socket.emit('updateDiamonds', freshPlayerData.diamonds);
+       } else if (!userFromDb) {
    }
  });
 
