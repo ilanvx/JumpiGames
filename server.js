@@ -462,8 +462,7 @@ socket.on('adminAddDiamonds', async ({ username: targetUsername, amount }) => {
       socket.emit('adminActionFeedback', { success: false, message: 'Invalid amount (must be 1-100)' });
       return;
   }
-  const userToUpdate = await User.findOne({ username: targetUsername });
-  if (userToUpdate) {
+  const userToUpdate = await User.findOne({ username: { $regex: new RegExp(`^${targetUsername.trim()}$`, 'i') } });  if (userToUpdate) {
     userToUpdate.diamonds = (Number(userToUpdate.diamonds) || 0) + parsedAmount;
     try {
       await userToUpdate.save();
