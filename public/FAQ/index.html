@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>שאלות נפוצות | Jumpi עזרה</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+      font-family: 'Varela Round', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      direction: rtl;
+    }
+    .faq-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 40px rgba(120,144,255,0.13);
+      padding: 36px 28px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .faq-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #4b3869;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .faq-question {
+      background: #f8f9ff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(120,144,255,0.07);
+      padding: 18px 18px 18px 18px;
+      font-size: 1.15rem;
+      color: #5a3e85;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .faq-question:hover {
+      background: #e0e7ff;
+      box-shadow: 0 4px 16px rgba(120,144,255,0.13);
+      color: #3a2e5a;
+    }
+    @media (max-width: 700px) {
+      .faq-container { padding: 16px 4vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="faq-container">
+    <div class="faq-title"><i class="fas fa-question-circle"></i> שאלות נפוצות</div>
+    <div class="faq-list">
+      <a class="faq-question" href="/FAQ/CreateAccount.html">
+        <i class="fas fa-user-plus"></i> איך יוצרים משתמש חדש?
+      </a>
+    </div>
+  </div>
+</body>
+</html> 

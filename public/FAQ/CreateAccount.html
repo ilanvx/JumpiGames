@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>איך יוצרים משתמש חדש? | Jumpi עזרה</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+      font-family: 'Varela Round', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      direction: rtl;
+    }
+    .help-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 40px rgba(120,144,255,0.13);
+      padding: 36px 28px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .help-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #4b3869;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .help-step {
+      background: #f8f9ff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(120,144,255,0.07);
+      padding: 24px 18px 18px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .help-step-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #5a3e85;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .help-step img {
+      max-width: 90%;
+      max-height: 220px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(120,144,255,0.10);
+      margin-top: 8px;
+      background: #e0e7ff;
+      border: 1.5px solid #e0e7ff;
+    }
+    .help-note {
+      background: #e0e7ff;
+      border-radius: 12px;
+      padding: 18px;
+      color: #4b3869;
+      font-size: 1.1rem;
+      margin-top: 18px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(120,144,255,0.07);
+    }
+    @media (max-width: 700px) {
+      .help-container { padding: 16px 4vw; }
+      .help-step img { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="help-container">
+    <div class="help-title"><i class="fas fa-user-plus"></i> איך יוצרים משתמש חדש?</div>
+    <div class="help-step">
+      <div class="help-step-title"><i class="fas fa-door-open"></i> הסבר פתיחה</div>
+      <div>כדי ליצור משתמש חדש, היכנסו לעמוד הראשי ובחרו באפשרות "הרשמה".</div>
+    </div>
+    <div class="help-step">
+      <div class="help-step-title"><i class="fas fa-palette"></i> שלב ראשון – בחירת צבע גוף</div>
+      <div>בחרו את צבע הגוף המועדף עליכם לדמות.</div>
+      <img src="/FAQ/CreateAccount/1.png" alt="בחירת צבע גוף">
+    </div>
+    <div class="help-step">
+      <div class="help-step-title"><i class="fas fa-tshirt"></i> שלב שני – בחירת חולצה</div>
+      <div>בחרו חולצה מהמגוון הקיים.</div>
+      <img src="/FAQ/CreateAccount/2.png" alt="בחירת חולצה">
+    </div>
+    <div class="help-step">
+      <div class="help-step-title"><i class="fas fa-user"></i> שלב שלישי – בחירת מכנס</div>
+      <div>בחרו מכנס שיתאים לדמות שלכם.</div>
+      <img src="/FAQ/CreateAccount/3.png" alt="בחירת מכנס">
+    </div>
+    <div class="help-step">
+      <div class="help-step-title"><i class="fas fa-id-card"></i> שלב רביעי – מילוי פרטי משתמש</div>
+      <div>מלאו את הפרטים האישיים שלכם (שם משתמש, סיסמה, אימייל וכו’).</div>
+      <img src="/FAQ/CreateAccount/4.png" alt="מילוי פרטי משתמש">
+    </div>
+    <div class="help-step">
+      <div class="help-step-title"><i class="fas fa-check-circle"></i> שלב חמישי – סיום ההרשמה</div>
+      <div>זהו! נרשמתם בהצלחה. תוכלו להתחיל לשחק.</div>
+      <img src="/FAQ/CreateAccount/5.png" alt="סיום ההרשמה">
+    </div>
+    <div class="help-note">
+      <i class="fas fa-info-circle"></i> <b>הערות נוספות:</b><br>
+      &bull; כל שלב מלווה בתמונה להמחשה.<br>
+      &bull; ודאו שכל התמונות נטענות בגודל ברור ונוח לצפייה.<br>
+      &bull; אם נתקלתם בבעיה, ניתן לפנות אלינו דרך עמוד <a href="/contact.html">צור קשר</a>.
+    </div>
+  </div>
+</body>
+</html> 
