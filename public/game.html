@@ -1830,6 +1830,9 @@
                         <div class="coins-display">
                             <i class="fas fa-coins"></i>
                             <span id="inventoryCoins">0</span>
+                            <span style="margin: 0 8px;"></span>
+                            <i class="fas fa-gem" style="color:#00bfff;"></i>
+                            <span id="inventoryDiamonds">0</span>
                         </div>
                     </div>
                 </div>
@@ -1994,6 +1997,16 @@
           <div class="admin-broadcast">
             <input type="text" id="broadcastMessage" class="admin-input" placeholder="הודעת מערכת לכל השחקנים">
             <button class="admin-btn primary" onclick="broadcastMessage(event); return false;">שלח</button>
+          </div>
+        </div>
+        
+        <!-- Diamonds Management Section -->
+        <div class="admin-section">
+          <h4>💎 ניהול יהלומים</h4>
+          <div class="admin-form">
+            <input type="text" id="diamondUsername" class="admin-input" placeholder="שם משתמש">
+            <input type="number" id="diamondAmount" class="admin-input" placeholder="כמות (מקסימום 100)">
+            <button class="admin-btn primary" onclick="addDiamonds()">הוסף יהלומים</button>
           </div>
         </div>
       </div>
@@ -2196,6 +2209,8 @@
             if (!player) return;
             if (inventoryUsernameElement) inventoryUsernameElement.textContent = player.username || 'טוען...';
             if (inventoryCoinsElement) inventoryCoinsElement.textContent = (typeof player.coins === 'number') ? player.coins.toLocaleString() : '0';
+            const inventoryDiamondsElement = document.getElementById('inventoryDiamonds');
+            if (inventoryDiamondsElement) inventoryDiamondsElement.textContent = (typeof player.diamonds === 'number') ? player.diamonds.toLocaleString() : '0';
             currentInventory = player.inventory || {};
             currentEquipped = player.equipped || {};
             showInventorySlots();
@@ -4911,5 +4926,18 @@
             }
         }
     </script>
+
+    // Add the addDiamonds JS function
+    window.addDiamonds = function() {
+      const username = document.getElementById('diamondUsername').value;
+      const amount = parseInt(document.getElementById('diamondAmount').value);
+      if (!username || isNaN(amount) || amount <= 0 || amount > 100) {
+        window.showNotification('נא להזין שם משתמש וכמות יהלומים (1-100)', 'error');
+        return;
+      }
+      window.socket.emit('adminAddDiamonds', { username, amount });
+      document.getElementById('diamondUsername').value = '';
+      document.getElementById('diamondAmount').value = '';
+    };
 </body>
 </html>

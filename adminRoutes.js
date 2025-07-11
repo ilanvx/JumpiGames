@@ -203,6 +203,25 @@ router.post('/give-item', requireAdmin, async (req, res) => {
     }
 });
 
+// POST /admin/add-diamonds: Add diamonds to a user
+router.post('/add-diamonds', requireAdmin, async (req, res) => {
+    const { username, amount } = req.body;
+    if (!username || typeof amount !== 'number' || amount <= 0 || amount > 100) {
+        return res.status(400).json({ error: 'Invalid parameters (max 100 diamonds per operation)' });
+    }
+    try {
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        user.diamonds = (user.diamonds || 0) + amount;
+        await user.save();
+        res.json({ success: true, message: `Added ${amount} diamonds to ${username}. Total: ${user.diamonds}` });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to add diamonds' });
+    }
+});
+
 // Helper function to load item offsets
 function loadItemOffsets() {
     const offsetsPath = path.join(__dirname, 'config', 'itemOffsets.json');
