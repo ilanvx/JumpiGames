@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>חנות המשחק - Jumpi Games</title>
+  <link rel="stylesheet" href="/css/main.css">
+      <style>
+      body {
+        background: #f6f8fa;
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+    .store-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 8px 0 8px;
+      max-width: 100vw;
+      margin-top: 80px;
+    }
+    .store-title {
+      font-size: 2em;
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 18px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .store-disclaimer {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 0.9em;
+      color: #666;
+      line-height: 1.4;
+    }
+    .store-disclaimer span {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .store-disclaimer a {
+      color: #1976d2;
+      text-decoration: underline;
+    }
+    .auth-message {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 32px 24px;
+      text-align: center;
+      max-width: 400px;
+      margin: 0 auto 24px auto;
+    }
+    .auth-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .auth-message h2 {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 12px;
+    }
+    .auth-message p {
+      font-size: 1em;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .login-btn {
+      background: #2ecc40;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s;
+    }
+    .login-btn:hover {
+      background: #27ae38;
+    }
+    .user-info {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 24px;
+    }
+    .user-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 20px;
+      border: 2px solid #e8f5e8;
+    }
+    .user-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .user-avatar {
+      font-size: 2.5em;
+      margin-left: 16px;
+    }
+    .user-details {
+      flex: 1;
+    }
+    .user-name {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 8px;
+    }
+    .user-balance {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .balance-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1em;
+    }
+    .balance-icon {
+      font-size: 1.2em;
+    }
+    .balance-label {
+      color: #666;
+    }
+    .balance-amount {
+      font-weight: bold;
+      color: #2ecc40;
+      font-size: 1.1em;
+    }
+    .logout-btn {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+    .package-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      width: 100%;
+      max-width: 1100px;
+      margin-bottom: 32px;
+    }
+    .package-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 22px 18px 18px 18px;
+      width: 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: box-shadow 0.2s, transform 0.2s;
+      position: relative;
+    }
+    .package-card:hover {
+      box-shadow: 0 6px 24px rgba(46,204,64,0.13);
+      transform: translateY(-4px) scale(1.03);
+    }
+    .package-img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+    .package-name {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #1976d2;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .package-desc {
+      font-size: 1em;
+      color: #444;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .package-amount {
+      font-size: 1.1em;
+      color: #2ecc40;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .package-price {
+      font-size: 1.1em;
+      color: #222;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    .paypal-btn {
+      margin-top: 6px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .store-footer {
+      background: #fff;
+      border-top: 1px solid #eee;
+      padding: 18px 8px 12px 8px;
+      text-align: center;
+      font-size: 1em;
+      color: #666;
+      margin-top: 32px;
+    }
+    .store-footer a {
+      color: #1976d2;
+      text-decoration: underline;
+      margin: 0 6px;
+    }
+    .store-footer .disclaimer {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.98em;
+    }
+    @media (max-width: 900px) {
+      .package-list {
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+      }
+      .package-card {
+        width: 95vw;
+        max-width: 340px;
+      }
+    }
+    @media (max-width: 600px) {
+      .store-title { font-size: 1.3em; }
+      .toolbar { font-size: 0.98em; height: 48px; }
+      .toolbar .brand { font-size: 1em; }
+      .package-card { padding: 14px 6px 12px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <script src="/components/Toolbar.js"></script>
+  <script>
+    // Initialize toolbar
+    new Toolbar();
+  </script>
+  <script src="https://cdn.userway.org/widget.js" data-account="UGVjn51mMS"></script>
+  <div class="store-container">
+    <div class="store-title">חנות המשחק - רכישת מטבעות ויהלומים</div>
+    <div class="store-disclaimer">
+      <span>כל קנייה מהווה אישור ל<a href="/terms.html" target="_blank">תקנון</a> האתר.</span>
+      <span>במקרה של תקלה, <a href="/contact.html">פנה אלינו</a>.</span>
+    </div>
+    
+    <!-- User Info Section -->
+    <div id="userInfo" class="user-info" style="display: none;">
+      <div class="user-card">
+        <div class="user-header">
+          <div class="user-avatar">👤</div>
+          <div class="user-details">
+            <div class="user-name" id="userName">שם המשתמש</div>
+            <div class="user-balance">
+              <span class="balance-item">
+                <span class="balance-icon">🪙</span>
+                <span class="balance-label">מטבעות:</span>
+                <span class="balance-amount" id="userCoins">0</span>
+              </span>
+              <span class="balance-item">
+                <span class="balance-icon">💎</span>
+                <span class="balance-label">יהלומים:</span>
+                <span class="balance-amount" id="userDiamonds">0</span>
+              </span>
+            </div>
+          </div>
+          <button id="logoutBtn" class="logout-btn">התנתק</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="authMessage" class="auth-message" style="display: none;">
+      <div class="auth-icon">🔐</div>
+      <h2>נדרשת התחברות</h2>
+      <p>עליך להתחבר כדי לרכוש חבילות מהחנות</p>
+      <a href="/login.html" class="login-btn">התחבר עכשיו</a>
+    </div>
+    <div id="packageList" class="package-list"></div>
+  </div>
+  <script src="https://www.paypal.com/sdk/js?client-id=AZsl0mkba39bA26Uw8TFo6W2sSFkSRAoOjWi2O0v3vAW0-YJIAsvhR1qKJD1huAa-5AbDgynmWjLncTt&currency=ILS"></script>
+  <script src="/store.js"></script>
+</body>
+</html> 

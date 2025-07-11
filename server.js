@@ -9,9 +9,12 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const User = require('./models/User'); // Ensure this path is correct and User model is well-defined
 const adminRoutes = require('./adminRoutes');
+const storeRoutes = require('./storeRoutes');
 const { getAllItemsMetadata, getItemMetadata } = require('./itemsLoader');
+const emailConfig = require('./config/email');
 
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const server = http.createServer(app);
@@ -42,6 +45,9 @@ app.use(sessionMiddleware);
 
 // Mount admin routes
 app.use('/admin', adminRoutes);
+
+// Mount store routes
+app.use('/store', storeRoutes);
 
 io.use((socket, next) => {
  sessionMiddleware(socket.request, {}, next);
@@ -1390,9 +1396,41 @@ app.get('/me', (req, res) => {
     }
 });
 
+// API route to get current user info
+app.get('/api/user', async (req, res) => {
+    if (!req.session.username) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    try {
+        const user = await User.findOne({ username: req.session.username });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({
+            username: user.username,
+            coins: user.coins || 0,
+            diamonds: user.diamonds || 0,
+            isAdmin: user.isAdmin || false
+        });
+    } catch (error) {
+        console.error('Error getting user info:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.static('public'));
+
+// Authentication middleware
+const requireAuth = (req, res, next) => {
+  if (!req.session.username) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  next();
+};
 
 // API Routes
 app.post('/api/register', async (req, res) => {
@@ -1657,6 +1695,135 @@ app.get('/blog', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'blog.html'));
 });
 
+app.get('/store', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'store.html'));
+});
+
+// Email configuration
+const transporter = nodemailer.createTransport({
+  service: emailConfig.service,
+  auth: emailConfig.auth,
+  tls: { rejectUnauthorized: false }
+});
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ success: true, message: 'API is working!' });
+});
+
+// Contact form email endpoint
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, subject, message, website } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'כל השדות הנדרשים חייבים להיות מלאים' 
+      });
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'כתובת האימייל אינה תקינה' 
+      });
+    }
+    
+    // Check honeypot field (spam protection)
+    if (website) {
+      console.log('Spam detected from contact form');
+      return res.status(200).json({ success: true }); // Pretend success to avoid spam feedback
+    }
+    
+    // Rate limiting check (simple in-memory)
+    const clientIP = req.ip;
+    const now = Date.now();
+    if (!contactFormRateLimit[clientIP]) {
+      contactFormRateLimit[clientIP] = [];
+    }
+    
+    // Remove old entries (older than rate limit window)
+    contactFormRateLimit[clientIP] = contactFormRateLimit[clientIP].filter(
+      timestamp => now - timestamp < emailConfig.rateLimitWindow
+    );
+    
+    // Check if too many requests
+    if (contactFormRateLimit[clientIP].length >= emailConfig.maxRequestsPerHour) {
+      return res.status(429).json({ 
+        success: false, 
+        message: 'יותר מדי בקשות. אנא נסה שוב בעוד שעה' 
+      });
+    }
+    
+    // Add current request
+    contactFormRateLimit[clientIP].push(now);
+    
+    // Validate message length
+    if (message.length < emailConfig.minMessageLength) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `ההודעה חייבת להכיל לפחות ${emailConfig.minMessageLength} תווים` 
+      });
+    }
+    
+    if (message.length > emailConfig.maxMessageLength) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `ההודעה חייבת להכיל פחות מ-${emailConfig.maxMessageLength} תווים` 
+      });
+    }
+    
+    // Prepare email content
+    const mailOptions = {
+      from: emailConfig.from,
+      to: emailConfig.to,
+      subject: `הודעה חדשה מ-Jumpi: ${subject || 'הודעה חדשה'}`,
+      html: `
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #667eea;">הודעה חדשה מ-Jumpi</h2>
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>שם:</strong> ${name}</p>
+            <p><strong>אימייל:</strong> ${email}</p>
+            <p><strong>נושא:</strong> ${subject || 'לא צוין'}</p>
+            <p><strong>הודעה:</strong></p>
+            <div style="background: white; padding: 15px; border-radius: 5px; border-right: 4px solid #667eea;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
+          </div>
+          <p style="color: #666; font-size: 14px;">
+            הודעה זו נשלחה מטופס צור קשר באתר Jumpi
+          </p>
+        </div>
+      `,
+      replyTo: email
+    };
+    
+    // Send email
+    await transporter.sendMail(mailOptions);
+    
+    console.log(`Contact form email sent from ${email} to jumpiiworld@gmail.com`);
+    
+    res.json({ 
+      success: true, 
+      message: 'ההודעה נשלחה בהצלחה!' 
+    });
+    
+  } catch (error) {
+    console.error('Contact form error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'שגיאה בשליחת ההודעה. אנא נסה שוב מאוחר יותר' 
+    });
+  }
+});
+
+// Rate limiting for contact form
+const contactFormRateLimit = {};
+
 // Logout route
 app.get('/logout', (req, res) => {
   req.session.destroy((err) => {
@@ -1670,6 +1837,9 @@ app.get('/logout', (req, res) => {
 const PORT = process.env.PORT || 3003;
 server.listen(PORT, () => {
  console.log(`🚀 Server running on PORT ${PORT}`);
+ console.log(`💰 PAYPAL PRODUCTION MODE - LIVE PAYMENTS ENABLED`);
+ console.log(`🔒 All payments will be processed as real transactions`);
+ console.log(`📊 Transaction logging enabled with environment tracking`);
 });
 
 function executeTrade(tradeId) {

@@ -35,13 +35,13 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.95);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             backdrop-filter: blur(20px);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
             z-index: 1000;
             height: 80px;
             box-sizing: border-box;
@@ -50,7 +50,8 @@
         .toolbar-logo {
             font-size: 1.8rem;
             font-weight: bold;
-            color: #667eea;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .toolbar-links {
@@ -59,15 +60,20 @@
         }
 
         .toolbar-link {
-            color: #666;
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             font-size: 0.9rem;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
             cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
         }
 
         .toolbar-link:hover {
-            color: #667eea;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
         }
 
         .toolbar-user {
@@ -77,24 +83,28 @@
         }
 
         .user-info {
-            color: #666;
+            color: white;
             font-size: 0.9rem;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .logout-btn {
-            background: #ff4757;
+            background: rgba(255, 255, 255, 0.2);
             color: white;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 0.8rem;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .logout-btn:hover {
-            background: #ff3742;
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         #gameCanvas {
@@ -1750,13 +1760,13 @@
     <div class="toolbar">
         <div class="toolbar-logo">Jumpi</div>
         <div class="toolbar-links">
-            <a class="toolbar-link" onclick="showComingSoon('בלוג')">בלוג</a>
-            <a class="toolbar-link" onclick="showComingSoon('צור קשר')">צור קשר</a>
-            <a class="toolbar-link" onclick="showComingSoon('תקנון')">תקנון</a>
-            <a class="toolbar-link" onclick="showComingSoon('מדיניות פרטיות')">מדיניות פרטיות</a>
+            <a class="toolbar-link" href="/store">חנות</a>
+            <a class="toolbar-link" href="/blog">בלוג</a>
+            <a class="toolbar-link" href="/contact">צור קשר</a>
+            <a class="toolbar-link" href="/terms">תקנון</a>
+            <a class="toolbar-link" href="/privacy">מדיניות פרטיות</a>
         </div>
         <div class="toolbar-user">
-            <div class="user-info" id="userInfo">משתמש</div>
             <button class="logout-btn" onclick="logout()">התנתק</button>
         </div>
     </div>
@@ -1796,6 +1806,9 @@
             </div>
             
             <div class="toolbar-right">
+                <button class="toolbar-btn" id="storeBtn" title="Store">
+                    <i class="fas fa-shopping-cart"></i>
+                </button>
                 <button class="toolbar-btn" id="settingsBtn" title="Settings">
                     <i class="fas fa-cog"></i>
                 </button>
@@ -4969,5 +4982,6 @@
       }
     });
     </script>
+    <script src="https://cdn.userway.org/widget.js" data-account="UGVjn51mMS"></script>
 </body>
 </html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הרכישה הושלמה!</title>
+  <style>
+    body {
+      background: #f6f8fa;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .success-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 36px 28px 28px 28px;
+      max-width: 350px;
+      text-align: center;
+    }
+    .checkmark {
+      font-size: 64px;
+      color: #2ecc40;
+      margin-bottom: 16px;
+    }
+    .headline {
+      font-size: 1.6em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #222;
+    }
+    .reward {
+      font-size: 1.2em;
+      margin-bottom: 18px;
+      color: #444;
+    }
+    .back-btn {
+      background: #2ecc40;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .back-btn:hover {
+      background: #27ae38;
+    }
+    @media (max-width: 500px) {
+      .success-container {
+        max-width: 95vw;
+        padding: 24px 8px 18px 8px;
+      }
+      .headline { font-size: 1.2em; }
+      .reward { font-size: 1em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="success-container">
+    <div class="checkmark">✔️</div>
+    <div class="headline">הרכישה הושלמה בהצלחה!</div>
+    <div class="reward" id="rewardText"></div>
+    <div style="color: #2ecc40; font-weight: bold; margin: 10px 0; font-size: 0.9em;">✓ תשלום אמיתי - הכסף נגבה בהצלחה</div>
+    <button class="back-btn" onclick="window.location.href='/store/'">חזרה לחנות</button>
+  </div>
+  <script>
+    // Get params from URL
+    const params = new URLSearchParams(window.location.search);
+    const coins = parseInt(params.get('coinsAdded') || '0', 10);
+    const diamonds = parseInt(params.get('diamondsAdded') || '0', 10);
+    let text = '';
+    if (coins > 0 && diamonds > 0) {
+      text = `נוספו לחשבונך ${coins.toLocaleString()} מטבעות ו-${diamonds.toLocaleString()} יהלומים!`;
+    } else if (coins > 0) {
+      text = `נוספו לחשבונך ${coins.toLocaleString()} מטבעות!`;
+    } else if (diamonds > 0) {
+      text = `נוספו לחשבונך ${diamonds.toLocaleString()} יהלומים!`;
+    } else {
+      text = 'הרכישה בוצעה בהצלחה!';
+    }
+    document.getElementById('rewardText').textContent = text;
+  </script>
+</body>
+</html> 

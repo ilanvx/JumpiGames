@@ -13,27 +13,17 @@ class Toolbar {
         const toolbar = document.createElement('div');
         toolbar.className = 'toolbar';
         toolbar.innerHTML = `
-            <div class="toolbar-container">
-                <div class="toolbar-left">
-                    <a href="/" class="toolbar-logo">
-                        <span class="logo-icon">🎮</span>
-                        <span class="logo-text">Jumpi</span>
-                    </a>
-                </div>
-                <div class="toolbar-center">
-                    <nav class="toolbar-nav">
-                        <a href="/" class="nav-link">בית</a>
-                        <a href="/blog" class="nav-link">בלוג</a>
-                        <a href="/contact" class="nav-link">צור קשר</a>
-                    </nav>
-                </div>
-                <div class="toolbar-right">
-                    <div class="toolbar-links">
-                        <a href="/terms" class="toolbar-link">תנאים</a>
-                        <a href="/privacy" class="toolbar-link">פרטיות</a>
-                        <a href="/accessibility" class="toolbar-link">נגישות</a>
-                    </div>
-                </div>
+            <div class="toolbar-logo">Jumpi</div>
+            <div class="toolbar-links">
+                <a class="toolbar-link" href="/">ראשי</a>
+                <a class="toolbar-link" href="/game">למשחק</a>
+                <a class="toolbar-link" href="/store">חנות</a>
+                <a class="toolbar-link" href="/blog">בלוג</a>
+                <a class="toolbar-link" href="/contact">צור קשר</a>
+                <a class="toolbar-link" href="/terms">תקנון</a>
+                <a class="toolbar-link" href="/privacy">מדיניות פרטיות</a>
+            </div>
+            <div class="toolbar-user">
             </div>
         `;
         

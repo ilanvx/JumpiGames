@@ -6,6 +6,7 @@
     <title>צור קשר - Jumpi</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <script src="https://cdn.userway.org/widget.js" data-account="UGVjn51mMS"></script>
     <style>
         .contact-card {
             background: rgba(255, 255, 255, 0.95);
@@ -100,6 +101,40 @@
             display: none;
         }
         
+        /* Honeypot field - hidden from users */
+        .honeypot {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+        
+        /* Loading animation */
+        .btn.loading {
+            position: relative;
+            color: transparent;
+        }
+        
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -114,13 +149,6 @@
             <div class="contact-card fade-in-up">
                 <h1>צור קשר</h1>
                 <p>יש לכם שאלה, הצעה או בעיה? אנחנו כאן לעזור! מלאו את הטופס ונחזור אליכם בהקדם.</p>
-                
-                <div class="contact-info">
-                    <h3>📧 פרטי קשר</h3>
-                    <p><strong>אימייל:</strong> support@jumpi.com</p>
-                    <p><strong>טלפון:</strong> 03-1234567</p>
-                    <p><strong>שעות פעילות:</strong> א'-ה' 9:00-17:00</p>
-                </div>
                 
                 <form id="contactForm" class="contact-form">
                     <div class="form-row">
@@ -138,11 +166,11 @@
                         <label for="subject">נושא</label>
                         <select id="subject" name="subject" class="form-control">
                             <option value="">בחר/י נושא</option>
-                            <option value="support">תמיכה טכנית</option>
-                            <option value="bug">דיווח על באג</option>
-                            <option value="feature">הצעה לתכונה חדשה</option>
-                            <option value="account">בעיה בחשבון</option>
-                            <option value="other">אחר</option>
+                            <option value="תמיכה טכנית">תמיכה טכנית</option>
+                            <option value="דיווח על באג">דיווח על באג</option>
+                            <option value="הצעה לתכונה חדשה">הצעה לתכונה חדשה</option>
+                            <option value="בעיה בחשבון">בעיה בחשבון</option>
+                            <option value="אחר">אחר</option>
                         </select>
                     </div>
                     
@@ -150,6 +178,9 @@
                         <label for="message">הודעה *</label>
                         <textarea id="message" name="message" class="form-control" placeholder="תאר/י את הבעיה או השאלה שלך בפירוט..." required></textarea>
                     </div>
+                    
+                    <!-- Honeypot field for spam protection -->
+                    <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
                     
                     <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
                         שלח הודעה
@@ -163,7 +194,7 @@
                 
                 <div id="errorMessage" class="error-message">
                     <strong>❌ שגיאה בשליחת ההודעה</strong><br>
-                    אנא נסה שוב או צור קשר בטלפון.
+                    <span id="errorText">אנא נסה שוב או צור קשר בטלפון.</span>
                 </div>
                 
                 <div class="text-center mt-20">
@@ -182,6 +213,13 @@
         document.getElementById('contactForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // Check honeypot field
+            const honeypot = e.target.querySelector('input[name="website"]').value;
+            if (honeypot) {
+                console.log('Spam detected');
+                return;
+            }
+            
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             
@@ -199,19 +237,36 @@
                 name: formData.get('name'),
                 email: formData.get('email'),
                 subject: formData.get('subject'),
-                message: formData.get('message')
+                message: formData.get('message'),
+                website: formData.get('website')
             };
             
             try {
-                // Simulate API call (replace with actual endpoint)
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Send email using server endpoint
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
                 
-                // Show success message
-                document.getElementById('successMessage').style.display = 'block';
-                e.target.reset();
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    document.getElementById('successMessage').style.display = 'block';
+                    e.target.reset();
+                } else {
+                    // Show error message with specific error
+                    document.getElementById('errorText').textContent = result.message || 'שגיאה בשליחת ההודעה';
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
                 
             } catch (error) {
+                console.error('Contact form error:', error);
                 // Show error message
+                document.getElementById('errorText').textContent = 'שגיאה בחיבור לשרת. אנא נסה שוב מאוחר יותר.';
                 document.getElementById('errorMessage').style.display = 'block';
             } finally {
                 // Reset button
@@ -225,6 +280,20 @@
         document.getElementById('message').addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+        
+        // Form validation
+        document.getElementById('contactForm').addEventListener('input', function() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            if (name && email && message) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
         });
     </script>
 </body>
