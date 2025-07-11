@@ -4946,6 +4946,28 @@
       document.getElementById('diamondUsername').value = '';
       document.getElementById('diamondAmount').value = '';
     };
+
+    // Add Enter key handlers for diamond form
+    document.addEventListener('DOMContentLoaded', function() {
+      const diamondUsername = document.getElementById('diamondUsername');
+      const diamondAmount = document.getElementById('diamondAmount');
+      
+      if (diamondUsername) {
+        diamondUsername.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            window.addDiamonds();
+          }
+        });
+      }
+      
+      if (diamondAmount) {
+        diamondAmount.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            window.addDiamonds();
+          }
+        });
+      }
+    });
     </script>
 </body>
 </html>

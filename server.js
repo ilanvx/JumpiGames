@@ -444,43 +444,6 @@ io.on('connection', async (socket) => {
        return;
    }
 
-   // Add adminAddDiamonds event
-socket.on('adminAddDiamonds', async ({ username: targetUsername, amount }) => {
-  // Verify the socket.id matches the actual user and is valid
-  const currentPlayer = players[socket.id];
-  if (!currentPlayer || !currentPlayer.isAdmin || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
-      console.log('SERVER: Unauthorized admin access attempt from socket:', socket.id);
-      socket.emit('adminActionFeedback', { success: false, message: 'Admin access required' });
-      return;
-  }
-  if (!targetUsername || typeof targetUsername !== 'string' || targetUsername.trim().length === 0) {
-      socket.emit('adminActionFeedback', { success: false, message: 'Invalid username' });
-      return;
-  }
-  const parsedAmount = parseInt(amount);
-  if (isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > 100) {
-      socket.emit('adminActionFeedback', { success: false, message: 'Invalid amount (must be 1-100)' });
-      return;
-  }
-  const userToUpdate = await User.findOne({ username: { $regex: new RegExp(`^${targetUsername.trim()}$`, 'i') } });  if (userToUpdate) {
-    userToUpdate.diamonds = (Number(userToUpdate.diamonds) || 0) + parsedAmount;
-    try {
-      await userToUpdate.save();
-      const targetSocketId = usernames[targetUsername];
-      if (targetSocketId && players[targetSocketId]) {
-        players[targetSocketId].diamonds = userToUpdate.diamonds;
-        io.to(targetSocketId).emit('updateDiamonds', userToUpdate.diamonds);
-      }
-      emitPlayersWithRooms();
-      socket.emit('adminActionFeedback', { success: true, message: `Added ${parsedAmount} diamonds to ${targetUsername}. Total: ${userToUpdate.diamonds}` });
-    } catch (err) {
-      socket.emit('adminActionFeedback', { success: false, message: `DB error updating diamonds for ${targetUsername}.` });
-    }
-  } else {
-      socket.emit('adminActionFeedback', { success: false, message: `User ${targetUsername} not found.` });
-  }
-});
-
    if (!targetUsername || typeof targetUsername !== 'string' || targetUsername.trim().length === 0) {
        socket.emit('adminActionFeedback', { success: false, message: 'Invalid username' });
        return;
@@ -492,7 +455,7 @@ socket.on('adminAddDiamonds', async ({ username: targetUsername, amount }) => {
        return;
    }
 
-   const userToUpdate = await User.findOne({ username: targetUsername });
+   const userToUpdate = await User.findOne({ username: { $regex: new RegExp(`^${targetUsername.trim()}$`, 'i') } });
    if (userToUpdate) {
      userToUpdate.coins = (Number(userToUpdate.coins) || 0) + parsedAmount;
      try {
@@ -506,6 +469,46 @@ socket.on('adminAddDiamonds', async ({ username: targetUsername, amount }) => {
        socket.emit('adminActionFeedback', { success: true, message: `Added ${parsedAmount} coins to ${targetUsername}. Total: ${userToUpdate.coins}` });
      } catch (err) {
        socket.emit('adminActionFeedback', { success: false, message: `DB error updating coins for ${targetUsername}.` });
+     }
+   } else {
+       socket.emit('adminActionFeedback', { success: false, message: `User ${targetUsername} not found.` });
+   }
+ });
+
+ socket.on('adminAddDiamonds', async ({ username: targetUsername, amount }) => {
+   // Verify the socket.id matches the actual user and is valid
+   const currentPlayer = players[socket.id];
+   if (!currentPlayer || !currentPlayer.isAdmin || currentPlayer.socketId !== socket.id || !usernames[currentPlayer.username] || usernames[currentPlayer.username] !== socket.id) {
+       console.log('SERVER: Unauthorized admin access attempt from socket:', socket.id);
+       socket.emit('adminActionFeedback', { success: false, message: 'Admin access required' });
+       return;
+   }
+   
+   if (!targetUsername || typeof targetUsername !== 'string' || targetUsername.trim().length === 0) {
+       socket.emit('adminActionFeedback', { success: false, message: 'Invalid username' });
+       return;
+   }
+   
+   const parsedAmount = parseInt(amount);
+   if (isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > 100) {
+       socket.emit('adminActionFeedback', { success: false, message: 'Invalid amount (must be 1-100)' });
+       return;
+   }
+   
+   const userToUpdate = await User.findOne({ username: { $regex: new RegExp(`^${targetUsername.trim()}$`, 'i') } });
+   if (userToUpdate) {
+     userToUpdate.diamonds = (Number(userToUpdate.diamonds) || 0) + parsedAmount;
+     try {
+       await userToUpdate.save();
+       const targetSocketId = usernames[targetUsername];
+       if (targetSocketId && players[targetSocketId]) {
+         players[targetSocketId].diamonds = userToUpdate.diamonds;
+         io.to(targetSocketId).emit('updateDiamonds', userToUpdate.diamonds);
+       }
+       emitPlayersWithRooms();
+       socket.emit('adminActionFeedback', { success: true, message: `Added ${parsedAmount} diamonds to ${targetUsername}. Total: ${userToUpdate.diamonds}` });
+     } catch (err) {
+       socket.emit('adminActionFeedback', { success: false, message: `DB error updating diamonds for ${targetUsername}.` });
      }
    } else {
        socket.emit('adminActionFeedback', { success: false, message: `User ${targetUsername} not found.` });
