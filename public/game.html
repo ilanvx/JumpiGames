@@ -2036,6 +2036,7 @@
         window.bg.src = 'rooms/sea.png';
 
         window.players = {};
+        window.target = null;
         window.toolbarButtons = {};
         window.currentInput = '';
         window.bounceButtons = {};
@@ -2301,28 +2302,12 @@
             }
         }
         function toggleInventory() {
-            try {
-                window.isInventoryOpen = !window.isInventoryOpen;
-                if (inventoryWindowElement) {
-                    inventoryWindowElement.style.display = window.isInventoryOpen ? 'flex' : 'none';
-                    if (window.isInventoryOpen) {
-                        // Add small delay to prevent conflicts with server updates
-                        setTimeout(() => {
-                            try {
-                                updateInventoryInfo();
-                                if(window.isSettingsOpen) toggleSettingsMenu();
-                            } catch (error) {
-                                console.error('Error updating inventory info:', error);
-                            }
-                        }, 50);
-                    }
-                }
-            } catch (error) {
-                console.error('Error toggling inventory:', error);
-                // Reset state on error
-                window.isInventoryOpen = false;
-                if (inventoryWindowElement) {
-                    inventoryWindowElement.style.display = 'none';
+            window.isInventoryOpen = !window.isInventoryOpen;
+            if (inventoryWindowElement) {
+                inventoryWindowElement.style.display = window.isInventoryOpen ? 'flex' : 'none';
+                if (window.isInventoryOpen) {
+                    updateInventoryInfo();
+                    if(window.isSettingsOpen) toggleSettingsMenu();
                 }
             }
         }
@@ -3186,12 +3171,14 @@
                     // New player - initialize with current position
                     window.players[id] = serverPlayer;
                     currentPlayer = window.players[id];
+                    currentPlayer.targetX = currentPlayer.x;
+                    currentPlayer.targetY = currentPlayer.y;
                 } else {
-                    // Update position and movement state from server
-                    currentPlayer.x = serverPlayer.x;
-                    currentPlayer.y = serverPlayer.y;
-                    currentPlayer.target = serverPlayer.target;
-                    currentPlayer.state = serverPlayer.state;
+                    // Update target for smooth movement
+                    if (serverPlayer.targetX !== undefined && serverPlayer.targetY !== undefined) {
+                        currentPlayer.targetX = serverPlayer.targetX;
+                        currentPlayer.targetY = serverPlayer.targetY;
+                    }
                     currentPlayer.direction = serverPlayer.direction;
                     // Update other properties
                     currentPlayer.username = serverPlayer.username;
@@ -3238,14 +3225,7 @@
             });
             
             if (window.isInventoryOpen) {
-                // Add small delay to prevent conflicts with rapid server updates
-                setTimeout(() => {
-                    try {
-                        updateInventoryInfo();
-                    } catch (error) {
-                        console.error('Error updating inventory info from server update:', error);
-                    }
-                }, 10);
+                updateInventoryInfo();
             }
             
             // Update Friends Panel if it's open
@@ -3455,16 +3435,11 @@
                 .sort((a, b) => a.y - b.y);
             sortedPlayers.forEach(p => {
                 const isLocal = p.id === window.socket.id;
-                const isMoving = isLocal && p.state === 'walking';
+                const isMoving = isLocal && window.target;
                 const scaleY = isMoving ? 1 : window.breathScale;
                 const bounceY = isMoving ? window.walkBounce : 0;
-                
-                // Use interpolated position for smooth rendering
-                const renderX = p.renderX || p.x;
-                const renderY = p.renderY || p.y;
-                
                 window.ctx.save();
-                window.ctx.translate(renderX, renderY - 35 + bounceY);
+                window.ctx.translate(p.x, p.y - 35 + bounceY);
 
                 // --- SHADOW ---
                 if (isLocal) {
@@ -3758,15 +3733,7 @@
             }
             window.breathScale += 0.002 * window.breathDirection;
             if (window.breathScale >= 1.05 || window.breathScale <= 1) window.breathDirection *= -1;
-            
-            // Update walk bounce only when local player is moving
-            const localPlayer = window.players[window.socket.id];
-            if (localPlayer && localPlayer.state === 'walking') {
-                window.walkFrame++; 
-                window.walkBounce = Math.sin(window.walkFrame * 0.4) * 4;
-            } else {
-                window.walkBounce = 0;
-            }
+            window.walkFrame++; window.walkBounce = Math.sin(window.walkFrame * 0.4) * 4;
             drawPlayers();
             drawToolbar();
             Object.keys(window.bounceButtons).forEach(key => {
@@ -3788,28 +3755,64 @@
             const player = window.players[window.socket.id];
             if (!player) return;
             
-            // Smooth interpolation for all players (including local player)
+            // Handle local player movement to target
+            if (window.target) {
+                const dx = window.target.x - player.x, dy = window.target.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const speed = 6;
+                
+                if (dist < speed) {
+                    player.x = window.target.x;
+                    player.y = window.target.y;
+                    window.target = null;
+                    // Send final position to server
+                    window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
+                } else {
+                    const angle = Math.atan2(dy, dx);
+                    player.x += Math.cos(angle) * speed;
+                    player.y += Math.sin(angle) * speed;
+                    
+                    // Update direction based on movement
+                    let angleDeg = angle * (180 / Math.PI);
+                    if (angleDeg < 0) angleDeg += 360;
+                    if (angleDeg >= 337.5 || angleDeg < 22.5) player.direction = 'right';
+                    else if (angleDeg < 67.5) player.direction = 'down_right';
+                    else if (angleDeg < 112.5) player.direction = 'down';
+                    else if (angleDeg < 157.5) player.direction = 'down_left';
+                    else if (angleDeg < 202.5) player.direction = 'left';
+                    else if (angleDeg < 247.5) player.direction = 'up_left';
+                    else if (angleDeg < 292.5) player.direction = 'up';
+                    else if (angleDeg < 337.5) player.direction = 'up_right';
+                    
+                    // Send real-time position updates during movement
+                    if (!window.lastMoveEmit || Date.now() - window.lastMoveEmit > 16) {
+                        window.socket.emit('move', { x: player.x, y: player.y, direction: player.direction });
+                        window.lastMoveEmit = Date.now();
+                    }
+                }
+            }
+            
+            // Handle other players' smooth movement to targets
             Object.values(window.players).forEach(otherPlayer => {
-                if (!otherPlayer) return;
+                if (otherPlayer.id === window.socket.id) return; // Skip local player
                 
-                // Store previous position for smooth interpolation
-                if (!otherPlayer.prevX) {
-                    otherPlayer.prevX = otherPlayer.x;
-                    otherPlayer.prevY = otherPlayer.y;
+                // Smooth interpolation to target
+                if (otherPlayer.targetX !== undefined && otherPlayer.targetY !== undefined) {
+                    const dx = otherPlayer.targetX - otherPlayer.x;
+                    const dy = otherPlayer.targetY - otherPlayer.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 1) {
+                        // Smooth interpolation factor
+                        const speed = 0.1;
+                        otherPlayer.x += dx * speed;
+                        otherPlayer.y += dy * speed;
+                    } else {
+                        // Close enough, snap to target
+                        otherPlayer.x = otherPlayer.targetX;
+                        otherPlayer.y = otherPlayer.targetY;
+                    }
                 }
-                
-                // Smooth interpolation factor (0.1 = smooth, 0.5 = fast, 1.0 = instant)
-                const interpolationFactor = 0.15;
-                
-                // Interpolate position smoothly
-                if (otherPlayer.prevX !== otherPlayer.x || otherPlayer.prevY !== otherPlayer.y) {
-                    otherPlayer.prevX += (otherPlayer.x - otherPlayer.prevX) * interpolationFactor;
-                    otherPlayer.prevY += (otherPlayer.y - otherPlayer.prevY) * interpolationFactor;
-                }
-                
-                // Use interpolated position for rendering
-                otherPlayer.renderX = otherPlayer.prevX;
-                otherPlayer.renderY = otherPlayer.prevY;
             });
         }
         CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
@@ -3902,10 +3905,8 @@
                             continue;
                         }
                         // Check if click is within player bounds (55x70 pixels)
-                        const renderX = player.renderX || player.x;
-                        const renderY = player.renderY || player.y;
-                        const playerScreenX = renderX * (window.canvas.width / 1200);
-                        const playerScreenY = renderY * (window.canvas.height / 680);
+                        const playerScreenX = player.x * (window.canvas.width / 1200);
+                        const playerScreenY = player.y * (window.canvas.height / 680);
                         
                         // Use original size but with small margin for better click detection
                         const clickAreaWidth = 65; // 55 + 10 (5px on each side)
@@ -3925,8 +3926,7 @@
             
             // Move character to clicked position if not clicking on a player
             if (!clickedOnPlayer && !window.isInventoryOpen && !window.isSettingsOpen) {
-                // Send move request to server instead of setting local target
-                window.socket.emit('request_move', { x: x, y: y });
+                window.target = { x, y };
             }
         });
         document.addEventListener('keydown', (e) => {
