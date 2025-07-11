@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>ארבע בשורה | Jumpi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: 'Varela Round', 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .game-container {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border: 2px solid #4a90e2;
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .game-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .status {
+      font-size: 1.3rem;
+      margin-bottom: 30px;
+      color: #4ecdc4;
+      font-weight: bold;
+    }
+
+    .board-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 30px 0;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      padding: 15px;
+      border-radius: 15px;
+      border: 3px solid #2c3e50;
+    }
+
+    .cell {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+      border: 2px solid #4a90e2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #ffffff;
+      position: relative;
+    }
+
+    .cell:hover {
+      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+    }
+
+    .cell.red {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: #ffffff;
+    }
+
+    .cell.yellow {
+      background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+      color: #2c3e50;
+    }
+
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    }
+
+    .btn.secondary:hover {
+      box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+    }
+
+    .winner {
+      animation: winner-glow 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes winner-glow {
+      from { box-shadow: 0 0 20px rgba(78, 205, 196, 0.5); }
+      to { box-shadow: 0 0 30px rgba(78, 205, 196, 0.8); }
+    }
+
+    @media (max-width: 600px) {
+      .game-container {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      .cell {
+        width: 45px;
+        height: 45px;
+        font-size: 1.5rem;
+      }
+
+      .game-title {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="/arcade" class="back-btn">
+    <i class="fas fa-arrow-right"></i> חזרה לארקייד
+  </a>
+
+  <div class="game-container">
+    <h1 class="game-title">
+      <i class="fas fa-circle"></i> ארבע בשורה
+    </h1>
+    
+    <div class="status" id="status">תור של אדום</div>
+    
+    <div class="board-container">
+      <div class="board" id="board">
+        <!-- Board will be generated by JavaScript -->
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn" onclick="resetGame()">
+        <i class="fas fa-redo"></i> משחק חדש
+      </button>
+      <button class="btn secondary" onclick="window.location.href='/arcade'">
+        <i class="fas fa-home"></i> חזרה לארקייד
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const ROWS = 6;
+    const COLS = 7;
+    let board = [];
+    let currentPlayer = 'red';
+    let gameActive = true;
+    let gameCompleted = false;
+
+    const boardElement = document.getElementById('board');
+    const statusElement = document.getElementById('status');
+
+    function initializeBoard() {
+      board = [];
+      for (let row = 0; row < ROWS; row++) {
+        board[row] = [];
+        for (let col = 0; col < COLS; col++) {
+          board[row][col] = '';
+        }
+      }
+    }
+
+    function createBoard() {
+      boardElement.innerHTML = '';
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          cell.addEventListener('click', () => makeMove(col));
+          boardElement.appendChild(cell);
+        }
+      }
+    }
+
+    function makeMove(col) {
+      if (!gameActive) return;
+
+      const row = getLowestEmptyRow(col);
+      if (row === -1) return; // Column is full
+
+      board[row][col] = currentPlayer;
+      updateCell(row, col, currentPlayer);
+
+      if (checkWinner(row, col)) {
+        gameActive = false;
+        statusElement.textContent = `המנצח הוא ${currentPlayer === 'red' ? 'אדום' : 'צהוב'}!`;
+        highlightWinner(row, col);
+        if (!gameCompleted) {
+          awardCoins();
+          gameCompleted = true;
+        }
+        return;
+      }
+
+      if (checkDraw()) {
+        gameActive = false;
+        statusElement.textContent = 'תיקו!';
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+      statusElement.textContent = `תור של ${currentPlayer === 'red' ? 'אדום' : 'צהוב'}`;
+    }
+
+    function getLowestEmptyRow(col) {
+      for (let row = ROWS - 1; row >= 0; row--) {
+        if (board[row][col] === '') {
+          return row;
+        }
+      }
+      return -1;
+    }
+
+    function updateCell(row, col, player) {
+      const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+      cell.classList.add(player);
+      cell.textContent = player === 'red' ? '🔴' : '🟡';
+    }
+
+    function checkWinner(row, col) {
+      const directions = [
+        [[0, 1], [0, -1]], // Horizontal
+        [[1, 0], [-1, 0]], // Vertical
+        [[1, 1], [-1, -1]], // Diagonal /
+        [[1, -1], [-1, 1]] // Diagonal \
+      ];
+
+      return directions.some(direction => {
+        const count = 1 + 
+          countInDirection(row, col, direction[0][0], direction[0][1]) +
+          countInDirection(row, col, direction[1][0], direction[1][1]);
+        return count >= 4;
+      });
+    }
+
+    function countInDirection(row, col, deltaRow, deltaCol) {
+      let count = 0;
+      let currentRow = row + deltaRow;
+      let currentCol = col + deltaCol;
+
+      while (
+        currentRow >= 0 && currentRow < ROWS &&
+        currentCol >= 0 && currentCol < COLS &&
+        board[currentRow][currentCol] === currentPlayer
+      ) {
+        count++;
+        currentRow += deltaRow;
+        currentCol += deltaCol;
+      }
+
+      return count;
+    }
+
+    function checkDraw() {
+      return board[0].every(cell => cell !== '');
+    }
+
+    function highlightWinner(row, col) {
+      const directions = [
+        [[0, 1], [0, -1]], // Horizontal
+        [[1, 0], [-1, 0]], // Vertical
+        [[1, 1], [-1, -1]], // Diagonal /
+        [[1, -1], [-1, 1]] // Diagonal \
+      ];
+
+      directions.forEach(direction => {
+        const count = 1 + 
+          countInDirection(row, col, direction[0][0], direction[0][1]) +
+          countInDirection(row, col, direction[1][0], direction[1][1]);
+        
+        if (count >= 4) {
+          // Highlight the winning cells
+          highlightDirection(row, col, direction[0][0], direction[0][1]);
+          highlightDirection(row, col, direction[1][0], direction[1][1]);
+          const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+          cell.classList.add('winner');
+        }
+      });
+    }
+
+    function highlightDirection(row, col, deltaRow, deltaCol) {
+      let currentRow = row + deltaRow;
+      let currentCol = col + deltaCol;
+
+      while (
+        currentRow >= 0 && currentRow < ROWS &&
+        currentCol >= 0 && currentCol < COLS &&
+        board[currentRow][currentCol] === currentPlayer
+      ) {
+        const cell = document.querySelector(`[data-row="${currentRow}"][data-col="${currentCol}"]`);
+        cell.classList.add('winner');
+        currentRow += deltaRow;
+        currentCol += deltaCol;
+      }
+    }
+
+    function resetGame() {
+      initializeBoard();
+      gameActive = true;
+      gameCompleted = false;
+      currentPlayer = 'red';
+      
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('red', 'yellow', 'winner');
+      });
+      
+      statusElement.textContent = 'תור של אדום';
+    }
+
+    async function awardCoins() {
+      try {
+        const response = await fetch('/api/arcade/award-coins', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            gameType: 'connectfour',
+            amount: 15
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setTimeout(() => {
+            alert(`כל הכבוד! הרווחת 15 מטבעות על הניצחון!`);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error awarding coins:', error);
+      }
+    }
+
+    // Check authentication
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          alert('עליך להתחבר כדי לשחק');
+          window.location.href = '/login.html';
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/login.html';
+      }
+    }
+
+    // Initialize game
+    checkAuth();
+    initializeBoard();
+    createBoard();
+  </script>
+</body>
+</html> 

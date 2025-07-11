@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>איקס עיגול | Jumpi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: 'Varela Round', 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .game-container {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border: 2px solid #4a90e2;
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .game-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .status {
+      font-size: 1.3rem;
+      margin-bottom: 30px;
+      color: #4ecdc4;
+      font-weight: bold;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 30px auto;
+      max-width: 300px;
+    }
+
+    .cell {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+      border: 2px solid #4a90e2;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #ffffff;
+    }
+
+    .cell:hover {
+      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+    }
+
+    .cell.x {
+      color: #ff6b6b;
+    }
+
+    .cell.o {
+      color: #4ecdc4;
+    }
+
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    }
+
+    .btn.secondary:hover {
+      box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+    }
+
+    .winner {
+      animation: winner-glow 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes winner-glow {
+      from { box-shadow: 0 0 20px rgba(78, 205, 196, 0.5); }
+      to { box-shadow: 0 0 30px rgba(78, 205, 196, 0.8); }
+    }
+
+    @media (max-width: 600px) {
+      .game-container {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      .cell {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+      }
+
+      .game-title {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="/arcade" class="back-btn">
+    <i class="fas fa-arrow-right"></i> חזרה לארקייד
+  </a>
+
+  <div class="game-container">
+    <h1 class="game-title">
+      <i class="fas fa-th"></i> איקס עיגול
+    </h1>
+    
+    <div class="status" id="status">תור של X</div>
+    
+    <div class="board" id="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn" onclick="resetGame()">
+        <i class="fas fa-redo"></i> משחק חדש
+      </button>
+      <button class="btn secondary" onclick="window.location.href='/arcade'">
+        <i class="fas fa-home"></i> חזרה לארקייד
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let currentPlayer = 'X';
+    let gameBoard = ['', '', '', '', '', '', '', '', ''];
+    let gameActive = true;
+    let gameCompleted = false;
+
+    const winningCombinations = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+      [0, 4, 8], [2, 4, 6] // Diagonals
+    ];
+
+    const cells = document.querySelectorAll('.cell');
+    const status = document.getElementById('status');
+
+    cells.forEach(cell => {
+      cell.addEventListener('click', () => {
+        const index = cell.getAttribute('data-index');
+        makeMove(index);
+      });
+    });
+
+    function makeMove(index) {
+      if (gameBoard[index] !== '' || !gameActive) return;
+
+      gameBoard[index] = currentPlayer;
+      cells[index].textContent = currentPlayer;
+      cells[index].classList.add(currentPlayer.toLowerCase());
+
+      if (checkWinner()) {
+        gameActive = false;
+        status.textContent = `המנצח הוא ${currentPlayer}!`;
+        highlightWinner();
+        if (!gameCompleted) {
+          awardCoins();
+          gameCompleted = true;
+        }
+        return;
+      }
+
+      if (checkDraw()) {
+        gameActive = false;
+        status.textContent = 'תיקו!';
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      status.textContent = `תור של ${currentPlayer}`;
+    }
+
+    function checkWinner() {
+      return winningCombinations.some(combination => {
+        return combination.every(index => {
+          return gameBoard[index] === currentPlayer;
+        });
+      });
+    }
+
+    function checkDraw() {
+      return gameBoard.every(cell => cell !== '');
+    }
+
+    function highlightWinner() {
+      winningCombinations.forEach(combination => {
+        if (combination.every(index => gameBoard[index] === currentPlayer)) {
+          combination.forEach(index => {
+            cells[index].classList.add('winner');
+          });
+        }
+      });
+    }
+
+    function resetGame() {
+      gameBoard = ['', '', '', '', '', '', '', '', ''];
+      gameActive = true;
+      gameCompleted = false;
+      currentPlayer = 'X';
+      
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('x', 'o', 'winner');
+      });
+      
+      status.textContent = 'תור של X';
+    }
+
+    async function awardCoins() {
+      try {
+        const response = await fetch('/api/arcade/award-coins', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            gameType: 'tictactoe',
+            amount: 10
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setTimeout(() => {
+            alert(`כל הכבוד! הרווחת 10 מטבעות על הניצחון!`);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error awarding coins:', error);
+      }
+    }
+
+    // Check authentication
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          alert('עליך להתחבר כדי לשחק');
+          window.location.href = '/login.html';
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/login.html';
+      }
+    }
+
+    // Initialize game
+    checkAuth();
+  </script>
+</body>
+</html> 

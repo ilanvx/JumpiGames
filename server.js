@@ -222,6 +222,7 @@ io.on('connection', async (socket) => {
        username,
        password: '', // IMPORTANT: Passwords MUST be hashed in a real application
        coins: 0,
+       level: 1,
        inventory: initialInventoryForNewUser,
        equipped: initialEquippedForNewUser
    });
@@ -1305,6 +1306,7 @@ app.post('/register', async (req, res) => {
    username, // Save exactly as entered (preserve case)
      password: hashedPassword,
    coins: 0,
+   level: 1,
    inventory: initialInventoryForNewUser,
    equipped: initialEquippedForNewUser
  });
@@ -1412,10 +1414,59 @@ app.get('/api/user', async (req, res) => {
             username: user.username,
             coins: user.coins || 0,
             diamonds: user.diamonds || 0,
+            level: user.level || 1,
             isAdmin: user.isAdmin || false
         });
     } catch (error) {
         console.error('Error getting user info:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// API route to award coins for arcade games
+app.post('/api/arcade/award-coins', async (req, res) => {
+    if (!req.session.username) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    try {
+        const { gameType, amount } = req.body;
+        
+        if (!gameType || !amount || amount <= 0) {
+            return res.status(400).json({ error: 'Invalid game type or amount' });
+        }
+        
+        // Validate amount (prevent abuse)
+        if (amount > 100) {
+            return res.status(400).json({ error: 'Amount too high' });
+        }
+        
+        const user = await User.findOne({ username: req.session.username });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Update user's coins
+        const newCoins = (user.coins || 0) + amount;
+        user.coins = newCoins;
+        
+        // Check if user should level up (every 100 coins = 1 level)
+        const newLevel = Math.floor(newCoins / 100) + 1;
+        if (newLevel > user.level) {
+            user.level = newLevel;
+        }
+        
+        await user.save();
+        
+        res.json({
+            success: true,
+            newCoins: newCoins,
+            newLevel: user.level,
+            coinsAwarded: amount
+        });
+        
+    } catch (error) {
+        console.error('Error awarding coins:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -1697,6 +1748,20 @@ app.get('/blog', (req, res) => {
 
 app.get('/store', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'store.html'));
+});
+
+app.get('/arcade', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'arcade.html'));
+});
+
+app.get('/games/tictactoe', (req, res) => {
+  if (!req.session.username) return res.redirect('/login.html');
+  res.sendFile(path.join(__dirname, 'public', 'games', 'tictactoe.html'));
+});
+
+app.get('/games/connectfour', (req, res) => {
+  if (!req.session.username) return res.redirect('/login.html');
+  res.sendFile(path.join(__dirname, 'public', 'games', 'connectfour.html'));
 });
 
 // Email configuration

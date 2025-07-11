@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Arcade | Jumpi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: 'Varela Round', 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .arcade-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* User Info Bar */
+    .user-info-bar {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      border-radius: 20px;
+      padding: 20px 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 2px solid #4a90e2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .user-stats {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .stat-icon {
+      font-size: 1.3rem;
+    }
+
+    .coins { color: #ffd700; }
+    .diamonds { color: #00ffff; }
+    .level { color: #ff6b6b; }
+    .username { color: #ffffff; }
+
+    .logout-btn {
+      background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+    }
+
+    /* Login Required Message */
+    .login-required {
+      text-align: center;
+      padding: 60px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      border: 2px solid #4a90e2;
+      margin: 40px auto;
+      max-width: 500px;
+    }
+
+    .login-required h2 {
+      color: #ff6b6b;
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .login-required p {
+      color: #cccccc;
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+
+    .login-btn {
+      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    }
+
+    /* Games Grid */
+    .games-section {
+      margin-top: 40px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 40px;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .game-card {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      border: 2px solid #4a90e2;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .game-card:hover::before {
+      left: 100%;
+    }
+
+    .game-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border-color: #00ffff;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    }
+
+    .game-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      color: #4ecdc4;
+    }
+
+    .game-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #ffffff;
+    }
+
+    .game-description {
+      color: #bdc3c7;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .play-btn {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+    }
+
+    .play-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .user-info-bar {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .user-stats {
+        justify-content: center;
+      }
+
+      .games-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .section-title {
+        font-size: 2.5rem;
+      }
+
+      .game-card {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .arcade-container {
+        padding: 10px;
+      }
+
+      .user-info-bar {
+        padding: 15px 20px;
+      }
+
+      .stat-item {
+        font-size: 1rem;
+      }
+
+      .section-title {
+        font-size: 2rem;
+      }
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="arcade-container">
+    <!-- User Info Bar (shown when logged in) -->
+    <div id="userInfoBar" style="display: none;">
+      <div class="user-info-bar">
+        <div class="user-stats">
+          <div class="stat-item username">
+            <i class="fas fa-user stat-icon"></i>
+            <span id="username">משתמש</span>
+          </div>
+          <div class="stat-item coins">
+            <i class="fas fa-coins stat-icon"></i>
+            <span id="coins">0</span>
+          </div>
+          <div class="stat-item diamonds">
+            <i class="fas fa-gem stat-icon"></i>
+            <span id="diamonds">0</span>
+          </div>
+          <div class="stat-item level">
+            <i class="fas fa-star stat-icon"></i>
+            <span id="level">1</span>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> התנתקות
+        </button>
+      </div>
+    </div>
+
+    <!-- Login Required Message (shown when not logged in) -->
+    <div id="loginRequired" style="display: none;">
+      <div class="login-required">
+        <h2><i class="fas fa-lock"></i> התחברות נדרשת</h2>
+        <p>עליך להתחבר כדי לשחק במשחקי הארקייד</p>
+        <a href="/login.html" class="login-btn">
+          <i class="fas fa-sign-in-alt"></i> התחברות
+        </a>
+      </div>
+    </div>
+
+    <!-- Games Section -->
+    <div id="gamesSection" style="display: none;">
+      <h1 class="section-title">
+        <i class="fas fa-gamepad"></i> ארקייד המשחקים
+      </h1>
+      
+      <div class="games-grid">
+        <div class="game-card" onclick="playGame('tictactoe')">
+          <div class="game-icon">
+            <i class="fas fa-th"></i>
+          </div>
+          <div class="game-title">איקס עיגול</div>
+          <div class="game-description">
+            משחק קלאסי של איקס עיגול. נסה ליצור שורה של שלושה סימנים!
+          </div>
+          <button class="play-btn">
+            <i class="fas fa-play"></i> שחק עכשיו
+          </button>
+        </div>
+
+        <div class="game-card" onclick="playGame('connectfour')">
+          <div class="game-icon">
+            <i class="fas fa-circle"></i>
+          </div>
+          <div class="game-title">ארבע בשורה</div>
+          <div class="game-description">
+            נסה לחבר ארבעה עיגולים בשורה, בטור או באלכסון!
+          </div>
+          <button class="play-btn">
+            <i class="fas fa-play"></i> שחק עכשיו
+          </button>
+        </div>
+
+        <!-- Placeholder for future games -->
+        <div class="game-card" style="opacity: 0.6; cursor: not-allowed;">
+          <div class="game-icon">
+            <i class="fas fa-puzzle-piece"></i>
+          </div>
+          <div class="game-title">משחקים נוספים</div>
+          <div class="game-description">
+            משחקים נוספים יגיעו בקרוב! הישארו מעודכנים.
+          </div>
+          <button class="play-btn" disabled>
+            <i class="fas fa-clock"></i> בקרוב
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let userData = null;
+
+    // Check authentication on page load
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          userData = await response.json();
+          showLoggedInState();
+        } else {
+          showLoginRequired();
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        showLoginRequired();
+      }
+    }
+
+    function showLoggedInState() {
+      document.getElementById('userInfoBar').style.display = 'block';
+      document.getElementById('gamesSection').style.display = 'block';
+      document.getElementById('loginRequired').style.display = 'none';
+      
+      // Update user info
+      document.getElementById('username').textContent = userData.username;
+      document.getElementById('coins').textContent = userData.coins || 0;
+      document.getElementById('diamonds').textContent = userData.diamonds || 0;
+      document.getElementById('level').textContent = userData.level || 1;
+    }
+
+    function showLoginRequired() {
+      document.getElementById('userInfoBar').style.display = 'none';
+      document.getElementById('gamesSection').style.display = 'none';
+      document.getElementById('loginRequired').style.display = 'block';
+    }
+
+    function logout() {
+      window.location.href = '/logout';
+    }
+
+    function playGame(gameType) {
+      if (!userData) {
+        alert('עליך להתחבר כדי לשחק');
+        return;
+      }
+
+      // Redirect to actual games
+      if (gameType === 'tictactoe') {
+        window.location.href = '/games/tictactoe';
+      } else if (gameType === 'connectfour') {
+        window.location.href = '/games/connectfour';
+      } else {
+        alert(`משחק ${gameType} ייפתח בקרוב!`);
+      }
+    }
+
+    async function awardCoins(gameType, amount) {
+      try {
+        const response = await fetch('/api/arcade/award-coins', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            gameType: gameType,
+            amount: amount
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          userData.coins = result.newCoins;
+          document.getElementById('coins').textContent = result.newCoins;
+          alert(`כל הכבוד! הרווחת ${amount} מטבעות!`);
+        }
+      } catch (error) {
+        console.error('Error awarding coins:', error);
+      }
+    }
+
+    // Initialize page
+    checkAuth();
+  </script>
+</body>
+</html> 

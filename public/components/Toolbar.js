@@ -17,6 +17,7 @@ class Toolbar {
             <div class="toolbar-links">
                 <a class="toolbar-link" href="/">ראשי</a>
                 <a class="toolbar-link" href="/game">למשחק</a>
+                <a class="toolbar-link" href="/arcade">ארקייד</a>
                 <a class="toolbar-link" href="/store">חנות</a>
                 <a class="toolbar-link" href="/blog">בלוג</a>
                 <a class="toolbar-link" href="/contact">צור קשר</a>
