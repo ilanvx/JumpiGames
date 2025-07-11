@@ -343,6 +343,10 @@ function setupEventListeners() {
   if (termsCheckbox) {
     termsCheckbox.addEventListener('change', validateForm);
   }
+  const parentalCheckbox = document.getElementById('regParental');
+  if (parentalCheckbox) {
+    parentalCheckbox.addEventListener('change', validateForm);
+  }
 }
 
 // Form validation
@@ -352,6 +356,7 @@ function validateForm() {
   const password = document.getElementById('regPassword');
   const password2 = document.getElementById('regPassword2');
   const terms = document.getElementById('regTerms');
+  const parental = document.getElementById('regParental');
   
   let isValid = true;
   
@@ -389,6 +394,10 @@ function validateForm() {
   
   // Terms validation
   if (terms && !terms.checked) {
+    isValid = false;
+  }
+  // Parental approval validation
+  if (parental && !parental.checked) {
     isValid = false;
   }
   
