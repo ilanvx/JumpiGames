@@ -3282,6 +3282,13 @@
                 if (window.isInventoryOpen) updateInventoryInfo();
             }
         });
+        // Add diamonds update listener
+        window.socket.on('updateDiamonds', diamonds => {
+            if (window.players[window.socket.id]) {
+                window.players[window.socket.id].diamonds = diamonds;
+                if (window.isInventoryOpen) updateInventoryInfo();
+            }
+        });
         
         // Listen for chat messages to add to history
         window.socket.on('chat', (data) => {
