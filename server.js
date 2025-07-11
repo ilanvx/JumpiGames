@@ -23,7 +23,7 @@ app.set('io', io);
 const ITEM_CATEGORIES_SERVER_KEYS = ["ht", "ps", "st", "gs", "nk", "hd", "sk", "hr"];
 
 // New movement system constants
-const SERVER_SPEED = 6; // Pixels per tick
+const SERVER_SPEED = 12; // Pixels per tick (doubled for faster movement)
 const GAME_TICK_INTERVAL = 50; // Milliseconds between game ticks
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jumpi', {
@@ -1024,8 +1024,8 @@ io.on('connection', async (socket) => {
      // Update player position to center of home
      players[socket.id].x = 600;
      players[socket.id].y = 340;
-     players[socket.id].targetX = 600;
-     players[socket.id].targetY = 340;
+     players[socket.id].target = null;
+     players[socket.id].state = 'idle';
 
      // Broadcast updated room occupancy
      io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
@@ -1074,8 +1074,8 @@ io.on('connection', async (socket) => {
      // Update player position to center of previous room
      players[socket.id].x = 600;
      players[socket.id].y = 340;
-     players[socket.id].targetX = 600;
-     players[socket.id].targetY = 340;
+     players[socket.id].target = null;
+     players[socket.id].state = 'idle';
 
      // Clear previous room tracking
      delete playerPreviousRooms[socket.id];
@@ -1153,8 +1153,8 @@ io.on('connection', async (socket) => {
      // Update player position to center of target home
      players[socket.id].x = 600;
      players[socket.id].y = 340;
-     players[socket.id].targetX = 600;
-     players[socket.id].targetY = 340;
+     players[socket.id].target = null;
+     players[socket.id].state = 'idle';
 
      // Broadcast updated room occupancy
      io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
@@ -1698,9 +1698,17 @@ function handleSecurityViolation(socketId, violationType, details = '') {
 
 // Before emitting updatePlayers, add the room property to each player
 function emitPlayersWithRooms() {
-    const playersWithRooms = {};
+    // Group players by room
+    const playersByRoom = {};
+    
     for (const [id, player] of Object.entries(players)) {
         const roomId = playerRooms[id];
+        if (!roomId) continue; // Skip players without room
+        
+        if (!playersByRoom[roomId]) {
+            playersByRoom[roomId] = {};
+        }
+        
         let homeOwner = null;
         
         // Check if player is in a home room and get the owner
@@ -1708,7 +1716,7 @@ function emitPlayersWithRooms() {
             homeOwner = homeRooms[roomId].owner;
         }
         
-        playersWithRooms[id] = { 
+        playersByRoom[roomId][id] = { 
             ...player, 
             room: roomId,
             target: player.target, // New movement system target
@@ -1717,7 +1725,15 @@ function emitPlayersWithRooms() {
             homeId: player.homeId // Add homeId for Friends Panel
         };
     }
-    io.emit('updatePlayers', playersWithRooms);
+    
+    // Emit room-specific updates to each player
+    for (const [id, player] of Object.entries(players)) {
+        const roomId = playerRooms[id];
+        if (!roomId) continue;
+        
+        const roomPlayers = playersByRoom[roomId] || {};
+        io.to(id).emit('updatePlayers', roomPlayers);
+    }
 }
 
 // Helper function to get all rooms (including home rooms)
@@ -1781,8 +1797,8 @@ function gameTick() {
         }
     }
     
-    // Emit updated positions to all clients
-    io.emit('updatePlayers', players);
+    // Emit updated positions to clients based on room
+    emitPlayersWithRooms();
 }
 
 // Start the game tick loop
