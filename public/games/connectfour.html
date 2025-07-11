@@ -377,80 +377,69 @@
     }
 
     function checkWinner() {
-      const directions = [
-        [[0, 1], [0, -1]], // Horizontal
-        [[1, 0], [-1, 0]], // Vertical
-        [[1, 1], [-1, -1]], // Diagonal /
-        [[1, -1], [-1, 1]] // Diagonal \
-      ];
-
-      return directions.some(direction => {
-        const count = 1 + 
-          countInDirection(row, col, direction[0][0], direction[0][1]) +
-          countInDirection(row, col, direction[1][0], direction[1][1]);
-        return count >= 4;
-      });
-    }
-
-    function countInDirection(row, col, deltaRow, deltaCol) {
-      let count = 0;
-      let currentRow = row + deltaRow;
-      let currentCol = col + deltaCol;
-
-      while (
-        currentRow >= 0 && currentRow < ROWS &&
-        currentCol >= 0 && currentCol < COLS &&
-        board[currentRow][currentCol] === currentPlayer
-      ) {
-        count++;
-        currentRow += deltaRow;
-        currentCol += deltaCol;
+      // Check for horizontal wins
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col <= COLS - 4; col++) {
+          if (board[row][col] !== '' &&
+              board[row][col] === board[row][col + 1] &&
+              board[row][col] === board[row][col + 2] &&
+              board[row][col] === board[row][col + 3]) {
+            return true;
+          }
+        }
       }
 
-      return count;
+      // Check for vertical wins
+      for (let row = 0; row <= ROWS - 4; row++) {
+        for (let col = 0; col < COLS; col++) {
+          if (board[row][col] !== '' &&
+              board[row][col] === board[row + 1][col] &&
+              board[row][col] === board[row + 2][col] &&
+              board[row][col] === board[row + 3][col]) {
+            return true;
+          }
+        }
+      }
+
+      // Check for diagonal wins (positive slope)
+      for (let row = 0; row <= ROWS - 4; row++) {
+        for (let col = 0; col <= COLS - 4; col++) {
+          if (board[row][col] !== '' &&
+              board[row][col] === board[row + 1][col + 1] &&
+              board[row][col] === board[row + 2][col + 2] &&
+              board[row][col] === board[row + 3][col + 3]) {
+            return true;
+          }
+        }
+      }
+
+      // Check for diagonal wins (negative slope)
+      for (let row = 3; row < ROWS; row++) {
+        for (let col = 0; col <= COLS - 4; col++) {
+          if (board[row][col] !== '' &&
+              board[row][col] === board[row - 1][col + 1] &&
+              board[row][col] === board[row - 2][col + 2] &&
+              board[row][col] === board[row - 3][col + 3]) {
+            return true;
+          }
+        }
+      }
+
+      return false;
     }
 
-    function checkDraw() {
-      return board[0].every(cell => cell !== '');
-    }
-
-    function highlightWinner(row, col) {
-      const directions = [
-        [[0, 1], [0, -1]], // Horizontal
-        [[1, 0], [-1, 0]], // Vertical
-        [[1, 1], [-1, -1]], // Diagonal /
-        [[1, -1], [-1, 1]] // Diagonal \
-      ];
-
-      directions.forEach(direction => {
-        const count = 1 + 
-          countInDirection(row, col, direction[0][0], direction[0][1]) +
-          countInDirection(row, col, direction[1][0], direction[1][1]);
-        
-        if (count >= 4) {
-          // Highlight the winning cells
-          highlightDirection(row, col, direction[0][0], direction[0][1]);
-          highlightDirection(row, col, direction[1][0], direction[1][1]);
-          const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    function highlightWinner() {
+      // Highlight winning cells (simplified version)
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach(cell => {
+        if (cell.textContent !== '') {
           cell.classList.add('winner');
         }
       });
     }
 
-    function highlightDirection(row, col, deltaRow, deltaCol) {
-      let currentRow = row + deltaRow;
-      let currentCol = col + deltaCol;
-
-      while (
-        currentRow >= 0 && currentRow < ROWS &&
-        currentCol >= 0 && currentCol < COLS &&
-        board[currentRow][currentCol] === currentPlayer
-      ) {
-        const cell = document.querySelector(`[data-row="${currentRow}"][data-col="${currentCol}"]`);
-        cell.classList.add('winner');
-        currentRow += deltaRow;
-        currentCol += deltaCol;
-      }
+    function checkDraw() {
+      return board[0].every(cell => cell !== '');
     }
 
     function resetGame() {

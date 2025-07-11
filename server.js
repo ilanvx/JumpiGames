@@ -768,11 +768,13 @@ io.on('connection', async (socket) => {
        const roomId = playerRooms[socket.id];
        if (rooms[roomId]) {
            rooms[roomId].currentPlayers = Math.max(0, rooms[roomId].currentPlayers - 1);
+       } else if (homeRooms[roomId]) {
+           homeRooms[roomId].currentPlayers = Math.max(0, homeRooms[roomId].currentPlayers - 1);
        }
-       delete playerRooms[socket.id];
-       // Broadcast updated room occupancy
-       io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
    }
+   delete playerRooms[socket.id];
+   // Broadcast updated room occupancy
+   io.emit('roomOccupancyUpdate', { rooms: Object.values(getAllRooms()) });
    
    emitPlayersWithRooms();
    // Remove from in-trade list if needed
@@ -1783,22 +1785,14 @@ app.get('/arcade', (req, res) => {
 });
 
 app.get('/games/tictactoe', (req, res) => {
-  if (!req.session.username) return res.redirect('/login.html');
   res.sendFile(path.join(__dirname, 'public', 'games', 'tictactoe.html'));
 });
 
 app.get('/games/connectfour', (req, res) => {
-  if (!req.session.username) return res.redirect('/login.html');
   res.sendFile(path.join(__dirname, 'public', 'games', 'connectfour.html'));
 });
 
-app.get('/games/snake', (req, res) => {
-  if (!req.session.username) return res.redirect('/login.html');
-  res.sendFile(path.join(__dirname, 'public', 'games', 'snake.html'));
-});
-
 app.get('/games/memory', (req, res) => {
-  if (!req.session.username) return res.redirect('/login.html');
   res.sendFile(path.join(__dirname, 'public', 'games', 'memory.html'));
 });
 
@@ -2131,11 +2125,8 @@ app.post('/api/arcade/award-coins', async (req, res) => {
       case 'connectfour':
         maxAmount = 15;
         break;
-      case 'snake':
-        maxAmount = 20;
-        break;
       case 'memory':
-        maxAmount = 20;
+        maxAmount = 60; // Updated to support higher rewards
         break;
       default:
         maxAmount = 10;
@@ -2163,10 +2154,6 @@ app.get('/games/tictactoe', (req, res) => {
 
 app.get('/games/connectfour', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'games', 'connectfour.html'));
-});
-
-app.get('/games/snake', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'games', 'snake.html'));
 });
 
 app.get('/games/memory', (req, res) => {

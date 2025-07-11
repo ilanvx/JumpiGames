@@ -338,9 +338,11 @@
       finalTimeElement.textContent = finalTime;
       gameCompleteElement.style.display = 'block';
       
-      // Award coins based on score and time
-      const timeBonus = Math.max(0, 60 - finalTime) * 2;
-      const totalCoins = Math.floor((score + timeBonus) / 10);
+      // Award coins based on score and time - higher rewards
+      const timeBonus = Math.max(0, 120 - finalTime) * 3; // More time bonus
+      const scoreBonus = score * 2; // Double score bonus
+      const baseReward = 25; // Higher base reward
+      const totalCoins = Math.min(60, baseReward + Math.floor((scoreBonus + timeBonus) / 10));
       
       if (totalCoins > 0) {
         awardCoins(totalCoins);

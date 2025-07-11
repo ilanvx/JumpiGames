@@ -14,60 +14,57 @@
       padding: 0;
       min-height: 100vh;
       color: #ffffff;
-      overflow-x: hidden;
     }
 
-    .arcade-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 30px;
-    }
-
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-    }
-
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      height: fit-content;
-      position: sticky;
-      top: 20px;
-    }
-
-    /* User Info Bar */
-    .user-info-bar {
+    /* Top Toolbar */
+    .top-toolbar {
       background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-      border-radius: 20px;
-      padding: 20px 30px;
-      margin-bottom: 30px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      border: 2px solid #4a90e2;
+      padding: 15px 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border-bottom: 2px solid #4a90e2;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .toolbar-content {
+      max-width: 1200px;
+      margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      padding: 0 20px;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
       gap: 20px;
+    }
+
+    .toolbar-center {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     .user-stats {
       display: flex;
-      gap: 30px;
+      gap: 20px;
       align-items: center;
-      flex-wrap: wrap;
     }
 
     .stat-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       padding: 8px 12px;
       background: rgba(255, 255, 255, 0.1);
@@ -75,7 +72,7 @@
     }
 
     .stat-icon {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
     }
 
     .coins { color: #ffd700; }
@@ -87,9 +84,9 @@
       background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
       color: white;
       border: none;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-size: 1rem;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -101,57 +98,39 @@
       box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
     }
 
-    /* Login Required Message */
-    .login-required {
-      text-align: center;
-      padding: 60px 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      border: 2px solid #4a90e2;
-      margin: 40px auto;
-      max-width: 500px;
-    }
-
-    .login-required h2 {
-      color: #ff6b6b;
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
-
-    .login-required p {
-      color: #cccccc;
-      font-size: 1.2rem;
-      margin-bottom: 30px;
-    }
-
-    .login-btn {
-      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    .sidebar-toggle {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
       color: white;
       border: none;
-      padding: 15px 30px;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: bold;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 1rem;
       cursor: pointer;
       transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-      box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
     }
 
-    .login-btn:hover {
+    .sidebar-toggle:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
     }
 
-    /* Games Grid */
+    /* Main Container */
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      display: flex;
+      gap: 30px;
+    }
+
     .games-section {
-      margin-top: 20px;
+      flex: 1;
     }
 
     .section-title {
       text-align: center;
-      font-size: 2.8rem;
+      font-size: 2.5rem;
       font-weight: bold;
       margin-bottom: 40px;
       background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
@@ -161,11 +140,11 @@
       text-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
     }
 
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    .games-row {
+      display: flex;
       gap: 25px;
-      margin-top: 30px;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     .game-card {
@@ -178,7 +157,8 @@
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      min-height: 280px;
+      min-width: 280px;
+      min-height: 320px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -257,13 +237,37 @@
       box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
     }
 
-    /* Sidebar Cards */
-    .sidebar-card {
+    .game-status {
+      font-size: 0.8rem;
+      color: #4ecdc4;
+      margin-top: 8px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 300px;
       background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-      border-radius: 15px;
-      padding: 20px;
+      border-radius: 20px;
+      padding: 25px;
       border: 2px solid #4a90e2;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+      transition: all 0.3s ease;
+      transform: translateX(0);
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(100%);
+    }
+
+    .sidebar-card {
+      margin-bottom: 25px;
+    }
+
+    .sidebar-card:last-child {
+      margin-bottom: 0;
     }
 
     .sidebar-title {
@@ -322,124 +326,151 @@
       background: #2ecc71;
     }
 
-    .coming-soon {
-      opacity: 0.6;
-      cursor: not-allowed;
+    /* Login Required Message */
+    .login-required {
+      text-align: center;
+      padding: 60px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      border: 2px solid #4a90e2;
+      margin: 40px auto;
+      max-width: 500px;
     }
 
-    .coming-soon .play-btn {
-      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-      cursor: not-allowed;
+    .login-required h2 {
+      color: #ff6b6b;
+      font-size: 2rem;
+      margin-bottom: 20px;
     }
 
-    .game-status {
-      font-size: 0.8rem;
-      color: #4ecdc4;
-      margin-top: 8px;
+    .login-required p {
+      color: #cccccc;
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+
+    .login-btn {
+      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
     }
 
     /* Responsive Design */
     @media (max-width: 1200px) {
-      .arcade-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
+      .main-container {
+        flex-direction: column;
       }
       
       .sidebar {
-        order: -1;
+        width: 100%;
         position: static;
+        transform: none;
       }
     }
 
     @media (max-width: 768px) {
-      .user-info-bar {
+      .toolbar-content {
         flex-direction: column;
-        text-align: center;
+        gap: 15px;
       }
 
       .user-stats {
         justify-content: center;
+        flex-wrap: wrap;
       }
 
-      .games-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .section-title {
-        font-size: 2.2rem;
+      .games-row {
+        flex-direction: column;
+        align-items: center;
       }
 
       .game-card {
-        padding: 20px;
-        min-height: 250px;
+        min-width: 250px;
+      }
+
+      .section-title {
+        font-size: 2rem;
       }
     }
 
     @media (max-width: 480px) {
-      .arcade-container {
-        padding: 10px;
+      .main-container {
+        padding: 15px 10px;
       }
 
-      .user-info-bar {
-        padding: 15px 20px;
+      .toolbar-content {
+        padding: 0 10px;
       }
 
       .stat-item {
-        font-size: 1rem;
+        font-size: 0.9rem;
       }
 
       .section-title {
         font-size: 1.8rem;
       }
     }
-
-    /* Loading Animation */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body>
-  <div class="arcade-container">
-    <div class="main-content">
-      <!-- User Info Bar (shown when logged in) -->
-      <div id="userInfoBar" style="display: none;">
-        <div class="user-info-bar">
-          <div class="user-stats">
-            <div class="stat-item username">
-              <i class="fas fa-user stat-icon"></i>
-              <span id="username">משתמש</span>
-            </div>
-            <div class="stat-item coins">
-              <i class="fas fa-coins stat-icon"></i>
-              <span id="coins">0</span>
-            </div>
-            <div class="stat-item diamonds">
-              <i class="fas fa-gem stat-icon"></i>
-              <span id="diamonds">0</span>
-            </div>
-            <div class="stat-item level">
-              <i class="fas fa-star stat-icon"></i>
-              <span id="level">1</span>
-            </div>
+  <!-- Top Toolbar -->
+  <div class="top-toolbar">
+    <div class="toolbar-content">
+      <div class="toolbar-left">
+        <h1 style="margin: 0; font-size: 1.5rem; color: #ffffff;">
+          <i class="fas fa-gamepad"></i> Jumpi Arcade
+        </h1>
+      </div>
+      
+      <div class="toolbar-center" id="userStats" style="display: none;">
+        <div class="user-stats">
+          <div class="stat-item username">
+            <i class="fas fa-user stat-icon"></i>
+            <span id="username">משתמש</span>
           </div>
-          <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> התנתקות
-          </button>
+          <div class="stat-item coins">
+            <i class="fas fa-coins stat-icon"></i>
+            <span id="coins">0</span>
+          </div>
+          <div class="stat-item diamonds">
+            <i class="fas fa-gem stat-icon"></i>
+            <span id="diamonds">0</span>
+          </div>
+          <div class="stat-item level">
+            <i class="fas fa-star stat-icon"></i>
+            <span id="level">1</span>
+          </div>
         </div>
       </div>
+      
+      <div class="toolbar-right">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <i class="fas fa-users"></i> חברים
+        </button>
+        <button class="logout-btn" onclick="logout()" id="logoutBtn" style="display: none;">
+          <i class="fas fa-sign-out-alt"></i> התנתקות
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Main Container -->
+  <div class="main-container">
+    <div class="games-section">
       <!-- Login Required Message (shown when not logged in) -->
       <div id="loginRequired" style="display: none;">
         <div class="login-required">
@@ -457,7 +488,7 @@
           <i class="fas fa-gamepad"></i> ארקייד המשחקים
         </h1>
         
-        <div class="games-grid">
+        <div class="games-row">
           <div class="game-card" onclick="playGame('tictactoe')">
             <div class="game-icon">
               <i class="fas fa-th"></i>
@@ -488,21 +519,6 @@
             </button>
           </div>
 
-          <div class="game-card" onclick="playGame('snake')">
-            <div class="game-icon">
-              <i class="fas fa-snake"></i>
-            </div>
-            <div class="game-title">נחש</div>
-            <div class="game-description">
-              משחק הנחש הקלאסי! אכל אוכל וגדל, אבל אל תתנגש בעצמך או בקירות!
-            </div>
-            <div class="game-reward">🏆 פרס: עד 20 מטבעות</div>
-            <div class="game-status">✅ זמין - משחק יחיד</div>
-            <button class="play-btn">
-              <i class="fas fa-play"></i> שחק עכשיו
-            </button>
-          </div>
-
           <div class="game-card" onclick="playGame('memory')">
             <div class="game-icon">
               <i class="fas fa-brain"></i>
@@ -511,56 +527,10 @@
             <div class="game-description">
               מצא זוגות של כרטיסים זהים! תרגל את הזיכרון שלך וקבל פרסים.
             </div>
-            <div class="game-reward">🏆 פרס: 12-20 מטבעות</div>
+            <div class="game-reward">🏆 פרס: 25-60 מטבעות</div>
             <div class="game-status">✅ זמין - משחק יחיד</div>
             <button class="play-btn">
               <i class="fas fa-play"></i> שחק עכשיו
-            </button>
-          </div>
-
-          <div class="game-card coming-soon">
-            <div class="game-icon">
-              <i class="fas fa-th-large"></i>
-            </div>
-            <div class="game-title">טטריס</div>
-            <div class="game-description">
-              סדר בלוקים בשורות מלאות כדי לנקות אותן! משחק קלאסי עם פרסים.
-            </div>
-            <div class="game-reward">🏆 פרס: 25 מטבעות</div>
-            <div class="game-status">⏳ בקרוב</div>
-            <button class="play-btn" disabled>
-              <i class="fas fa-clock"></i> בקרוב
-            </button>
-          </div>
-
-          <div class="game-card coming-soon">
-            <div class="game-icon">
-              <i class="fas fa-puzzle-piece"></i>
-            </div>
-            <div class="game-title">פאזל מספרים</div>
-            <div class="game-description">
-              סדר את המספרים בסדר הנכון! משחק לוגיקה מאתגר עם פרסים.
-            </div>
-            <div class="game-reward">🏆 פרס: 18 מטבעות</div>
-            <div class="game-status">⏳ בקרוב</div>
-            <button class="play-btn" disabled>
-              <i class="fas fa-clock"></i> בקרוב
-            </button>
-          </div>
-
-          <!-- Placeholder for future games -->
-          <div class="game-card coming-soon">
-            <div class="game-icon">
-              <i class="fas fa-users"></i>
-            </div>
-            <div class="game-title">משחקים מרובי משתתפים</div>
-            <div class="game-description">
-              משחקים נגד חברים אמיתיים! בקרוב תוכל לשחק נגד חברים אמיתיים.
-            </div>
-            <div class="game-reward">🏆 פרס: משתנה</div>
-            <div class="game-status">⏳ בקרוב</div>
-            <button class="play-btn" disabled>
-              <i class="fas fa-clock"></i> בקרוב
             </button>
           </div>
         </div>
@@ -568,7 +538,7 @@
     </div>
 
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <!-- Connected Users -->
       <div class="sidebar-card">
         <div class="sidebar-title">
@@ -645,7 +615,8 @@
     }
 
     function showLoggedInState() {
-      document.getElementById('userInfoBar').style.display = 'block';
+      document.getElementById('userStats').style.display = 'flex';
+      document.getElementById('logoutBtn').style.display = 'inline-block';
       document.getElementById('gamesSection').style.display = 'block';
       document.getElementById('loginRequired').style.display = 'none';
       
@@ -657,13 +628,19 @@
     }
 
     function showLoginRequired() {
-      document.getElementById('userInfoBar').style.display = 'none';
+      document.getElementById('userStats').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
       document.getElementById('gamesSection').style.display = 'none';
       document.getElementById('loginRequired').style.display = 'block';
     }
 
     function logout() {
       window.location.href = '/logout';
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
     }
 
     function playGame(gameType) {
@@ -677,8 +654,6 @@
         window.location.href = '/games/tictactoe';
       } else if (gameType === 'connectfour') {
         window.location.href = '/games/connectfour';
-      } else if (gameType === 'snake') {
-        window.location.href = '/games/snake';
       } else if (gameType === 'memory') {
         window.location.href = '/games/memory';
       } else {
