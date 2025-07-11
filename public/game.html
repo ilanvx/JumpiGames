@@ -2301,12 +2301,28 @@
             }
         }
         function toggleInventory() {
-            window.isInventoryOpen = !window.isInventoryOpen;
-            if (inventoryWindowElement) {
-                inventoryWindowElement.style.display = window.isInventoryOpen ? 'flex' : 'none';
-                if (window.isInventoryOpen) {
-                    updateInventoryInfo();
-                    if(window.isSettingsOpen) toggleSettingsMenu();
+            try {
+                window.isInventoryOpen = !window.isInventoryOpen;
+                if (inventoryWindowElement) {
+                    inventoryWindowElement.style.display = window.isInventoryOpen ? 'flex' : 'none';
+                    if (window.isInventoryOpen) {
+                        // Add small delay to prevent conflicts with server updates
+                        setTimeout(() => {
+                            try {
+                                updateInventoryInfo();
+                                if(window.isSettingsOpen) toggleSettingsMenu();
+                            } catch (error) {
+                                console.error('Error updating inventory info:', error);
+                            }
+                        }, 50);
+                    }
+                }
+            } catch (error) {
+                console.error('Error toggling inventory:', error);
+                // Reset state on error
+                window.isInventoryOpen = false;
+                if (inventoryWindowElement) {
+                    inventoryWindowElement.style.display = 'none';
                 }
             }
         }
@@ -3222,7 +3238,14 @@
             });
             
             if (window.isInventoryOpen) {
-                updateInventoryInfo();
+                // Add small delay to prevent conflicts with rapid server updates
+                setTimeout(() => {
+                    try {
+                        updateInventoryInfo();
+                    } catch (error) {
+                        console.error('Error updating inventory info from server update:', error);
+                    }
+                }, 10);
             }
             
             // Update Friends Panel if it's open
@@ -3435,8 +3458,13 @@
                 const isMoving = isLocal && p.state === 'walking';
                 const scaleY = isMoving ? 1 : window.breathScale;
                 const bounceY = isMoving ? window.walkBounce : 0;
+                
+                // Use interpolated position for smooth rendering
+                const renderX = p.renderX || p.x;
+                const renderY = p.renderY || p.y;
+                
                 window.ctx.save();
-                window.ctx.translate(p.x, p.y - 35 + bounceY);
+                window.ctx.translate(renderX, renderY - 35 + bounceY);
 
                 // --- SHADOW ---
                 if (isLocal) {
@@ -3760,15 +3788,28 @@
             const player = window.players[window.socket.id];
             if (!player) return;
             
-            // New movement system - client only handles click events and sends requests
-            // Server handles all movement logic
-            
-            // Handle other players' movement (server-controlled)
+            // Smooth interpolation for all players (including local player)
             Object.values(window.players).forEach(otherPlayer => {
-                if (otherPlayer.id === window.socket.id) return; // Skip local player
+                if (!otherPlayer) return;
                 
-                // Other players' positions are now fully controlled by server
-                // No client-side interpolation needed
+                // Store previous position for smooth interpolation
+                if (!otherPlayer.prevX) {
+                    otherPlayer.prevX = otherPlayer.x;
+                    otherPlayer.prevY = otherPlayer.y;
+                }
+                
+                // Smooth interpolation factor (0.1 = smooth, 0.5 = fast, 1.0 = instant)
+                const interpolationFactor = 0.15;
+                
+                // Interpolate position smoothly
+                if (otherPlayer.prevX !== otherPlayer.x || otherPlayer.prevY !== otherPlayer.y) {
+                    otherPlayer.prevX += (otherPlayer.x - otherPlayer.prevX) * interpolationFactor;
+                    otherPlayer.prevY += (otherPlayer.y - otherPlayer.prevY) * interpolationFactor;
+                }
+                
+                // Use interpolated position for rendering
+                otherPlayer.renderX = otherPlayer.prevX;
+                otherPlayer.renderY = otherPlayer.prevY;
             });
         }
         CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
@@ -3861,8 +3902,10 @@
                             continue;
                         }
                         // Check if click is within player bounds (55x70 pixels)
-                        const playerScreenX = player.x * (window.canvas.width / 1200);
-                        const playerScreenY = player.y * (window.canvas.height / 680);
+                        const renderX = player.renderX || player.x;
+                        const renderY = player.renderY || player.y;
+                        const playerScreenX = renderX * (window.canvas.width / 1200);
+                        const playerScreenY = renderY * (window.canvas.height / 680);
                         
                         // Use original size but with small margin for better click detection
                         const clickAreaWidth = 65; // 55 + 10 (5px on each side)

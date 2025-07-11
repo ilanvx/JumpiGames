@@ -1770,13 +1770,14 @@ function gameTick() {
             const dy = player.target.y - player.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
+            // Prevent infinite loops by checking if movement is too small
             if (distance < SERVER_SPEED) {
                 // Reached target
                 player.x = player.target.x;
                 player.y = player.target.y;
                 player.state = 'idle';
                 player.target = null;
-            } else {
+            } else if (distance > 0) { // Only move if there's actual distance
                 // Move towards target
                 const angle = Math.atan2(dy, dx);
                 player.x += Math.cos(angle) * SERVER_SPEED;
@@ -1793,6 +1794,10 @@ function gameTick() {
                 else if (angleDeg < 247.5) player.direction = 'up_left';
                 else if (angleDeg < 292.5) player.direction = 'up';
                 else if (angleDeg < 337.5) player.direction = 'up_right';
+            } else {
+                // No movement possible, stop walking
+                player.state = 'idle';
+                player.target = null;
             }
         }
     }
