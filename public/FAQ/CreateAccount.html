@@ -59,13 +59,14 @@
       gap: 8px;
     }
     .help-step img {
-      max-width: 90%;
-      max-height: 220px;
+      max-width: 100%;
+      max-height: 350px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(120,144,255,0.10);
       margin-top: 8px;
       background: #e0e7ff;
       border: 1.5px solid #e0e7ff;
+      display: block;
     }
     .help-note {
       background: #e0e7ff;
@@ -84,6 +85,8 @@
   </style>
 </head>
 <body>
+  <script src="/components/Toolbar.js"></script>
+  <script>new Toolbar();</script>
   <div class="help-container">
     <div class="help-title"><i class="fas fa-user-plus"></i> איך יוצרים משתמש חדש?</div>
     <div class="help-step">
@@ -118,7 +121,6 @@
     <div class="help-note">
       <i class="fas fa-info-circle"></i> <b>הערות נוספות:</b><br>
       &bull; כל שלב מלווה בתמונה להמחשה.<br>
-      &bull; ודאו שכל התמונות נטענות בגודל ברור ונוח לצפייה.<br>
       &bull; אם נתקלתם בבעיה, ניתן לפנות אלינו דרך עמוד <a href="/contact.html">צור קשר</a>.
     </div>
   </div>

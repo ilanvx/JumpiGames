@@ -69,13 +69,37 @@
   </style>
 </head>
 <body>
+  <script src="/components/Toolbar.js"></script>
+  <script>new Toolbar();</script>
   <div class="faq-container">
     <div class="faq-title"><i class="fas fa-question-circle"></i> שאלות נפוצות</div>
-    <div class="faq-list">
+    <div style="margin-bottom: 24px;">
+      <input id="faqSearch" type="text" placeholder="חפש שאלה..." style="width:100%;padding:12px 16px;border-radius:12px;border:1.5px solid #e0e7ff;font-size:1.1rem;box-sizing:border-box;">
+    </div>
+    <div class="faq-list" id="faqList">
       <a class="faq-question" href="/FAQ/CreateAccount.html">
         <i class="fas fa-user-plus"></i> איך יוצרים משתמש חדש?
       </a>
     </div>
+    <div style="margin-top:32px;text-align:center;font-size:1.1rem;color:#4b3869;background:#e0e7ff;padding:18px 12px;border-radius:12px;">
+      לא מצאת את התשובה שחיפשת? <a href="/contact.html" style="color:#5a3e85;text-decoration:underline;font-weight:bold;">פנה אלינו כאן</a>
+    </div>
   </div>
+  <script>
+    // FAQ search filter
+    const searchInput = document.getElementById('faqSearch');
+    const faqList = document.getElementById('faqList');
+    searchInput.addEventListener('input', function() {
+      const val = this.value.trim();
+      const questions = faqList.querySelectorAll('.faq-question');
+      questions.forEach(q => {
+        if (q.textContent.includes(val) || val === '') {
+          q.style.display = '';
+        } else {
+          q.style.display = 'none';
+        }
+      });
+    });
+  </script>
 </body>
 </html> 
