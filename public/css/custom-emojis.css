@@ -1,4 +1,4 @@
-/* Custom Emojis - Consistent across all devices */
+/* Emoji Library using Twemoji CDN - Consistent across all devices */
 
 /* Emoji Container */
 .custom-emoji {
@@ -12,37 +12,37 @@
   margin: 0 2px;
 }
 
-/* Modern Emoji Styles - Beautiful Design */
+/* Twemoji-based emojis using CDN */
 .emoji-happy {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="happyGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%234ECDC4;stop-opacity:1" /><stop offset="100%" style="stop-color:%2344A08D;stop-opacity:1" /></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="%23000" flood-opacity="0.2"/></filter></defs><circle cx="12" cy="12" r="11" fill="url(%23happyGrad)" filter="url(%23shadow)"/><circle cx="9" cy="10" r="1.8" fill="%23FFF"/><circle cx="15" cy="10" r="1.8" fill="%23FFF"/><circle cx="9" cy="10" r="0.8" fill="%23333"/><circle cx="15" cy="10" r="0.8" fill="%23333"/><path d="M9 17c0 2.5 1.5 4 3 4s3-1.5 3-4" stroke="%23FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f642.svg');
 }
 
 .emoji-sad {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="sadGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23A8E6CF;stop-opacity:1" /><stop offset="100%" style="stop-color:%2387CEEB;stop-opacity:1" /></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="%23000" flood-opacity="0.2"/></filter></defs><circle cx="12" cy="12" r="11" fill="url(%23sadGrad)" filter="url(%23shadow)"/><circle cx="9" cy="10" r="1.8" fill="%23FFF"/><circle cx="15" cy="10" r="1.8" fill="%23FFF"/><circle cx="9" cy="10" r="0.8" fill="%23333"/><circle cx="15" cy="10" r="0.8" fill="%23333"/><path d="M9 20c0-2.5 1.5-4 3-4s3 1.5 3 4" stroke="%23FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f641.svg');
 }
 
 .emoji-angry {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="angryGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23FF6B6B;stop-opacity:1" /><stop offset="100%" style="stop-color:%23FF8E8E;stop-opacity:1" /></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="%23000" flood-opacity="0.2"/></filter></defs><circle cx="12" cy="12" r="11" fill="url(%23angryGrad)" filter="url(%23shadow)"/><circle cx="9" cy="10" r="1.8" fill="%23FFF"/><circle cx="15" cy="10" r="1.8" fill="%23FFF"/><circle cx="9" cy="10" r="0.8" fill="%23333"/><circle cx="15" cy="10" r="0.8" fill="%23333"/><path d="M7 7l3-3 3 3M17 7l-3-3-3 3" stroke="%23FFF" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 20c0-2.5 1.5-4 3-4s3 1.5 3 4" stroke="%23FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f620.svg');
 }
 
 .emoji-laugh {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="laughGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23FFD93D;stop-opacity:1" /><stop offset="100%" style="stop-color:%23FF6B6B;stop-opacity:1" /></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="%23000" flood-opacity="0.2"/></filter></defs><circle cx="12" cy="12" r="11" fill="url(%23laughGrad)" filter="url(%23shadow)"/><circle cx="9" cy="10" r="1.8" fill="%23FFF"/><circle cx="15" cy="10" r="1.8" fill="%23FFF"/><circle cx="9" cy="10" r="0.8" fill="%23333"/><circle cx="15" cy="10" r="0.8" fill="%23333"/><path d="M9 17c0 3 1.5 4.5 3 4.5s3-1.5 3-4.5" stroke="%23FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M6 8l2 2 2-2M18 8l-2 2-2-2" stroke="%23FFF" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f602.svg');
 }
 
 .emoji-heart {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23FF6B9D;stop-opacity:1" /><stop offset="100%" style="stop-color:%23FF8E8E;stop-opacity:1" /></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="%23000" flood-opacity="0.2"/></filter></defs><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(%23heartGrad)" filter="url(%23shadow)"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/2764.svg');
 }
 
 .emoji-star {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/2b50.svg');
 }
 
 .emoji-diamond {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239B59B6"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f48e.svg');
 }
 
 .emoji-flower {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF69B4"><circle cx="12" cy="12" r="3" fill="%23FF69B4"/><circle cx="6" cy="8" r="2" fill="%23FF69B4"/><circle cx="18" cy="8" r="2" fill="%23FF69B4"/><circle cx="6" cy="16" r="2" fill="%23FF69B4"/><circle cx="18" cy="16" r="2" fill="%23FF69B4"/><circle cx="8" cy="6" r="2" fill="%23FF69B4"/><circle cx="16" cy="6" r="2" fill="%23FF69B4"/><circle cx="8" cy="18" r="2" fill="%23FF69B4"/><circle cx="16" cy="18" r="2" fill="%23FF69B4"/></svg>');
+  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f490.svg');
 }
 
 /* Emoji Button Styles */
