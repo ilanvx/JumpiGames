@@ -1995,9 +1995,19 @@
             </div>
             
             <!-- Store Main Content -->
-            <div class="store-main" style="flex: 1; padding: 20px; overflow-y: auto;">
-                <div id="storeItemsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+            <div class="store-main" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;">
+                <!-- Store Category Tabs (like inventory) -->
+                <div class="store-category-tabs-main" style="margin-bottom: 20px;">
+                    <h6 style="margin: 0 0 15px 0; color: #333; font-size: 1rem;">קטגוריות פריטים</h6>
+                    <div id="storeCategoryTabsMain" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                        <!-- Category tabs will be populated here -->
+                    </div>
+                </div>
+                <div id="storeItemsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; flex: 1;">
                     <!-- Store items will be populated here -->
+                </div>
+                <div id="storePaginationContainer" style="margin-top: 20px;">
+                    <!-- Pagination controls will be populated here -->
                 </div>
             </div>
         </div>
@@ -2803,6 +2813,7 @@
                 loadStoreItems();
                 updateStoreUserInfo();
                 updateStoreCharacterPreview();
+                renderStoreCategoryTabs();
                 
                 // Show notification
                 window.showNotification('חנות נפתחה', 'info', 2000);
@@ -2823,6 +2834,10 @@
                 });
         }
         
+        // Store pagination variables
+        let currentStorePage = 0;
+        const itemsPerPage = 12; // Show 12 items per page (3 rows of 4)
+        
         function renderStoreItems() {
             const container = document.getElementById('storeItemsContainer');
             if (!container) return;
@@ -2840,7 +2855,14 @@
                 return;
             }
             
-            container.innerHTML = categoryItems.map(item => `
+            // Calculate pagination
+            const totalPages = Math.ceil(categoryItems.length / itemsPerPage);
+            const startIndex = currentStorePage * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageItems = categoryItems.slice(startIndex, endIndex);
+            
+            // Render items
+            container.innerHTML = pageItems.map(item => `
                 <div class="store-item-card" style="background: rgba(255,255,255,0.8); border-radius: 12px; padding: 12px; border: 1px solid rgba(120,144,255,0.1); transition: all 0.2s; cursor: pointer;" data-item-id="${item.id}">
                     <div class="store-item-image" style="width: 100%; height: 80px; background: rgba(255,255,255,0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; overflow: hidden;">
                         <img src="/items/${item.category}/${item.id}/front.png" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; height: 100%; color: #ccc;\\'><i class=\\'fas fa-image\\' style=\\'font-size: 1.5rem;\\'></i></div>'">
@@ -2862,6 +2884,160 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Render pagination controls if needed
+            if (totalPages > 1) {
+                const paginationContainer = document.getElementById('storePaginationContainer');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = `
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px;">
+                            <button onclick="changeStorePage(${currentStorePage - 1})" ${currentStorePage === 0 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === 0 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === 0 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === 0 ? '#999' : '#667eea'}; font-size: 0.9rem;">
+                                <i class="fas fa-chevron-right"></i> הקודם
+                            </button>
+                            <span style="color: #666; font-size: 0.9rem;">עמוד ${currentStorePage + 1} מתוך ${totalPages}</span>
+                            <button onclick="changeStorePage(${currentStorePage + 1})" ${currentStorePage === totalPages - 1 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === totalPages - 1 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === totalPages - 1 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === totalPages - 1 ? '#999' : '#667eea'}; font-size: 0.9rem;">
+                                הבא <i class="fas fa-chevron-left"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            } else {
+                const paginationContainer = document.getElementById('storePaginationContainer');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = '';
+                }
+            }
+            
+            // לאחר יצירת container.innerHTML:
+            // הפוך את כל <span> של המטבעות לאייקון אמיתי
+            setTimeout(() => {
+                document.querySelectorAll('.store-item-info span').forEach(span => {
+                    if (span.innerHTML === "<i class='fas fa-coins'></i>") {
+                        span.innerHTML = '';
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-coins';
+                        icon.style.color = '#f39c12';
+                        span.appendChild(icon);
+                    }
+                });
+            }, 0);
+        }
+        
+        function changeStorePage(newPage) {
+            const categoryItems = storeItems.filter(item => item.currency === currentStoreCategory);
+            const totalPages = Math.ceil(categoryItems.length / itemsPerPage);
+            
+            if (newPage >= 0 && newPage < totalPages) {
+                currentStorePage = newPage;
+                renderStoreItems();
+            }
+        }
+        
+        function renderStoreCategoryTabs() {
+            const container = document.getElementById('storeCategoryTabsMain');
+            if (!container) return;
+            
+            // Get unique categories from store items
+            const categories = [...new Set(storeItems.map(item => item.category))];
+            
+            if (categories.length === 0) {
+                container.innerHTML = '<div style="color: #888; text-align: center; width: 100%;">אין קטגוריות זמינות</div>';
+                return;
+            }
+            
+            container.innerHTML = categories.map(cat => `
+                <button class="store-category-tab-main" data-category="${cat}" style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: white; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: border 0.15s, background 0.15s; font-size: 2rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);" title="${ITEM_CATEGORIES[cat] || cat}">
+                    ${CATEGORY_EMOJIS[cat] || '📦'}
+                </button>
+            `).join('');
+            
+            // Add click event listeners
+            container.querySelectorAll('.store-category-tab-main').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update active button
+                    container.querySelectorAll('.store-category-tab-main').forEach(b => {
+                        b.style.border = '2px solid #e0e0e0';
+                        b.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)';
+                    });
+                    btn.style.border = '2.5px solid #7c8aff';
+                    btn.style.boxShadow = '0 2px 10px rgba(120,144,255,0.10)';
+                    
+                    // Filter items by category
+                    const selectedCategory = btn.dataset.category;
+                    renderStoreItemsByCategory(selectedCategory);
+                });
+            });
+        }
+        
+        function renderStoreItemsByCategory(category) {
+            const container = document.getElementById('storeItemsContainer');
+            if (!container) return;
+            
+            const categoryItems = storeItems.filter(item => item.category === category);
+            
+            if (categoryItems.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-box-open" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                        <h3 style="margin: 0 0 10px 0; color: #333;">אין פריטים בקטגוריה זו</h3>
+                        <p style="margin: 0; color: #888;">פריטים יופיעו כאן כאשר יוספו דרך פאנל הניהול</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calculate pagination
+            const totalPages = Math.ceil(categoryItems.length / itemsPerPage);
+            const startIndex = currentStorePage * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageItems = categoryItems.slice(startIndex, endIndex);
+            
+            // Render items
+            container.innerHTML = pageItems.map(item => `
+                <div class="store-item-card" style="background: rgba(255,255,255,0.8); border-radius: 12px; padding: 12px; border: 1px solid rgba(120,144,255,0.1); transition: all 0.2s; cursor: pointer;" data-item-id="${item.id}">
+                    <div class="store-item-image" style="width: 100%; height: 80px; background: rgba(255,255,255,0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; overflow: hidden;">
+                        <img src="/items/${item.category}/${item.id}/front.png" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; height: 100%; color: #ccc;\\'><i class=\\'fas fa-image\\' style=\\'font-size: 1.5rem;\\'></i></div>'">
+                    </div>
+                    <div class="store-item-info">
+                        <h6 style="margin: 0 0 6px 0; color: #333; font-size: 0.8rem; text-align: center;">${item.name}</h6>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 8px;">
+                            <span style="font-size: 1rem;">${item.currency === 'coins' ? '<i class=\'fas fa-coins\'></i>' : '💎'}</span>
+                            <span style="font-weight: 600; color: #333; font-size: 0.9rem;">${item.price}</span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            <button class="store-measure-btn" onclick="measureStoreItem('${item.id}')" style="flex: 1; padding: 6px; background: rgba(120,144,255,0.1); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: #667eea; transition: all 0.2s;">
+                                מדידה
+                            </button>
+                            <button class="store-buy-btn" onclick="buyStoreItem('${item.id}')" style="flex: 1; padding: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: white; transition: all 0.2s;">
+                                קנייה
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Render pagination controls if needed
+            if (totalPages > 1) {
+                const paginationContainer = document.getElementById('storePaginationContainer');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = `
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px;">
+                            <button onclick="changeStorePage(${currentStorePage - 1})" ${currentStorePage === 0 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === 0 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === 0 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === 0 ? '#999' : '#667eea'}; font-size: 0.9rem;">
+                                <i class="fas fa-chevron-right"></i> הקודם
+                            </button>
+                            <span style="color: #666; font-size: 0.9rem;">עמוד ${currentStorePage + 1} מתוך ${totalPages}</span>
+                            <button onclick="changeStorePage(${currentStorePage + 1})" ${currentStorePage === totalPages - 1 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === totalPages - 1 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === totalPages - 1 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === totalPages - 1 ? '#999' : '#667eea'}; font-size: 0.9rem;">
+                                הבא <i class="fas fa-chevron-left"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            } else {
+                const paginationContainer = document.getElementById('storePaginationContainer');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = '';
+                }
+            }
             
             // לאחר יצירת container.innerHTML:
             // הפוך את כל <span> של המטבעות לאייקון אמיתי
