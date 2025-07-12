@@ -4169,136 +4169,225 @@
             ctx.clearRect(0, 0, size, size);
             
             switch(type) {
-                case 'happy':
-                    // Yellow circle with happy face
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
-                    ctx.fill();
+                                 case 'happy':
+                     // Professional happy face with gradient and shadow
+                     const happyGradient = ctx.createLinearGradient(0, 0, size, size);
+                     happyGradient.addColorStop(0, '#FFD700');
+                     happyGradient.addColorStop(1, '#FFA500');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
+                     // Main circle
+                     ctx.fillStyle = happyGradient;
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2, size/2 - 3, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
+                     
+                     // Eyes with better positioning
+                     ctx.fillStyle = '#333';
+                     ctx.beginPath();
+                     ctx.arc(size/2 - 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.arc(size/2 + 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Smile with rounded ends
+                     ctx.strokeStyle = '#333';
+                     ctx.lineWidth = 1.5;
+                     ctx.lineCap = 'round';
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2 + 2, 5, 0, Math.PI);
+                     ctx.stroke();
+                     break;
                     
-                    // Eyes
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.fill();
+                                 case 'sad':
+                     // Professional sad face with gradient and shadow
+                     const sadGradient = ctx.createLinearGradient(0, 0, size, size);
+                     sadGradient.addColorStop(0, '#FFD700');
+                     sadGradient.addColorStop(1, '#FFA500');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
+                     // Main circle
+                     ctx.fillStyle = sadGradient;
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2, size/2 - 3, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
+                     
+                     // Eyes with better positioning
+                     ctx.fillStyle = '#333';
+                     ctx.beginPath();
+                     ctx.arc(size/2 - 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.arc(size/2 + 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Sad mouth with rounded ends
+                     ctx.strokeStyle = '#333';
+                     ctx.lineWidth = 1.5;
+                     ctx.lineCap = 'round';
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2 + 6, 5, Math.PI, 2 * Math.PI);
+                     ctx.stroke();
+                     break;
                     
-                    // Smile
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2 + 2, 6, 0, Math.PI);
-                    ctx.stroke();
-                    break;
+                                 case 'angry':
+                     // Professional angry face with gradient and shadow
+                     const angryGradient = ctx.createLinearGradient(0, 0, size, size);
+                     angryGradient.addColorStop(0, '#FF6B6B');
+                     angryGradient.addColorStop(1, '#E74C3C');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
+                     // Main circle
+                     ctx.fillStyle = angryGradient;
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2, size/2 - 3, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
+                     
+                     // Angry eyes
+                     ctx.fillStyle = '#333';
+                     ctx.beginPath();
+                     ctx.arc(size/2 - 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.arc(size/2 + 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Angry eyebrows with rounded ends
+                     ctx.strokeStyle = '#333';
+                     ctx.lineWidth = 1.5;
+                     ctx.lineCap = 'round';
+                     ctx.beginPath();
+                     ctx.moveTo(size/2 - 7, size/2 - 5);
+                     ctx.lineTo(size/2 - 2, size/2 - 2);
+                     ctx.moveTo(size/2 + 2, size/2 - 2);
+                     ctx.lineTo(size/2 + 7, size/2 - 5);
+                     ctx.stroke();
+                     
+                     // Angry mouth with rounded ends
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2 + 6, 5, Math.PI, 2 * Math.PI);
+                     ctx.stroke();
+                     break;
                     
-                case 'sad':
-                    // Yellow circle with sad face
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
-                    ctx.fill();
+                                 case 'laugh':
+                     // Professional laughing face with gradient and shadow
+                     const laughGradient = ctx.createLinearGradient(0, 0, size, size);
+                     laughGradient.addColorStop(0, '#FFD700');
+                     laughGradient.addColorStop(1, '#FFA500');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
+                     // Main circle
+                     ctx.fillStyle = laughGradient;
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2, size/2 - 3, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
+                     
+                     // Eyes with better positioning
+                     ctx.fillStyle = '#333';
+                     ctx.beginPath();
+                     ctx.arc(size/2 - 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.arc(size/2 + 6, size/2 - 3, 1.5, 0, 2 * Math.PI);
+                     ctx.fill();
+                     
+                     // Laughing mouth with rounded ends
+                     ctx.strokeStyle = '#333';
+                     ctx.lineWidth = 1.5;
+                     ctx.lineCap = 'round';
+                     ctx.beginPath();
+                     ctx.arc(size/2, size/2 + 2, 6, 0, Math.PI);
+                     ctx.stroke();
+                     
+                     // Laugh lines with rounded ends
+                     ctx.lineWidth = 1;
+                     ctx.beginPath();
+                     ctx.moveTo(size/2 - 5, size/2 - 4);
+                     ctx.lineTo(size/2 - 2, size/2 - 2);
+                     ctx.moveTo(size/2 + 2, size/2 - 2);
+                     ctx.lineTo(size/2 + 5, size/2 - 4);
+                     ctx.stroke();
+                     break;
                     
-                    // Eyes
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.fill();
-                    
-                    // Sad mouth
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2 + 8, 6, Math.PI, 2 * Math.PI);
-                    ctx.stroke();
-                    break;
-                    
-                case 'angry':
-                    // Red circle with angry face
-                    ctx.fillStyle = '#FF6B6B';
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
-                    ctx.fill();
-                    
-                    // Angry eyes
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.fill();
-                    
-                    // Angry eyebrows
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(size/2 - 8, size/2 - 6);
-                    ctx.lineTo(size/2 - 2, size/2 - 2);
-                    ctx.moveTo(size/2 + 2, size/2 - 2);
-                    ctx.lineTo(size/2 + 8, size/2 - 6);
-                    ctx.stroke();
-                    
-                    // Angry mouth
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2 + 8, 6, Math.PI, 2 * Math.PI);
-                    ctx.stroke();
-                    break;
-                    
-                case 'laugh':
-                    // Yellow circle with laughing face
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
-                    ctx.fill();
-                    
-                    // Eyes
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
-                    ctx.fill();
-                    
-                    // Laughing mouth
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(size/2, size/2 + 2, 8, 0, Math.PI);
-                    ctx.stroke();
-                    
-                    // Laugh lines
-                    ctx.beginPath();
-                    ctx.moveTo(size/2 - 6, size/2 - 4);
-                    ctx.lineTo(size/2 - 2, size/2 - 2);
-                    ctx.moveTo(size/2 + 2, size/2 - 2);
-                    ctx.lineTo(size/2 + 6, size/2 - 4);
-                    ctx.stroke();
-                    break;
-                    
-                case 'heart':
-                    // Red heart
-                    ctx.fillStyle = '#FF6B9D';
-                    ctx.beginPath();
-                    const heartSize = size * 0.6;
-                    const heartX = size/2;
-                    const heartY = size/2 + 2;
-                    
-                    // Draw heart shape
-                    ctx.moveTo(heartX, heartY + heartSize/4);
-                    ctx.bezierCurveTo(heartX, heartY, heartX - heartSize/2, heartY, heartX - heartSize/2, heartY + heartSize/4);
-                    ctx.bezierCurveTo(heartX - heartSize/2, heartY + heartSize/2, heartX, heartY + heartSize, heartX, heartY + heartSize);
-                                         ctx.bezierCurveTo(heartX, heartY + heartSize, heartX + heartSize/2, heartY + heartSize/2, heartX + heartSize/2, heartY + heartSize/4);
+                                 case 'heart':
+                     // Professional heart with gradient and shadow
+                     const heartGradient = ctx.createLinearGradient(0, 0, size, size);
+                     heartGradient.addColorStop(0, '#FF6B9D');
+                     heartGradient.addColorStop(1, '#E91E63');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
+                     // Draw heart shape
+                     const heartSize = size * 0.6;
+                     const heartX = size/2;
+                     const heartY = size/2 + 2;
+                     
+                     ctx.fillStyle = heartGradient;
+                     ctx.beginPath();
+                     ctx.moveTo(heartX, heartY + heartSize/4);
+                     ctx.bezierCurveTo(heartX, heartY, heartX - heartSize/2, heartY, heartX - heartSize/2, heartY + heartSize/4);
+                     ctx.bezierCurveTo(heartX - heartSize/2, heartY + heartSize/2, heartX, heartY + heartSize, heartX, heartY + heartSize);
+                     ctx.bezierCurveTo(heartX, heartY + heartSize, heartX + heartSize/2, heartY + heartSize/2, heartX + heartSize/2, heartY + heartSize/4);
                      ctx.bezierCurveTo(heartX + heartSize/2, heartY, heartX, heartY, heartX, heartY + heartSize/4);
                      ctx.fill();
+                     
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
                      break;
                      
                  case 'star':
-                     // Yellow star
-                     ctx.fillStyle = '#FFD700';
-                     ctx.beginPath();
+                     // Professional star with gradient and shadow
+                     const starGradient = ctx.createLinearGradient(0, 0, size, size);
+                     starGradient.addColorStop(0, '#FFD700');
+                     starGradient.addColorStop(1, '#FFA500');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
                      const starSize = size * 0.5;
                      const starX = size/2;
                      const starY = size/2;
                      
                      // Draw 5-pointed star
+                     ctx.fillStyle = starGradient;
+                     ctx.beginPath();
                      for (let i = 0; i < 5; i++) {
                          const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
                          const x = starX + Math.cos(angle) * starSize;
@@ -4317,32 +4406,60 @@
                      }
                      ctx.closePath();
                      ctx.fill();
+                     
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
                      break;
                      
                  case 'diamond':
-                     // Purple diamond
-                     ctx.fillStyle = '#9B59B6';
-                     ctx.beginPath();
+                     // Professional diamond with gradient and shadow
+                     const diamondGradient = ctx.createLinearGradient(0, 0, size, size);
+                     diamondGradient.addColorStop(0, '#9B59B6');
+                     diamondGradient.addColorStop(1, '#8E44AD');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
                      const diamondSize = size * 0.6;
                      const diamondX = size/2;
                      const diamondY = size/2;
                      
+                     ctx.fillStyle = diamondGradient;
+                     ctx.beginPath();
                      ctx.moveTo(diamondX, diamondY - diamondSize/2);
                      ctx.lineTo(diamondX + diamondSize/2, diamondY);
                      ctx.lineTo(diamondX, diamondY + diamondSize/2);
                      ctx.lineTo(diamondX - diamondSize/2, diamondY);
                      ctx.closePath();
                      ctx.fill();
+                     
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
                      break;
                      
                  case 'flower':
-                     // Pink flower
-                     ctx.fillStyle = '#FF69B4';
+                     // Professional flower with gradient and shadow
+                     const flowerGradient = ctx.createLinearGradient(0, 0, size, size);
+                     flowerGradient.addColorStop(0, '#FF69B4');
+                     flowerGradient.addColorStop(1, '#E91E63');
+                     
+                     // Shadow
+                     ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                     ctx.shadowBlur = 4;
+                     ctx.shadowOffsetX = 0;
+                     ctx.shadowOffsetY = 2;
+                     
                      const flowerSize = size * 0.4;
                      const flowerX = size/2;
                      const flowerY = size/2;
                      
                      // Draw flower petals
+                     ctx.fillStyle = flowerGradient;
                      for (let i = 0; i < 8; i++) {
                          const angle = (i * 2 * Math.PI) / 8;
                          const x = flowerX + Math.cos(angle) * flowerSize;
@@ -4353,8 +4470,16 @@
                          ctx.fill();
                      }
                      
-                     // Draw center
-                     ctx.fillStyle = '#FFD700';
+                     // Reset shadow
+                     ctx.shadowColor = 'transparent';
+                     ctx.shadowBlur = 0;
+                     
+                     // Draw center with gradient
+                     const centerGradient = ctx.createRadialGradient(flowerX, flowerY, 0, flowerX, flowerY, flowerSize * 0.2);
+                     centerGradient.addColorStop(0, '#FFD700');
+                     centerGradient.addColorStop(1, '#FFA500');
+                     
+                     ctx.fillStyle = centerGradient;
                      ctx.beginPath();
                      ctx.arc(flowerX, flowerY, flowerSize * 0.2, 0, 2 * Math.PI);
                      ctx.fill();
