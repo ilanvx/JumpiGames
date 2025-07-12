@@ -2031,31 +2031,31 @@
                     <h6 style="margin: 0 0 10px 0; color: #333; font-size: 1rem;">סוגי פריטים</h6>
                     <div class="item-category-tabs" style="display: flex; flex-wrap: wrap; gap: 6px;">
                         <button class="item-category-tab active" data-category="all" style="padding: 8px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-th"></i> הכל
+                            🎒 הכל
                         </button>
                         <button class="item-category-tab" data-category="ht" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-hat-cowboy"></i> כובעים
+                            🎩 כובעים
                         </button>
                         <button class="item-category-tab" data-category="ps" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-tshirt"></i> חולצות
+                            👕 חולצות
                         </button>
                         <button class="item-category-tab" data-category="st" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-socks"></i> מכנסיים
+                            👖 מכנסיים
                         </button>
                         <button class="item-category-tab" data-category="gs" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-glasses"></i> משקפיים
+                            👓 משקפיים
                         </button>
                         <button class="item-category-tab" data-category="nk" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-gem"></i> תכשיטים
+                            💎 תכשיטים
                         </button>
                         <button class="item-category-tab" data-category="hd" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-palette"></i> צבעי עור
+                            🎨 צבעי עור
                         </button>
                         <button class="item-category-tab" data-category="sk" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-shoe-prints"></i> נעליים
+                            👟 נעליים
                         </button>
                         <button class="item-category-tab" data-category="hr" style="padding: 8px 12px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                            <i class="fas fa-cut"></i> שיער
+                            💇 שיער
                         </button>
                     </div>
                 </div>
@@ -2856,17 +2856,30 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw character with current equipment
+            // Draw character with current equipment like in inventory
             if (window.characterRenderer) {
+                // Use the same drawing method as inventory
                 window.characterRenderer.drawCharacter(ctx, window.username, window.equippedItems, 'front', 60, 80);
             } else {
-                // Fallback if characterRenderer is not available
-                ctx.fillStyle = '#ccc';
+                // Fallback - draw a simple character representation
+                ctx.fillStyle = '#f0f0f0';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw a simple character
+                ctx.fillStyle = '#ffdbac';
+                ctx.fillRect(50, 40, 20, 20); // Head
+                ctx.fillStyle = '#4a90e2';
+                ctx.fillRect(45, 60, 30, 40); // Body
                 ctx.fillStyle = '#333';
-                ctx.font = '12px Arial';
+                ctx.fillRect(40, 100, 10, 30); // Left arm
+                ctx.fillRect(70, 100, 10, 30); // Right arm
+                ctx.fillRect(50, 100, 10, 30); // Left leg
+                ctx.fillRect(60, 100, 10, 30); // Right leg
+                
+                ctx.fillStyle = '#333';
+                ctx.font = '10px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('Character Preview', canvas.width / 2, canvas.height / 2);
+                ctx.fillText('Character', canvas.width / 2, canvas.height - 10);
             }
         }
         
@@ -2975,15 +2988,29 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 if (window.characterRenderer) {
+                    // Draw character with the temporary item equipped
                     window.characterRenderer.drawCharacter(ctx, window.username, tempEquipped, 'front', 60, 80);
                 } else {
-                    // Fallback if characterRenderer is not available
-                    ctx.fillStyle = '#ccc';
+                    // Fallback - draw a simple character with item indication
+                    ctx.fillStyle = '#f0f0f0';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw a simple character
+                    ctx.fillStyle = '#ffdbac';
+                    ctx.fillRect(50, 40, 20, 20); // Head
+                    ctx.fillStyle = '#4a90e2';
+                    ctx.fillRect(45, 60, 30, 40); // Body
                     ctx.fillStyle = '#333';
-                    ctx.font = '12px Arial';
+                    ctx.fillRect(40, 100, 10, 30); // Left arm
+                    ctx.fillRect(70, 100, 10, 30); // Right arm
+                    ctx.fillRect(50, 100, 10, 30); // Left leg
+                    ctx.fillRect(60, 100, 10, 30); // Right leg
+                    
+                    // Add item indicator
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.font = 'bold 12px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('Trying on: ' + item.name, canvas.width / 2, canvas.height / 2);
+                    ctx.fillText('Trying: ' + item.name, canvas.width / 2, canvas.height - 20);
                 }
             }
             
@@ -3000,13 +3027,25 @@
                 if (window.characterRenderer) {
                     window.characterRenderer.drawCharacter(ctx, window.username, window.equippedItems, 'front', 60, 80);
                 } else {
-                    // Fallback if characterRenderer is not available
-                    ctx.fillStyle = '#ccc';
+                    // Fallback - draw a simple character representation
+                    ctx.fillStyle = '#f0f0f0';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw a simple character
+                    ctx.fillStyle = '#ffdbac';
+                    ctx.fillRect(50, 40, 20, 20); // Head
+                    ctx.fillStyle = '#4a90e2';
+                    ctx.fillRect(45, 60, 30, 40); // Body
                     ctx.fillStyle = '#333';
-                    ctx.font = '12px Arial';
+                    ctx.fillRect(40, 100, 10, 30); // Left arm
+                    ctx.fillRect(70, 100, 10, 30); // Right arm
+                    ctx.fillRect(50, 100, 10, 30); // Left leg
+                    ctx.fillRect(60, 100, 10, 30); // Right leg
+                    
+                    ctx.fillStyle = '#333';
+                    ctx.font = '10px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('Character Preview', canvas.width / 2, canvas.height / 2);
+                    ctx.fillText('Character', canvas.width / 2, canvas.height - 10);
                 }
             }
         }

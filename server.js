@@ -1292,11 +1292,11 @@ io.on('connection', async (socket) => {
  // ==================== Store System ====================
  
  // Store items database (in memory for now, can be moved to database later)
- let storeItems = [];
+ global.storeItems = [];
  
  // Get store items
  socket.on('getStoreItems', () => {
-     socket.emit('storeItems', storeItems);
+     socket.emit('storeItems', global.storeItems || []);
  });
  
  // Purchase item

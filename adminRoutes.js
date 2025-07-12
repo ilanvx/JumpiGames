@@ -207,24 +207,8 @@ router.post('/give-item', requireAdmin, async (req, res) => {
 // GET /admin/store-items: Get all store items
 router.get('/store-items', requireAdmin, (req, res) => {
     try {
-        // For now, return mock data. In a real implementation, this would come from a database
-        const storeItems = [
-            { id: '1', category: 'ht', name: 'כובע בסיסי', price: 50, currency: 'coins' },
-            { id: '2', category: 'ht', name: 'כובע מתקדם', price: 100, currency: 'coins' },
-            { id: '3', category: 'ht', name: 'כובע פרימיום', price: 200, currency: 'coins' },
-            { id: '1', category: 'ps', name: 'חולצה בסיסית', price: 75, currency: 'coins' },
-            { id: '2', category: 'ps', name: 'חולצה מתקדמת', price: 150, currency: 'coins' },
-            { id: '3', category: 'ps', name: 'חולצה פרימיום', price: 300, currency: 'coins' },
-            { id: '1', category: 'st', name: 'מכנסיים בסיסיים', price: 60, currency: 'coins' },
-            { id: '2', category: 'st', name: 'מכנסיים מתקדמים', price: 120, currency: 'coins' },
-            { id: '3', category: 'st', name: 'מכנסיים פרימיום', price: 250, currency: 'coins' },
-            { id: '4', category: 'ht', name: 'כובע נדיר', price: 10, currency: 'diamonds' },
-            { id: '5', category: 'ht', name: 'כובע אגדי', price: 25, currency: 'diamonds' },
-            { id: '4', category: 'ps', name: 'חולצה נדירה', price: 15, currency: 'diamonds' },
-            { id: '5', category: 'ps', name: 'חולצה אגדית', price: 35, currency: 'diamonds' },
-            { id: '4', category: 'st', name: 'מכנסיים נדירים', price: 12, currency: 'diamonds' },
-            { id: '5', category: 'st', name: 'מכנסיים אגדיים', price: 30, currency: 'diamonds' }
-        ];
+        // Get store items from the server's storeItems array
+        const storeItems = global.storeItems || [];
         res.json({ success: true, items: storeItems });
     } catch (error) {
         console.error('Error fetching store items:', error);
@@ -249,12 +233,28 @@ router.post('/store-items', requireAdmin, async (req, res) => {
     }
     
     try {
-        // In a real implementation, this would save to a database
-        // For now, we'll just return success
+        // Initialize global storeItems if it doesn't exist
+        if (!global.storeItems) {
+            global.storeItems = [];
+        }
+        
+        // Check if item already exists
+        const existingItem = global.storeItems.find(item => 
+            item.id === itemId && item.category === category
+        );
+        
+        if (existingItem) {
+            return res.status(400).json({ error: 'Item already exists in store' });
+        }
+        
+        // Add the new item
+        const newItem = { id: itemId, category, name, price, currency };
+        global.storeItems.push(newItem);
+        
         res.json({ 
             success: true, 
             message: `Item ${name} added to store successfully`,
-            item: { id: itemId, category, name, price, currency }
+            item: newItem
         });
     } catch (error) {
         console.error('Error adding store item:', error);
@@ -271,12 +271,26 @@ router.delete('/store-items', requireAdmin, async (req, res) => {
     }
     
     try {
-        // In a real implementation, this would remove from a database
-        // For now, we'll just return success
+        // Initialize global storeItems if it doesn't exist
+        if (!global.storeItems) {
+            global.storeItems = [];
+        }
+        
+        // Find and remove the item
+        const itemIndex = global.storeItems.findIndex(item => 
+            item.id === itemId && item.category === category
+        );
+        
+        if (itemIndex === -1) {
+            return res.status(404).json({ error: 'Item not found in store' });
+        }
+        
+        const removedItem = global.storeItems.splice(itemIndex, 1)[0];
+        
         res.json({ 
             success: true, 
-            message: `Item removed from store successfully`,
-            removedItem: { id: itemId, category }
+            message: `Item ${removedItem.name} removed from store successfully`,
+            removedItem: removedItem
         });
     } catch (error) {
         console.error('Error removing store item:', error);
