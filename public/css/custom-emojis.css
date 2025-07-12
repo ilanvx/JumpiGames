@@ -1,0 +1,101 @@
+/* Custom Emojis - Consistent across all devices */
+
+/* Emoji Container */
+.custom-emoji {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+/* Individual Emoji Styles */
+.emoji-happy {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><circle cx="12" cy="12" r="10" fill="%23FFD700"/><circle cx="8" cy="10" r="2" fill="%23000"/><circle cx="16" cy="10" r="2" fill="%23000"/><path d="M8 16c0 2 1.5 3 4 3s4-1 4-3" stroke="%23000" stroke-width="2" fill="none"/></svg>');
+}
+
+.emoji-sad {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><circle cx="12" cy="12" r="10" fill="%23FFD700"/><circle cx="8" cy="10" r="2" fill="%23000"/><circle cx="16" cy="10" r="2" fill="%23000"/><path d="M8 18c0-2 1.5-3 4-3s4 1 4 3" stroke="%23000" stroke-width="2" fill="none"/></svg>');
+}
+
+.emoji-angry {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF6B6B"><circle cx="12" cy="12" r="10" fill="%23FF6B6B"/><circle cx="8" cy="10" r="2" fill="%23000"/><circle cx="16" cy="10" r="2" fill="%23000"/><path d="M8 6l2-2 2 2M16 6l-2-2-2 2" stroke="%23000" stroke-width="2" fill="none"/><path d="M8 18c0-2 1.5-3 4-3s4 1 4 3" stroke="%23000" stroke-width="2" fill="none"/></svg>');
+}
+
+.emoji-laugh {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><circle cx="12" cy="12" r="10" fill="%23FFD700"/><circle cx="8" cy="10" r="2" fill="%23000"/><circle cx="16" cy="10" r="2" fill="%23000"/><path d="M8 16c0 2 1.5 3 4 3s4-1 4-3" stroke="%23000" stroke-width="2" fill="none"/><path d="M6 8l2 2 2-2M18 8l-2 2-2-2" stroke="%23000" stroke-width="1" fill="none"/></svg>');
+}
+
+.emoji-heart {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF6B9D"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
+}
+
+.emoji-star {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>');
+}
+
+.emoji-diamond {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239B59B6"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
+}
+
+.emoji-flower {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF69B4"><circle cx="12" cy="12" r="3" fill="%23FF69B4"/><circle cx="6" cy="8" r="2" fill="%23FF69B4"/><circle cx="18" cy="8" r="2" fill="%23FF69B4"/><circle cx="6" cy="16" r="2" fill="%23FF69B4"/><circle cx="18" cy="16" r="2" fill="%23FF69B4"/><circle cx="8" cy="6" r="2" fill="%23FF69B4"/><circle cx="16" cy="6" r="2" fill="%23FF69B4"/><circle cx="8" cy="18" r="2" fill="%23FF69B4"/><circle cx="16" cy="18" r="2" fill="%23FF69B4"/></svg>');
+}
+
+/* Emoji Button Styles */
+.emoji-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s;
+  border-radius: 10px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.emoji-btn:hover {
+  background: rgba(255,255,255,0.4);
+  transform: scale(1.18);
+}
+
+.emoji-btn .custom-emoji {
+  width: 28px;
+  height: 28px;
+}
+
+/* Emoji Display in Game */
+.game-emoji {
+  font-size: 2.2rem;
+  text-align: center;
+  line-height: 1;
+}
+
+/* Responsive Emoji Sizes */
+@media (max-width: 768px) {
+  .emoji-btn .custom-emoji {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .game-emoji {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .emoji-btn .custom-emoji {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .game-emoji {
+    font-size: 1.6rem;
+  }
+} 

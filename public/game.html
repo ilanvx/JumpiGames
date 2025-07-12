@@ -5,6 +5,7 @@
     <title>Jumpi - עולם וירטואלי</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/custom-emojis.css">
     <style>
         body {
             margin: 0;
@@ -1868,11 +1869,11 @@
     <!-- Emoji Panel -->
     <div id="emojiPanel" style="display:none; position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:1300; background:rgba(255,255,255,0.22); border-radius:18px; box-shadow:0 8px 32px rgba(120,144,255,0.13); border:1.5px solid rgba(255,255,255,0.22); backdrop-filter:blur(18px); padding:14px 18px 10px 18px; display:flex; flex-direction:row; gap:12px; align-items:center;">
         <button class="close-btn" id="emojiPanelClose" style="position:absolute;top:6px;right:8px;"><i class="fas fa-times"></i></button>
-        <button class="emoji-btn" data-emoji="😀">😀</button>
-        <button class="emoji-btn" data-emoji="😭">😭</button>
-        <button class="emoji-btn" data-emoji="😡">😡</button>
-        <button class="emoji-btn" data-emoji="😂">😂</button>
-        <button class="emoji-btn" data-emoji="❤️">❤️</button>
+        <button class="emoji-btn" data-emoji="happy"><div class="custom-emoji emoji-happy"></div></button>
+        <button class="emoji-btn" data-emoji="sad"><div class="custom-emoji emoji-sad"></div></button>
+        <button class="emoji-btn" data-emoji="angry"><div class="custom-emoji emoji-angry"></div></button>
+        <button class="emoji-btn" data-emoji="laugh"><div class="custom-emoji emoji-laugh"></div></button>
+        <button class="emoji-btn" data-emoji="heart"><div class="custom-emoji emoji-heart"></div></button>
     </div>
 
     <!-- Chat History Panel -->
@@ -4103,16 +4104,263 @@
                         const yOffset = -40 + floatUp; // Much lower above character
                         window.ctx.save();
                         window.ctx.globalAlpha = fadeOut;
-                        window.ctx.font = '2.2rem serif';
-                        window.ctx.textAlign = 'center';
-                        window.ctx.textBaseline = 'bottom';
-                        window.ctx.fillText(p.currentEmoji, p.x, p.y + yOffset);
+                        
+                        // Draw custom emoji based on type
+                        const emojiSize = 32;
+                        const emojiX = p.x - emojiSize / 2;
+                        const emojiY = p.y + yOffset - emojiSize;
+                        
+                        // Create temporary canvas for emoji
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = emojiSize;
+                        tempCanvas.height = emojiSize;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        
+                        // Draw emoji based on type
+                        switch(p.currentEmoji) {
+                            case 'happy':
+                                drawCustomEmoji(tempCtx, 'happy', emojiSize);
+                                break;
+                            case 'sad':
+                                drawCustomEmoji(tempCtx, 'sad', emojiSize);
+                                break;
+                            case 'angry':
+                                drawCustomEmoji(tempCtx, 'angry', emojiSize);
+                                break;
+                            case 'laugh':
+                                drawCustomEmoji(tempCtx, 'laugh', emojiSize);
+                                break;
+                            case 'heart':
+                                drawCustomEmoji(tempCtx, 'heart', emojiSize);
+                                break;
+                            case 'star':
+                                drawCustomEmoji(tempCtx, 'star', emojiSize);
+                                break;
+                            case 'diamond':
+                                drawCustomEmoji(tempCtx, 'diamond', emojiSize);
+                                break;
+                            case 'flower':
+                                drawCustomEmoji(tempCtx, 'flower', emojiSize);
+                                break;
+                            default:
+                                // Fallback to text for old emojis
+                                window.ctx.font = '2.2rem serif';
+                                window.ctx.textAlign = 'center';
+                                window.ctx.textBaseline = 'bottom';
+                                window.ctx.fillText(p.currentEmoji, p.x, p.y + yOffset);
+                        }
+                        
+                        // Draw the emoji to main canvas
+                        if (['happy', 'sad', 'angry', 'laugh', 'heart', 'star', 'diamond', 'flower'].includes(p.currentEmoji)) {
+                            window.ctx.drawImage(tempCanvas, emojiX, emojiY);
+                        } else {
+                            // For old emojis, don't draw temp canvas
+                        }
+                        
                         window.ctx.globalAlpha = 1;
                         window.ctx.restore();
                     }
                 }
             });
         };
+        
+        // Helper function to draw custom emojis
+        function drawCustomEmoji(ctx, type, size) {
+            ctx.clearRect(0, 0, size, size);
+            
+            switch(type) {
+                case 'happy':
+                    // Yellow circle with happy face
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Eyes
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Smile
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2 + 2, 6, 0, Math.PI);
+                    ctx.stroke();
+                    break;
+                    
+                case 'sad':
+                    // Yellow circle with sad face
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Eyes
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Sad mouth
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2 + 8, 6, Math.PI, 2 * Math.PI);
+                    ctx.stroke();
+                    break;
+                    
+                case 'angry':
+                    // Red circle with angry face
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Angry eyes
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Angry eyebrows
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(size/2 - 8, size/2 - 6);
+                    ctx.lineTo(size/2 - 2, size/2 - 2);
+                    ctx.moveTo(size/2 + 2, size/2 - 2);
+                    ctx.lineTo(size/2 + 8, size/2 - 6);
+                    ctx.stroke();
+                    
+                    // Angry mouth
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2 + 8, 6, Math.PI, 2 * Math.PI);
+                    ctx.stroke();
+                    break;
+                    
+                case 'laugh':
+                    // Yellow circle with laughing face
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Eyes
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(size/2 - 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.arc(size/2 + 6, size/2 - 2, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Laughing mouth
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2 + 2, 8, 0, Math.PI);
+                    ctx.stroke();
+                    
+                    // Laugh lines
+                    ctx.beginPath();
+                    ctx.moveTo(size/2 - 6, size/2 - 4);
+                    ctx.lineTo(size/2 - 2, size/2 - 2);
+                    ctx.moveTo(size/2 + 2, size/2 - 2);
+                    ctx.lineTo(size/2 + 6, size/2 - 4);
+                    ctx.stroke();
+                    break;
+                    
+                case 'heart':
+                    // Red heart
+                    ctx.fillStyle = '#FF6B9D';
+                    ctx.beginPath();
+                    const heartSize = size * 0.6;
+                    const heartX = size/2;
+                    const heartY = size/2 + 2;
+                    
+                    // Draw heart shape
+                    ctx.moveTo(heartX, heartY + heartSize/4);
+                    ctx.bezierCurveTo(heartX, heartY, heartX - heartSize/2, heartY, heartX - heartSize/2, heartY + heartSize/4);
+                    ctx.bezierCurveTo(heartX - heartSize/2, heartY + heartSize/2, heartX, heartY + heartSize, heartX, heartY + heartSize);
+                                         ctx.bezierCurveTo(heartX, heartY + heartSize, heartX + heartSize/2, heartY + heartSize/2, heartX + heartSize/2, heartY + heartSize/4);
+                     ctx.bezierCurveTo(heartX + heartSize/2, heartY, heartX, heartY, heartX, heartY + heartSize/4);
+                     ctx.fill();
+                     break;
+                     
+                 case 'star':
+                     // Yellow star
+                     ctx.fillStyle = '#FFD700';
+                     ctx.beginPath();
+                     const starSize = size * 0.5;
+                     const starX = size/2;
+                     const starY = size/2;
+                     
+                     // Draw 5-pointed star
+                     for (let i = 0; i < 5; i++) {
+                         const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+                         const x = starX + Math.cos(angle) * starSize;
+                         const y = starY + Math.sin(angle) * starSize;
+                         
+                         if (i === 0) {
+                             ctx.moveTo(x, y);
+                         } else {
+                             ctx.lineTo(x, y);
+                         }
+                         
+                         const innerAngle = angle + Math.PI / 5;
+                         const innerX = starX + Math.cos(innerAngle) * (starSize * 0.4);
+                         const innerY = starY + Math.sin(innerAngle) * (starSize * 0.4);
+                         ctx.lineTo(innerX, innerY);
+                     }
+                     ctx.closePath();
+                     ctx.fill();
+                     break;
+                     
+                 case 'diamond':
+                     // Purple diamond
+                     ctx.fillStyle = '#9B59B6';
+                     ctx.beginPath();
+                     const diamondSize = size * 0.6;
+                     const diamondX = size/2;
+                     const diamondY = size/2;
+                     
+                     ctx.moveTo(diamondX, diamondY - diamondSize/2);
+                     ctx.lineTo(diamondX + diamondSize/2, diamondY);
+                     ctx.lineTo(diamondX, diamondY + diamondSize/2);
+                     ctx.lineTo(diamondX - diamondSize/2, diamondY);
+                     ctx.closePath();
+                     ctx.fill();
+                     break;
+                     
+                 case 'flower':
+                     // Pink flower
+                     ctx.fillStyle = '#FF69B4';
+                     const flowerSize = size * 0.4;
+                     const flowerX = size/2;
+                     const flowerY = size/2;
+                     
+                     // Draw flower petals
+                     for (let i = 0; i < 8; i++) {
+                         const angle = (i * 2 * Math.PI) / 8;
+                         const x = flowerX + Math.cos(angle) * flowerSize;
+                         const y = flowerY + Math.sin(angle) * flowerSize;
+                         
+                         ctx.beginPath();
+                         ctx.arc(x, y, flowerSize * 0.3, 0, 2 * Math.PI);
+                         ctx.fill();
+                     }
+                     
+                     // Draw center
+                     ctx.fillStyle = '#FFD700';
+                     ctx.beginPath();
+                     ctx.arc(flowerX, flowerY, flowerSize * 0.2, 0, 2 * Math.PI);
+                     ctx.fill();
+                     break;
+                 }
+             }
         window.playersInTrade = new Set();
         window.socket.on('playersInTrade', ids => {
             window.playersInTrade = new Set(ids);

@@ -657,7 +657,7 @@ io.on('connection', async (socket) => {
 
  socket.on('emojiUsed', ({ emoji, username }) => {
    console.log("✅ Server received emoji:", emoji, "from", username);
-   if (typeof emoji !== 'string' || !['😀','😭','😡','😂','❤️'].includes(emoji) || !username) {
+   if (typeof emoji !== 'string' || !['happy','sad','angry','laugh','heart','star','diamond','flower','😀','😭','😡','😂','❤️'].includes(emoji) || !username) {
      console.log("❌ Invalid emoji data received:", { emoji, username });
      return;
    }

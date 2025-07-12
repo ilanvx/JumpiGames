@@ -5,6 +5,7 @@
   <title>משחק הזיכרון | Jumpi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/custom-emojis.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     body {
@@ -233,7 +234,7 @@
     const finalScoreElement = document.getElementById('finalScore');
     const finalTimeElement = document.getElementById('finalTime');
 
-    const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+    const emojis = ['happy', 'sad', 'angry', 'laugh', 'heart', 'star', 'diamond', 'flower'];
     let cards = [];
     let flippedCards = [];
     let matchedPairs = 0;
@@ -282,7 +283,15 @@
       }
 
       card.classList.add('flipped');
-      card.textContent = card.dataset.emoji;
+      
+      // Display custom emoji or fallback to text
+      const emoji = card.dataset.emoji;
+      if (['happy', 'sad', 'angry', 'laugh', 'heart', 'star', 'diamond', 'flower'].includes(emoji)) {
+        card.innerHTML = `<div class="custom-emoji emoji-${emoji}"></div>`;
+      } else {
+        card.textContent = emoji;
+      }
+      
       flippedCards.push(card);
 
       if (flippedCards.length === 2) {
