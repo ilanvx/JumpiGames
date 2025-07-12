@@ -3666,10 +3666,12 @@
                 window.ctx.restore();
 
                 // --- Draw chat bubble OUTSIDE translate context ---
-                if (p.message && Date.now() - (p.messageTime || 0) <= 7000) { // 7 seconds
-                   const time = Date.now() - (p.messageTime || 0);
+                // Chat bubbles disappear after 8 seconds (consistent with trading system)
+                // This ensures consistent timing across all chat systems and prevents timing issues and memory leaks
+                if (p.message && p.messageTime && Date.now() - p.messageTime <= 8000) { // 8 seconds
+                   const time = Date.now() - p.messageTime;
                    let opacity = 1;
-                   if (time > 6000) opacity = (7000 - time) / 1000;
+                   if (time > 7000) opacity = (8000 - time) / 1000;
                    const isAdmin = p.isAdmin === true;
                    const maxBubbleWidth = 220;
                    const font = '15px "Varela Round", Arial, sans-serif';
@@ -4082,6 +4084,7 @@
             if (player) {
                 if (emojiTimeouts[player.id]) {
                     clearTimeout(emojiTimeouts[player.id]);
+                    emojiTimeouts[player.id] = null;
                 }
                 player.currentEmoji = emoji;
                 player.emojiStartTime = Date.now();
@@ -4602,6 +4605,21 @@
 
     // Initialize canvas resize after everything is loaded
     setTimeout(resizeCanvas, 100);
+    
+    // Cleanup function to clear all timers when page is unloaded to prevent memory leaks
+    function cleanupGameTimers() {
+        // Clear emoji timeouts
+        Object.keys(emojiTimeouts).forEach(key => {
+            if (emojiTimeouts[key]) {
+                clearTimeout(emojiTimeouts[key]);
+                emojiTimeouts[key] = null;
+            }
+        });
+        emojiTimeouts = {};
+    }
+    
+    // Clean up timers when page is unloaded
+    window.addEventListener('beforeunload', cleanupGameTimers);
 
     // Player Card functionality
     let selectedPlayer = null;

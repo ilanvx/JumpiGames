@@ -438,6 +438,17 @@ io.on('connection', async (socket) => {
      
      players[socket.id].message = text.substring(0, 50).trim(); // Limit message length
      players[socket.id].messageTime = Date.now();
+     
+     // Clear old messages after 10 seconds to prevent memory issues and ensure consistent timing
+     // This helps maintain consistent 8-second bubble display across all clients and prevents timing issues
+     setTimeout(() => {
+       if (players[socket.id] && players[socket.id].messageTime === Date.now() - 10000) {
+         players[socket.id].message = null;
+         players[socket.id].messageTime = null;
+         emitPlayersWithRooms();
+       }
+     }, 10000);
+     
      emitPlayersWithRooms();
    }
  });

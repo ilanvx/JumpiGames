@@ -459,6 +459,18 @@
         window.socket.emit('cancelTrade');
         if (tradeWindow) { tradeWindow.remove(); tradeWindow = null; }
         activeTrade = null;
+        
+        // Clear chat bubble timers when trade is cancelled
+        if (yourBubbleTimer) {
+            clearTimeout(yourBubbleTimer);
+            yourBubbleTimer = null;
+        }
+        if (theirBubbleTimer) {
+            clearTimeout(theirBubbleTimer);
+            theirBubbleTimer = null;
+        }
+        lastYourBubble = '';
+        lastTheirBubble = '';
     }
 
     // --- Socket Event Listeners ---
@@ -543,11 +555,37 @@
         window.socket.on('tradeCanceled', ({ senderId }) => {
             if (tradeWindow) { tradeWindow.remove(); tradeWindow = null; }
             activeTrade = null;
+            
+            // Clear chat bubble timers when trade is canceled
+            if (yourBubbleTimer) {
+                clearTimeout(yourBubbleTimer);
+                yourBubbleTimer = null;
+            }
+            if (theirBubbleTimer) {
+                clearTimeout(theirBubbleTimer);
+                theirBubbleTimer = null;
+            }
+            lastYourBubble = '';
+            lastTheirBubble = '';
+            
             window.showNotification('החלפה בוטלה', 'info', 3000);
         });
         window.socket.on('tradeCompleted', ({ message, newInventory, newEquipped }) => {
             if (tradeWindow) { tradeWindow.remove(); tradeWindow = null; }
             activeTrade = null;
+            
+            // Clear chat bubble timers when trade is completed
+            if (yourBubbleTimer) {
+                clearTimeout(yourBubbleTimer);
+                yourBubbleTimer = null;
+            }
+            if (theirBubbleTimer) {
+                clearTimeout(theirBubbleTimer);
+                theirBubbleTimer = null;
+            }
+            lastYourBubble = '';
+            lastTheirBubble = '';
+            
             // Update local inventory and equipped items
             if (window.players && window.players[window.socket.id]) {
                 window.players[window.socket.id].inventory = newInventory;
@@ -674,6 +712,27 @@
 
     // --- Expose API ---
     window.Trading = Trading;
+    
+    // Cleanup function to clear all timers to prevent memory leaks
+    function cleanupTradingTimers() {
+        if (yourBubbleTimer) {
+            clearTimeout(yourBubbleTimer);
+            yourBubbleTimer = null;
+        }
+        if (theirBubbleTimer) {
+            clearTimeout(theirBubbleTimer);
+            theirBubbleTimer = null;
+        }
+        if (tradeStatusBarTimeout) {
+            clearTimeout(tradeStatusBarTimeout);
+            tradeStatusBarTimeout = null;
+        }
+        lastYourBubble = '';
+        lastTheirBubble = '';
+    }
+    
+    // Clean up timers when page is unloaded
+    window.addEventListener('beforeunload', cleanupTradingTimers);
 
     // --- Chat bubble state ---
     let yourBubbleTimer = null;
@@ -681,7 +740,8 @@
     let lastYourBubble = '';
     let lastTheirBubble = '';
 
-    // Show chat bubble for 8 seconds, reset timer on new message, and preserve bubble on re-render
+    // Show chat bubble for 8 seconds (consistent with main game), reset timer on new message, and preserve bubble on re-render
+    // This ensures consistent timing across all chat systems and prevents memory leaks and timing issues
     function showTradeBubble(isMe, text) {
         const bubbleId = isMe ? 'yourTradeBubble' : 'theirTradeBubble';
         const bubbleDiv = document.getElementById(bubbleId);
@@ -690,12 +750,28 @@
         bubbleDiv.innerHTML = html;
         if (isMe) {
             lastYourBubble = html;
-            if (yourBubbleTimer) clearTimeout(yourBubbleTimer);
-            yourBubbleTimer = setTimeout(() => { lastYourBubble = ''; if (document.getElementById('yourTradeBubble')) document.getElementById('yourTradeBubble').innerHTML = ''; }, 8000);
+            if (yourBubbleTimer) {
+                clearTimeout(yourBubbleTimer);
+                yourBubbleTimer = null;
+            }
+            yourBubbleTimer = setTimeout(() => { 
+                lastYourBubble = ''; 
+                yourBubbleTimer = null;
+                const bubbleElement = document.getElementById('yourTradeBubble');
+                if (bubbleElement) bubbleElement.innerHTML = ''; 
+            }, 8000);
         } else {
             lastTheirBubble = html;
-            if (theirBubbleTimer) clearTimeout(theirBubbleTimer);
-            theirBubbleTimer = setTimeout(() => { lastTheirBubble = ''; if (document.getElementById('theirTradeBubble')) document.getElementById('theirTradeBubble').innerHTML = ''; }, 8000);
+            if (theirBubbleTimer) {
+                clearTimeout(theirBubbleTimer);
+                theirBubbleTimer = null;
+            }
+            theirBubbleTimer = setTimeout(() => { 
+                lastTheirBubble = ''; 
+                theirBubbleTimer = null;
+                const bubbleElement = document.getElementById('theirTradeBubble');
+                if (bubbleElement) bubbleElement.innerHTML = ''; 
+            }, 8000);
         }
     }
 
