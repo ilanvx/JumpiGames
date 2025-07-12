@@ -2843,27 +2843,41 @@
             }
             
             container.innerHTML = categoryItems.map(item => `
-                <div class="store-item-card" style="background: rgba(255,255,255,0.8); border-radius: 12px; padding: 15px; border: 1px solid rgba(120,144,255,0.1); transition: all 0.2s; cursor: pointer;" data-item-id="${item.id}">
-                    <div class="store-item-image" style="width: 100%; height: 120px; background: rgba(255,255,255,0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden;">
-                        <img src="/items/${item.category}/${item.id}/front.png" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; height: 100%; color: #ccc;\\'><i class=\\'fas fa-image\\' style=\\'font-size: 2rem;\\'></i></div>'">
+                <div class="store-item-card" style="background: rgba(255,255,255,0.8); border-radius: 12px; padding: 12px; border: 1px solid rgba(120,144,255,0.1); transition: all 0.2s; cursor: pointer;" data-item-id="${item.id}">
+                    <div class="store-item-image" style="width: 100%; height: 80px; background: rgba(255,255,255,0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; overflow: hidden;">
+                        <img src="/items/${item.category}/${item.id}/front.png" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; height: 100%; color: #ccc;\\'><i class=\\'fas fa-image\\' style=\\'font-size: 1.5rem;\\'></i></div>'">
                     </div>
                     <div class="store-item-info">
-                        <h6 style="margin: 0 0 8px 0; color: #333; font-size: 0.9rem; text-align: center;">${item.name}</h6>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 10px;">
-                            <span style="font-size: 1.2rem;">${item.currency === 'coins' ? '🪙' : '💎'}</span>
-                            <span style="font-weight: 600; color: #333;">${item.price}</span>
+                        <h6 style="margin: 0 0 6px 0; color: #333; font-size: 0.8rem; text-align: center;">${item.name}</h6>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 8px;">
+                            <span style="font-size: 1rem;">${item.currency === 'coins' ? '<i class=\'fas fa-coins\'></i>' : '💎'}</span>
+                            <span style="font-weight: 600; color: #333; font-size: 0.9rem;">${item.price}</span>
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="store-measure-btn" onclick="measureStoreItem('${item.id}')" style="flex: 1; padding: 8px; background: rgba(120,144,255,0.1); border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: #667eea; transition: all 0.2s;">
+                        <div style="display: flex; gap: 6px;">
+                            <button class="store-measure-btn" onclick="measureStoreItem('${item.id}')" style="flex: 1; padding: 6px; background: rgba(120,144,255,0.1); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: #667eea; transition: all 0.2s;">
                                 מדידה
                             </button>
-                            <button class="store-buy-btn" onclick="buyStoreItem('${item.id}')" style="flex: 1; padding: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: white; transition: all 0.2s;">
+                            <button class="store-buy-btn" onclick="buyStoreItem('${item.id}')" style="flex: 1; padding: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: white; transition: all 0.2s;">
                                 קנייה
                             </button>
                         </div>
                     </div>
                 </div>
             `).join('');
+            
+            // לאחר יצירת container.innerHTML:
+            // הפוך את כל <span> של המטבעות לאייקון אמיתי
+            setTimeout(() => {
+                document.querySelectorAll('.store-item-info span').forEach(span => {
+                    if (span.innerHTML === "<i class='fas fa-coins'></i>") {
+                        span.innerHTML = '';
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-coins';
+                        icon.style.color = '#f39c12';
+                        span.appendChild(icon);
+                    }
+                });
+            }, 0);
         }
         
         function measureStoreItem(itemId) {
@@ -2889,6 +2903,12 @@
             const userBalance = item.currency === 'coins' ? currentUser.coins : currentUser.diamonds;
             if (userBalance < item.price) {
                 window.showNotification(`אין לך מספיק ${item.currency === 'coins' ? 'מטבעות' : 'יהלומים'}`, 'error', 3000);
+                return;
+            }
+            
+            // אישור קנייה
+            const confirmMsg = `האם אתה בטוח שברצונך לרכוש את הפריט "${item.name}" ב-${item.price} ${item.currency === 'coins' ? 'מטבעות' : 'יהלומים'}?`;
+            if (!window.confirm(confirmMsg)) {
                 return;
             }
             
@@ -2919,15 +2939,37 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw character with current items
-            drawCharacterPreview(canvas, currentUser);
-            
-            // Draw measuring item on top if exists
+            // Clone equipped
+            let equipped = { ...currentUser.equipped };
             if (measuringItem) {
                 const item = storeItems.find(i => i.id === measuringItem);
                 if (item) {
-                    drawItemOverlay(canvas, item, currentUser);
+                    equipped[item.category] = item.id;
                 }
+            }
+            // Draw character with equipped (including המדידה)
+            drawCharacterPreviewWithEquipped(canvas, currentUser, equipped);
+        }
+        
+        function drawCharacterPreviewWithEquipped(canvas, player, equipped) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // בסיס
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(50, 80, 10, 20);
+            ctx.fillRect(45, 100, 20, 30);
+            // פריטים
+            if (equipped) {
+                Object.keys(equipped).forEach(category => {
+                    const itemId = equipped[category];
+                    if (itemId) {
+                        const img = new Image();
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        };
+                        img.src = `/items/${category}/${itemId}/front.png`;
+                    }
+                });
             }
         }
         
@@ -2935,9 +2977,48 @@
             const ctx = canvas.getContext('2d');
             const img = new Image();
             img.onload = () => {
-                // Draw the measuring item on top of the character
+                // Draw the measuring item on top of the character with proper scaling
                 ctx.globalAlpha = 0.8;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Calculate proper scaling based on item category
+                let scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0;
+                
+                switch(item.category) {
+                    case 'ht': // Hats
+                        scaleX = 0.8; scaleY = 0.8; offsetX = 10; offsetY = -10;
+                        break;
+                    case 'ps': // Pants
+                        scaleX = 0.9; scaleY = 0.9; offsetX = 5; offsetY = 20;
+                        break;
+                    case 'st': // Shirts
+                        scaleX = 0.9; scaleY = 0.9; offsetX = 5; offsetY = 10;
+                        break;
+                    case 'gs': // Glasses
+                        scaleX = 0.7; scaleY = 0.7; offsetX = 15; offsetY = 5;
+                        break;
+                    case 'nk': // Necklaces
+                        scaleX = 0.8; scaleY = 0.8; offsetX = 10; offsetY = 15;
+                        break;
+                    case 'hd': // Hair
+                        scaleX = 0.8; scaleY = 0.8; offsetX = 10; offsetY = -5;
+                        break;
+                    case 'sk': // Shoes
+                        scaleX = 0.8; scaleY = 0.8; offsetX = 10; offsetY = 30;
+                        break;
+                    case 'hr': // Hair
+                        scaleX = 0.8; scaleY = 0.8; offsetX = 10; offsetY = -5;
+                        break;
+                    default:
+                        scaleX = 0.8; scaleY = 0.8;
+                }
+                
+                // Apply scaling and positioning
+                ctx.save();
+                ctx.translate(canvas.width/2 + offsetX, canvas.height/2 + offsetY);
+                ctx.scale(scaleX, scaleY);
+                ctx.drawImage(img, -img.width/2, -img.height/2, img.width, img.height);
+                ctx.restore();
+                
                 ctx.globalAlpha = 1.0;
             };
             img.src = `/items/${item.category}/${item.id}/front.png`;
