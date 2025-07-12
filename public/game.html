@@ -2840,6 +2840,7 @@
                 .then(response => response.json())
                 .then(data => {
                     storeItems = data.items || [];
+                    console.log('Loaded store items:', storeItems.map(item => ({ id: item.id, name: item.name, category: item.category }))); // Debug log
                     renderStoreItems();
                 })
                 .catch(error => {
@@ -3117,10 +3118,16 @@
                 return;
             }
             
-            // Send purchase request to server with original item ID
-            const originalItemId = getOriginalItemId(item.id);
+            // Send purchase request to server with unique item ID
+            console.log('Sending purchase request:', { 
+                itemId: item.id, 
+                category: item.category,
+                currency: item.currency, 
+                price: item.price,
+                fullItemId: item.id
+            }); // Debug log
             window.socket.emit('purchaseItem', { 
-                itemId: originalItemId, 
+                itemId: item.id, 
                 category: item.category,
                 currency: item.currency, 
                 price: item.price 

@@ -895,10 +895,13 @@ io.on('connection', async (socket) => {
        return;
      }
      
-     // Find the item in store database by matching the original ID
-     const item = await StoreItem.findOne({ 
-       id: { $regex: new RegExp(`^${category}_${itemId}_`) }
-     });
+     // Find the item in store database by unique ID
+     console.log('Looking for item with id:', itemId); // Debug log
+     // Debug: Show all items in database
+     const allItems = await StoreItem.find();
+     console.log('All items in database:', allItems.map(item => ({ id: item.id, category: item.category, name: item.name }))); // Debug log
+     const item = await StoreItem.findOne({ id: itemId });
+     console.log('Found item:', item ? item.id : 'NOT FOUND'); // Debug log
      if (!item) {
        socket.emit('purchaseResult', { success: false, message: 'פריט לא נמצא בחנות' });
        return;
