@@ -198,8 +198,89 @@ router.post('/give-item', requireAdmin, async (req, res) => {
             message: `Item ${category}:${numericItemId} given to user ${username}` 
         });
     } catch (error) {
-        console.error('Error giving item to user:', error);
-        res.status(500).json({ error: 'Failed to give item to user' });
+        console.error('Error giving item:', error);
+        res.status(500).json({ error: 'Failed to give item' });
+    }
+});
+
+// Store management routes
+// GET /admin/store-items: Get all store items
+router.get('/store-items', requireAdmin, (req, res) => {
+    try {
+        // For now, return mock data. In a real implementation, this would come from a database
+        const storeItems = [
+            { id: '1', category: 'ht', name: 'כובע בסיסי', price: 50, currency: 'coins' },
+            { id: '2', category: 'ht', name: 'כובע מתקדם', price: 100, currency: 'coins' },
+            { id: '3', category: 'ht', name: 'כובע פרימיום', price: 200, currency: 'coins' },
+            { id: '1', category: 'ps', name: 'חולצה בסיסית', price: 75, currency: 'coins' },
+            { id: '2', category: 'ps', name: 'חולצה מתקדמת', price: 150, currency: 'coins' },
+            { id: '3', category: 'ps', name: 'חולצה פרימיום', price: 300, currency: 'coins' },
+            { id: '1', category: 'st', name: 'מכנסיים בסיסיים', price: 60, currency: 'coins' },
+            { id: '2', category: 'st', name: 'מכנסיים מתקדמים', price: 120, currency: 'coins' },
+            { id: '3', category: 'st', name: 'מכנסיים פרימיום', price: 250, currency: 'coins' },
+            { id: '4', category: 'ht', name: 'כובע נדיר', price: 10, currency: 'diamonds' },
+            { id: '5', category: 'ht', name: 'כובע אגדי', price: 25, currency: 'diamonds' },
+            { id: '4', category: 'ps', name: 'חולצה נדירה', price: 15, currency: 'diamonds' },
+            { id: '5', category: 'ps', name: 'חולצה אגדית', price: 35, currency: 'diamonds' },
+            { id: '4', category: 'st', name: 'מכנסיים נדירים', price: 12, currency: 'diamonds' },
+            { id: '5', category: 'st', name: 'מכנסיים אגדיים', price: 30, currency: 'diamonds' }
+        ];
+        res.json({ success: true, items: storeItems });
+    } catch (error) {
+        console.error('Error fetching store items:', error);
+        res.status(500).json({ error: 'Failed to fetch store items' });
+    }
+});
+
+// POST /admin/store-items: Add a new store item
+router.post('/store-items', requireAdmin, async (req, res) => {
+    const { itemId, category, name, price, currency } = req.body;
+    
+    if (!itemId || !category || !name || !price || !currency) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    if (price <= 0) {
+        return res.status(400).json({ error: 'Price must be positive' });
+    }
+    
+    if (!['coins', 'diamonds'].includes(currency)) {
+        return res.status(400).json({ error: 'Invalid currency' });
+    }
+    
+    try {
+        // In a real implementation, this would save to a database
+        // For now, we'll just return success
+        res.json({ 
+            success: true, 
+            message: `Item ${name} added to store successfully`,
+            item: { id: itemId, category, name, price, currency }
+        });
+    } catch (error) {
+        console.error('Error adding store item:', error);
+        res.status(500).json({ error: 'Failed to add store item' });
+    }
+});
+
+// DELETE /admin/store-items: Remove a store item
+router.delete('/store-items', requireAdmin, async (req, res) => {
+    const { itemId, category } = req.body;
+    
+    if (!itemId || !category) {
+        return res.status(400).json({ error: 'Item ID and category are required' });
+    }
+    
+    try {
+        // In a real implementation, this would remove from a database
+        // For now, we'll just return success
+        res.json({ 
+            success: true, 
+            message: `Item removed from store successfully`,
+            removedItem: { id: itemId, category }
+        });
+    } catch (error) {
+        console.error('Error removing store item:', error);
+        res.status(500).json({ error: 'Failed to remove store item' });
     }
 });
 

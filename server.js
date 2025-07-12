@@ -1288,6 +1288,212 @@ io.on('connection', async (socket) => {
 
      console.log(`Player ${currentPlayer.username} is visiting ${targetUsername}'s home ${targetHomeId}`);
  });
+ 
+ // ==================== Store System ====================
+ 
+ // Store items database (in memory for now, can be moved to database later)
+ let storeItems = [
+     // Coins items
+     { id: '1', category: 'ht', name: 'כובע בסיסי', price: 50, currency: 'coins' },
+     { id: '2', category: 'ht', name: 'כובע מתקדם', price: 100, currency: 'coins' },
+     { id: '3', category: 'ht', name: 'כובע פרימיום', price: 200, currency: 'coins' },
+     { id: '1', category: 'ps', name: 'חולצה בסיסית', price: 75, currency: 'coins' },
+     { id: '2', category: 'ps', name: 'חולצה מתקדמת', price: 150, currency: 'coins' },
+     { id: '3', category: 'ps', name: 'חולצה פרימיום', price: 300, currency: 'coins' },
+     { id: '1', category: 'st', name: 'מכנסיים בסיסיים', price: 60, currency: 'coins' },
+     { id: '2', category: 'st', name: 'מכנסיים מתקדמים', price: 120, currency: 'coins' },
+     { id: '3', category: 'st', name: 'מכנסיים פרימיום', price: 250, currency: 'coins' },
+     
+     // Diamonds items
+     { id: '4', category: 'ht', name: 'כובע נדיר', price: 10, currency: 'diamonds' },
+     { id: '5', category: 'ht', name: 'כובע אגדי', price: 25, currency: 'diamonds' },
+     { id: '4', category: 'ps', name: 'חולצה נדירה', price: 15, currency: 'diamonds' },
+     { id: '5', category: 'ps', name: 'חולצה אגדית', price: 35, currency: 'diamonds' },
+     { id: '4', category: 'st', name: 'מכנסיים נדירים', price: 12, currency: 'diamonds' },
+     { id: '5', category: 'st', name: 'מכנסיים אגדיים', price: 30, currency: 'diamonds' }
+ ];
+ 
+ // Get store items
+ socket.on('getStoreItems', () => {
+     socket.emit('storeItems', storeItems);
+ });
+ 
+ // Purchase item
+ socket.on('purchaseItem', async ({ itemId, category, price, currency }) => {
+     const currentPlayer = players[socket.id];
+     if (!currentPlayer) {
+         socket.emit('purchaseResult', { success: false, message: 'שחקן לא נמצא' });
+         return;
+     }
+     
+     // Find the item in store
+     const item = storeItems.find(item => 
+         item.id === itemId && 
+         item.category === category && 
+         item.price === price && 
+         item.currency === currency
+     );
+     
+     if (!item) {
+         socket.emit('purchaseResult', { success: false, message: 'פריט לא נמצא בחנות' });
+         return;
+     }
+     
+     // Check if player has enough currency
+     const currentCurrency = currency === 'coins' ? currentPlayer.coins : currentPlayer.diamonds;
+     if (currentCurrency < price) {
+         const currencyName = currency === 'coins' ? 'מטבעות' : 'יהלומים';
+         socket.emit('purchaseResult', { 
+             success: false, 
+             message: `אין לך מספיק ${currencyName} לרכישה זו` 
+         });
+         return;
+     }
+     
+     // Check if player already has this item
+     if (currentPlayer.inventory[category] && currentPlayer.inventory[category].includes(itemId)) {
+         socket.emit('purchaseResult', { 
+             success: false, 
+             message: 'כבר יש לך פריט זה' 
+         });
+         return;
+     }
+     
+     try {
+         // Update player's currency
+         if (currency === 'coins') {
+             currentPlayer.coins -= price;
+         } else {
+             currentPlayer.diamonds -= price;
+         }
+         
+         // Add item to inventory
+         if (!currentPlayer.inventory[category]) {
+             currentPlayer.inventory[category] = [];
+         }
+         currentPlayer.inventory[category].push(itemId);
+         
+         // Update database
+         const userToUpdate = await User.findOne({ 
+             username: { $regex: new RegExp(`^${currentPlayer.username}$`, 'i') } 
+         });
+         
+         if (userToUpdate) {
+             if (currency === 'coins') {
+                 userToUpdate.coins = currentPlayer.coins;
+             } else {
+                 userToUpdate.diamonds = currentPlayer.diamonds;
+             }
+             userToUpdate.inventory = currentPlayer.inventory;
+             await userToUpdate.save();
+         }
+         
+         // Send success response
+         socket.emit('purchaseResult', { 
+             success: true, 
+             message: `רכישה מוצלחת! ${item.name} נוסף למלאי שלך`,
+             newCoins: currentPlayer.coins,
+             newDiamonds: currentPlayer.diamonds,
+             inventory: currentPlayer.inventory
+         });
+         
+         // Update inventory and currency on client
+         socket.emit('updateInventory', currentPlayer.inventory);
+         socket.emit('updateCoins', currentPlayer.coins);
+         socket.emit('updateDiamonds', currentPlayer.diamonds);
+         
+         console.log(`Player ${currentPlayer.username} purchased ${item.name} for ${price} ${currency}`);
+         
+     } catch (error) {
+         console.error('Error processing purchase:', error);
+         socket.emit('purchaseResult', { 
+             success: false, 
+             message: 'שגיאה בעיבוד הרכישה' 
+         });
+     }
+ });
+ 
+ // Add store item (admin only)
+ socket.on('addStoreItem', async ({ itemId, category, name, price, currency }) => {
+     const currentPlayer = players[socket.id];
+     if (!currentPlayer || !currentPlayer.isAdmin) {
+         socket.emit('storeItemResult', { success: false, message: 'גישה מוגבלת למנהלים בלבד' });
+         return;
+     }
+     
+     // Validate input
+     if (!itemId || !category || !name || !price || !currency) {
+         socket.emit('storeItemResult', { success: false, message: 'כל השדות נדרשים' });
+         return;
+     }
+     
+     if (price <= 0) {
+         socket.emit('storeItemResult', { success: false, message: 'המחיר חייב להיות חיובי' });
+         return;
+     }
+     
+     if (!['coins', 'diamonds'].includes(currency)) {
+         socket.emit('storeItemResult', { success: false, message: 'מטבע לא תקין' });
+         return;
+     }
+     
+     // Check if item already exists
+     const existingItem = storeItems.find(item => 
+         item.id === itemId && item.category === category
+     );
+     
+     if (existingItem) {
+         socket.emit('storeItemResult', { success: false, message: 'פריט זה כבר קיים בחנות' });
+         return;
+     }
+     
+     // Add new item
+     const newItem = { id: itemId, category, name, price, currency };
+     storeItems.push(newItem);
+     
+     socket.emit('storeItemResult', { 
+         success: true, 
+         message: `פריט ${name} נוסף לחנות בהצלחה`,
+         item: newItem
+     });
+     
+     // Broadcast to all clients that store items have been updated
+     io.emit('storeItemsUpdated', storeItems);
+     
+     console.log(`Admin ${currentPlayer.username} added store item: ${name}`);
+ });
+ 
+ // Remove store item (admin only)
+ socket.on('removeStoreItem', async ({ itemId, category }) => {
+     const currentPlayer = players[socket.id];
+     if (!currentPlayer || !currentPlayer.isAdmin) {
+         socket.emit('storeItemResult', { success: false, message: 'גישה מוגבלת למנהלים בלבד' });
+         return;
+     }
+     
+     // Find and remove item
+     const itemIndex = storeItems.findIndex(item => 
+         item.id === itemId && item.category === category
+     );
+     
+     if (itemIndex === -1) {
+         socket.emit('storeItemResult', { success: false, message: 'פריט לא נמצא' });
+         return;
+     }
+     
+     const removedItem = storeItems.splice(itemIndex, 1)[0];
+     
+     socket.emit('storeItemResult', { 
+         success: true, 
+         message: `פריט ${removedItem.name} הוסר מהחנות`,
+         removedItem
+     });
+     
+     // Broadcast to all clients that store items have been updated
+     io.emit('storeItemsUpdated', storeItems);
+     
+     console.log(`Admin ${currentPlayer.username} removed store item: ${removedItem.name}`);
+ });
 });
 
 // Registration and Login routes with bcrypt password hashing

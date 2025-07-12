@@ -1968,6 +1968,68 @@
         </div>
     </div>
 
+    <!-- Store Panel -->
+    <div id="storePanel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1500; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 8px 32px rgba(120,144,255,0.18); border: 1.5px solid rgba(255,255,255,0.22); backdrop-filter: blur(18px); min-width: 800px; max-width: 1000px; max-height: 80vh;">
+        <div class="store-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid rgba(120,144,255,0.1);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-shopping-cart" style="color: #667eea; font-size: 1.3rem;"></i>
+                <span style="font-weight: 600; color: #333; font-size: 1.2rem;">חנות</span>
+            </div>
+            <button class="close-btn" id="storePanelClose" style="background: rgba(255,255,255,0.2); border: none; color: #666; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="store-content" style="display: flex; height: 500px;">
+            <!-- Store Sidebar -->
+            <div class="store-sidebar" style="width: 300px; border-right: 1px solid rgba(120,144,255,0.1); padding: 20px;">
+                <!-- Player Info -->
+                <div class="player-info" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.5); border-radius: 12px; text-align: center;">
+                    <div class="player-avatar" style="margin-bottom: 15px;">
+                        <div id="storeCharacterPreviewContainer" style="background: rgba(255,255,255,0.12); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); width: 140px; height: 180px; margin: 0 auto;">
+                            <canvas id="storeCharacterPreviewCanvas" width="120" height="160" style="display: block; margin: 0 auto;"></canvas>
+                        </div>
+                    </div>
+                    <div class="player-details">
+                        <h6 id="storeUsername" style="margin: 0 0 10px 0; color: #333; font-size: 1.1rem;">שם משתמש</h6>
+                        <div class="currency-display" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                            <div style="display: flex; align-items: center; gap: 5px; color: #f39c12;">
+                                <i class="fas fa-coins"></i>
+                                <span id="storeCoins">0</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 5px; color: #00bfff;">
+                                <i class="fas fa-gem"></i>
+                                <span id="storeDiamonds">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Category Tabs -->
+                <div class="store-categories" style="margin-bottom: 20px;">
+                    <h6 style="margin: 0 0 10px 0; color: #333; font-size: 1rem;">קטגוריות</h6>
+                    <div class="category-tabs" style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="category-tab active" id="coinsCategoryTab" data-category="coins" style="padding: 12px 15px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-coins"></i>
+                            <span>מטבעות</span>
+                        </button>
+                        <button class="category-tab" id="diamondsCategoryTab" data-category="diamonds" style="padding: 12px 15px; background: rgba(120,144,255,0.1); color: #667eea; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-gem"></i>
+                            <span>יהלומים</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Store Main Content -->
+            <div class="store-main" style="flex: 1; padding: 20px; overflow-y: auto;">
+                <div id="storeItemsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                    <!-- Store items will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Panel -->
     <div id="adminPanel">
       <div class="admin-header">
@@ -2488,6 +2550,8 @@
             initializeToolbar();
             // Initialize Friends Panel
             initializeFriendsPanel();
+            // Initialize Store Panel
+            initializeStorePanel();
             // Initialize trading system
             if (window.Trading && typeof window.Trading.initTradingSystem === 'function') {
                 window.Trading.initTradingSystem();
@@ -2534,6 +2598,14 @@
             if (friendsBtn) {
                 friendsBtn.addEventListener('click', () => {
                     toggleFriendsPanel();
+                });
+            }
+            
+            // Store button
+            const storeBtn = document.getElementById('storeBtn');
+            if (storeBtn) {
+                storeBtn.addEventListener('click', () => {
+                    toggleStorePanel();
                 });
             }
             
@@ -2680,6 +2752,259 @@
                 chatInput.value = '';
                 window.currentInput = '';
             }
+        }
+        
+        // ==================== Store Panel Functions ====================
+        let storeItems = [];
+        let currentStoreCategory = 'coins';
+        
+        function toggleStorePanel() {
+            const storePanel = document.getElementById('storePanel');
+            if (!storePanel) return;
+            
+            const isOpen = storePanel.style.display === 'block';
+            if (isOpen) {
+                storePanel.style.display = 'none';
+                window.isStoreOpen = false;
+                resetStoreCharacterPreview();
+            } else {
+                storePanel.style.display = 'block';
+                window.isStoreOpen = true;
+                loadStoreItems();
+                updateStorePlayerInfo();
+            }
+        }
+        
+        function loadStoreItems() {
+            // Load items from server
+            window.socket.emit('getStoreItems');
+        }
+        
+        function updateStorePlayerInfo() {
+            const storeUsername = document.getElementById('storeUsername');
+            const storeCoins = document.getElementById('storeCoins');
+            const storeDiamonds = document.getElementById('storeDiamonds');
+            
+            if (storeUsername) storeUsername.textContent = window.username || 'שם משתמש';
+            if (storeCoins) storeCoins.textContent = window.coins || 0;
+            if (storeDiamonds) storeDiamonds.textContent = window.diamonds || 0;
+            
+            // Update character preview
+            updateStoreCharacterPreview();
+        }
+        
+        function updateStoreCharacterPreview() {
+            const canvas = document.getElementById('storeCharacterPreviewCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw character with current equipment
+            if (window.characterRenderer) {
+                window.characterRenderer.drawCharacter(ctx, window.username, window.equippedItems, 'front', 60, 80);
+            }
+        }
+        
+        function renderStoreItems(items, category) {
+            const container = document.getElementById('storeItemsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Filter items by category and currency
+            const categoryItems = items.filter(item => {
+                if (category === 'coins') {
+                    return item.currency === 'coins';
+                } else if (category === 'diamonds') {
+                    return item.currency === 'diamonds';
+                }
+                return false;
+            });
+            
+            if (categoryItems.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-shopping-bag" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                        <h4 style="margin: 0 0 10px 0; color: #333;">אין פריטים בקטגוריה זו</h4>
+                        <p style="margin: 0; color: #888;">נסה לבחור קטגוריה אחרת</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            categoryItems.forEach(item => {
+                const itemCard = createStoreItemCard(item);
+                container.appendChild(itemCard);
+            });
+        }
+        
+        function createStoreItemCard(item) {
+            const card = document.createElement('div');
+            card.className = 'store-item-card';
+            card.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                padding: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: all 0.2s;
+                cursor: pointer;
+                border: 2px solid transparent;
+            `;
+            
+            card.innerHTML = `
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="/items/${item.category}/${item.id}/front.png" 
+                         alt="${item.name}" 
+                         style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px;">
+                    <h6 style="margin: 0 0 8px 0; color: #333; font-size: 1rem;">${item.name}</h6>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 15px;">
+                        <i class="fas fa-${item.category === 'coins' ? 'coins' : 'gem'}" 
+                           style="color: ${item.category === 'coins' ? '#f39c12' : '#00bfff'};"></i>
+                        <span style="font-weight: 600; color: #333;">${item.price}</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="try-on-btn" data-item-id="${item.id}" data-category="${item.category}" 
+                            style="flex: 1; padding: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                   color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; 
+                                   font-weight: 500; transition: all 0.2s;">
+                        <i class="fas fa-eye"></i> מדידה
+                    </button>
+                    <button class="buy-btn" data-item-id="${item.id}" data-category="${item.category}" data-price="${item.price}" 
+                            style="flex: 1; padding: 8px; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); 
+                                   color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; 
+                                   font-weight: 500; transition: all 0.2s;">
+                        <i class="fas fa-shopping-cart"></i> קנייה
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners
+            const tryOnBtn = card.querySelector('.try-on-btn');
+            const buyBtn = card.querySelector('.buy-btn');
+            
+            tryOnBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                tryOnItem(item);
+            });
+            
+            buyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                buyItem(item);
+            });
+            
+            return card;
+        }
+        
+        function tryOnItem(item) {
+            // Temporarily equip the item for preview
+            const tempEquipped = { ...window.equippedItems };
+            tempEquipped[item.category] = item.id;
+            
+            // Update the store character preview
+            const canvas = document.getElementById('storeCharacterPreviewCanvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (window.characterRenderer) {
+                    window.characterRenderer.drawCharacter(ctx, window.username, tempEquipped, 'front', 60, 80);
+                }
+            }
+            
+            window.showNotification(`מנסה על ${item.name}`, 'info', 2000);
+        }
+        
+        // Reset character preview when closing store
+        function resetStoreCharacterPreview() {
+            const canvas = document.getElementById('storeCharacterPreviewCanvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (window.characterRenderer) {
+                    window.characterRenderer.drawCharacter(ctx, window.username, window.equippedItems, 'front', 60, 80);
+                }
+            }
+        }
+        
+        function buyItem(item) {
+            const currentCoins = window.coins || 0;
+            const currentDiamonds = window.diamonds || 0;
+            
+            if (item.currency === 'coins') {
+                if (currentCoins < item.price) {
+                    window.showNotification('אין לך מספיק מטבעות לרכישה זו', 'error', 3000);
+                    return;
+                }
+            } else if (item.currency === 'diamonds') {
+                if (currentDiamonds < item.price) {
+                    window.showNotification('אין לך מספיק יהלומים לרכישה זו', 'error', 3000);
+                    return;
+                }
+            }
+            
+            // Send purchase request to server
+            window.socket.emit('purchaseItem', {
+                itemId: item.id,
+                category: item.category,
+                price: item.price,
+                currency: item.currency
+            });
+        }
+        
+        function initializeStorePanel() {
+            const storePanelClose = document.getElementById('storePanelClose');
+            const coinsCategoryTab = document.getElementById('coinsCategoryTab');
+            const diamondsCategoryTab = document.getElementById('diamondsCategoryTab');
+            
+            if (storePanelClose) {
+                storePanelClose.addEventListener('click', () => {
+                    toggleStorePanel();
+                });
+            }
+            
+            if (coinsCategoryTab) {
+                coinsCategoryTab.addEventListener('click', () => {
+                    switchStoreCategory('coins');
+                });
+            }
+            
+            if (diamondsCategoryTab) {
+                diamondsCategoryTab.addEventListener('click', () => {
+                    switchStoreCategory('diamonds');
+                });
+            }
+        }
+        
+        function switchStoreCategory(category) {
+            currentStoreCategory = category;
+            
+            // Update tab styles
+            const coinsTab = document.getElementById('coinsCategoryTab');
+            const diamondsTab = document.getElementById('diamondsCategoryTab');
+            
+            if (category === 'coins') {
+                coinsTab.classList.add('active');
+                coinsTab.style.background = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
+                coinsTab.style.color = 'white';
+                
+                diamondsTab.classList.remove('active');
+                diamondsTab.style.background = 'rgba(120,144,255,0.1)';
+                diamondsTab.style.color = '#667eea';
+            } else {
+                diamondsTab.classList.add('active');
+                diamondsTab.style.background = 'linear-gradient(135deg, #00bfff 0%, #0099cc 100%)';
+                diamondsTab.style.color = 'white';
+                
+                coinsTab.classList.remove('active');
+                coinsTab.style.background = 'rgba(120,144,255,0.1)';
+                coinsTab.style.color = '#667eea';
+            }
+            
+            // Re-render items for the selected category
+            renderStoreItems(storeItems, category);
         }
         
         // ==================== Game Exit Modal Functions ====================
@@ -3111,6 +3436,31 @@
                 });
             }
         }
+        
+        // Initialize Store Panel
+        function initializeStorePanel() {
+            const storePanelClose = document.getElementById('storePanelClose');
+            const coinsCategoryTab = document.getElementById('coinsCategoryTab');
+            const diamondsCategoryTab = document.getElementById('diamondsCategoryTab');
+            
+            if (storePanelClose) {
+                storePanelClose.addEventListener('click', () => {
+                    toggleStorePanel();
+                });
+            }
+            
+            if (coinsCategoryTab) {
+                coinsCategoryTab.addEventListener('click', () => {
+                    switchStoreCategory('coins');
+                });
+            }
+            
+            if (diamondsCategoryTab) {
+                diamondsCategoryTab.addEventListener('click', () => {
+                    switchStoreCategory('diamonds');
+                });
+            }
+        }
 
 
         // ==================== סוקטים ====================
@@ -3173,6 +3523,71 @@
                 } else {
                     adminBtn.style.display = 'none';
                 }
+            }
+        });
+        
+        // Handle store items
+        window.socket.on('storeItems', (items) => {
+            storeItems = items;
+            renderStoreItems(items, currentStoreCategory);
+        });
+        
+        // Handle purchase result
+        window.socket.on('purchaseResult', (result) => {
+            if (result.success) {
+                window.showNotification(result.message, 'success', 3000);
+                // Update local currency values
+                if (result.newCoins !== undefined) window.coins = result.newCoins;
+                if (result.newDiamonds !== undefined) window.diamonds = result.newDiamonds;
+                // Update store display
+                updateStorePlayerInfo();
+                // Update inventory if provided
+                if (result.inventory) {
+                    window.equippedItems = result.inventory;
+                }
+            } else {
+                window.showNotification(result.message, 'error', 3000);
+            }
+        });
+        
+        // Handle store items updated
+        window.socket.on('storeItemsUpdated', (items) => {
+            storeItems = items;
+            renderStoreItems(items, currentStoreCategory);
+            window.showNotification('פריטי החנות עודכנו', 'info', 2000);
+        });
+        
+        // Handle inventory updates
+        window.socket.on('updateInventory', (inventory) => {
+            window.equippedItems = inventory;
+            if (window.isInventoryOpen) {
+                updateInventoryInfo();
+            }
+        });
+        
+        // Handle currency updates
+        window.socket.on('updateCoins', (coins) => {
+            window.coins = coins;
+            updateStorePlayerInfo();
+        });
+        
+        window.socket.on('updateDiamonds', (diamonds) => {
+            window.diamonds = diamonds;
+            updateStorePlayerInfo();
+        });
+        
+        // Handle equipped items updates
+        window.socket.on('updateEquipped', (equipped) => {
+            window.equippedItems = equipped;
+            updateStoreCharacterPreview();
+        });
+        
+        // Handle store item result (for admin actions)
+        window.socket.on('storeItemResult', (result) => {
+            if (result.success) {
+                window.showNotification(result.message, 'success', 3000);
+            } else {
+                window.showNotification(result.message, 'error', 3000);
             }
         });
 
@@ -4953,13 +5368,20 @@
         });
     }
     
-    // סגירה בלחיצה מחוץ לחלון
-    document.addEventListener('click', (e) => {
-        const settingsMenu = document.getElementById('settingsMenu');
-        if (window.isSettingsOpen && settingsMenu && !settingsMenu.contains(e.target) && e.target !== settingsBtn) {
-            toggleSettingsMenu();
-        }
-    });
+            // סגירה בלחיצה מחוץ לחלון
+        document.addEventListener('click', (e) => {
+            const settingsMenu = document.getElementById('settingsMenu');
+            if (window.isSettingsOpen && settingsMenu && !settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+                toggleSettingsMenu();
+            }
+            
+            // Close store panel when clicking outside
+            const storePanel = document.getElementById('storePanel');
+            const storeBtn = document.getElementById('storeBtn');
+            if (window.isStoreOpen && storePanel && !storePanel.contains(e.target) && e.target !== storeBtn) {
+                toggleStorePanel();
+            }
+        });
     
     // כפתור מסך מלא
     if (fullscreenBtn) {
