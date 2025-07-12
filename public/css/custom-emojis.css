@@ -1,48 +1,48 @@
-/* Emoji Library using Twemoji CDN - Consistent across all devices */
+/* Emoji Library using Unicode characters - Consistent across all devices */
 
 /* Emoji Container */
 .custom-emoji {
   display: inline-block;
   width: 24px;
   height: 24px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  font-size: 20px;
+  text-align: center;
+  line-height: 24px;
   vertical-align: middle;
   margin: 0 2px;
 }
 
-/* Twemoji-based emojis using CDN */
-.emoji-happy {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f642.svg');
+/* Unicode-based emojis */
+.emoji-happy::before {
+  content: '😊';
 }
 
-.emoji-sad {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f641.svg');
+.emoji-sad::before {
+  content: '🙁';
 }
 
-.emoji-angry {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f620.svg');
+.emoji-angry::before {
+  content: '😠';
 }
 
-.emoji-laugh {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f602.svg');
+.emoji-laugh::before {
+  content: '😂';
 }
 
-.emoji-heart {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/2764.svg');
+.emoji-heart::before {
+  content: '❤️';
 }
 
-.emoji-star {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/2b50.svg');
+.emoji-star::before {
+  content: '⭐';
 }
 
-.emoji-diamond {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f48e.svg');
+.emoji-diamond::before {
+  content: '💎';
 }
 
-.emoji-flower {
-  background-image: url('https://twemoji.maxcdn.com/v/latest/svg/1f490.svg');
+.emoji-flower::before {
+  content: '🌸';
 }
 
 /* Emoji Button Styles */
@@ -68,6 +68,8 @@
 .emoji-btn .custom-emoji {
   width: 28px;
   height: 28px;
+  font-size: 24px;
+  line-height: 28px;
 }
 
 /* Emoji Display in Game */
@@ -82,6 +84,8 @@
   .emoji-btn .custom-emoji {
     width: 24px;
     height: 24px;
+    font-size: 20px;
+    line-height: 24px;
   }
   
   .game-emoji {
@@ -93,6 +97,8 @@
   .emoji-btn .custom-emoji {
     width: 20px;
     height: 20px;
+    font-size: 16px;
+    line-height: 20px;
   }
   
   .game-emoji {

@@ -4164,32 +4164,28 @@
             });
         };
         
-        // Helper function to draw emojis using Twemoji CDN
+        // Helper function to draw emojis using Unicode characters
         function drawCustomEmoji(ctx, type, size) {
             ctx.clearRect(0, 0, size, size);
             
-            // Create image element for emoji
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            
-            // Map emoji types to Twemoji URLs
-            const emojiUrls = {
-                'happy': 'https://twemoji.maxcdn.com/v/latest/svg/1f642.svg',
-                'sad': 'https://twemoji.maxcdn.com/v/latest/svg/1f641.svg',
-                'angry': 'https://twemoji.maxcdn.com/v/latest/svg/1f620.svg',
-                'laugh': 'https://twemoji.maxcdn.com/v/latest/svg/1f602.svg',
-                'heart': 'https://twemoji.maxcdn.com/v/latest/svg/2764.svg',
-                'star': 'https://twemoji.maxcdn.com/v/latest/svg/2b50.svg',
-                'diamond': 'https://twemoji.maxcdn.com/v/latest/svg/1f48e.svg',
-                'flower': 'https://twemoji.maxcdn.com/v/latest/svg/1f490.svg'
+            // Map emoji types to Unicode characters
+            const emojiChars = {
+                'happy': '😊',
+                'sad': '🙁',
+                'angry': '😠',
+                'laugh': '😂',
+                'heart': '❤️',
+                'star': '⭐',
+                'diamond': '💎',
+                'flower': '🌸'
             };
             
-            const emojiUrl = emojiUrls[type];
-            if (emojiUrl) {
-                img.onload = function() {
-                    ctx.drawImage(img, 0, 0, size, size);
-                };
-                img.src = emojiUrl;
+            const emojiChar = emojiChars[type];
+            if (emojiChar) {
+                ctx.font = `${size * 0.8}px Arial, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(emojiChar, size/2, size/2);
             }
         }
         window.playersInTrade = new Set();
