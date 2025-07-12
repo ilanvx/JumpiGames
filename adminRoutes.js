@@ -198,103 +198,8 @@ router.post('/give-item', requireAdmin, async (req, res) => {
             message: `Item ${category}:${numericItemId} given to user ${username}` 
         });
     } catch (error) {
-        console.error('Error giving item:', error);
-        res.status(500).json({ error: 'Failed to give item' });
-    }
-});
-
-// Store management routes
-// GET /admin/store-items: Get all store items
-router.get('/store-items', requireAdmin, (req, res) => {
-    try {
-        // Get store items from the server's storeItems array
-        const storeItems = global.storeItems || [];
-        res.json({ success: true, items: storeItems });
-    } catch (error) {
-        console.error('Error fetching store items:', error);
-        res.status(500).json({ error: 'Failed to fetch store items' });
-    }
-});
-
-// POST /admin/store-items: Add a new store item
-router.post('/store-items', requireAdmin, async (req, res) => {
-    const { itemId, category, name, price, currency } = req.body;
-    
-    if (!itemId || !category || !name || !price || !currency) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
-    
-    if (price <= 0) {
-        return res.status(400).json({ error: 'Price must be positive' });
-    }
-    
-    if (!['coins', 'diamonds'].includes(currency)) {
-        return res.status(400).json({ error: 'Invalid currency' });
-    }
-    
-    try {
-        // Initialize global storeItems if it doesn't exist
-        if (!global.storeItems) {
-            global.storeItems = [];
-        }
-        
-        // Check if item already exists
-        const existingItem = global.storeItems.find(item => 
-            item.id === itemId && item.category === category
-        );
-        
-        if (existingItem) {
-            return res.status(400).json({ error: 'Item already exists in store' });
-        }
-        
-        // Add the new item
-        const newItem = { id: itemId, category, name, price, currency };
-        global.storeItems.push(newItem);
-        
-        res.json({ 
-            success: true, 
-            message: `Item ${name} added to store successfully`,
-            item: newItem
-        });
-    } catch (error) {
-        console.error('Error adding store item:', error);
-        res.status(500).json({ error: 'Failed to add store item' });
-    }
-});
-
-// DELETE /admin/store-items: Remove a store item
-router.delete('/store-items', requireAdmin, async (req, res) => {
-    const { itemId, category } = req.body;
-    
-    if (!itemId || !category) {
-        return res.status(400).json({ error: 'Item ID and category are required' });
-    }
-    
-    try {
-        // Initialize global storeItems if it doesn't exist
-        if (!global.storeItems) {
-            global.storeItems = [];
-        }
-        
-        // Find and remove the item
-        const itemIndex = global.storeItems.findIndex(item => 
-            item.id === itemId && item.category === category
-        );
-        
-        if (itemIndex === -1) {
-            return res.status(404).json({ error: 'Item not found in store' });
-        }
-        
-        const removedItem = global.storeItems.splice(itemIndex, 1)[0];
-        
-        res.json({ 
-            success: true, 
-            message: `Item ${removedItem.name} removed from store successfully`,
-            removedItem: removedItem
-        });
-    } catch (error) {
-        console.error('Error removing store item:', error);
-        res.status(500).json({ error: 'Failed to remove store item' });
+        console.error('Error giving item to user:', error);
+        res.status(500).json({ error: 'Failed to give item to user' });
     }
 });
 
@@ -314,22 +219,6 @@ router.post('/add-diamonds', requireAdmin, async (req, res) => {
         res.json({ success: true, message: `Added ${amount} diamonds to ${username}. Total: ${user.diamonds}` });
     } catch (error) {
         res.status(500).json({ error: 'Failed to add diamonds' });
-    }
-});
-
-// POST /admin/emit-store-update: Emit store update to all connected clients
-router.post('/emit-store-update', requireAdmin, (req, res) => {
-    try {
-        // Emit to all connected clients via Socket.IO
-        if (global.io) {
-            global.io.emit('storeItemsUpdated', global.storeItems || []);
-            console.log('Store update emitted to all clients');
-        }
-        
-        res.json({ success: true, message: 'Store update emitted successfully' });
-    } catch (error) {
-        console.error('Error emitting store update:', error);
-        res.status(500).json({ error: 'Failed to emit store update' });
     }
 });
 

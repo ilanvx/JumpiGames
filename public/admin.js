@@ -82,151 +82,12 @@ class AdminPanel {
             this.showNotification('Error', 'Failed to load items metadata', 'error');
         }
     }
-    
-    async loadStoreItems() {
-        try {
-            const response = await this.fetchWithAuth('/admin/store-items');
-            if (response.success) {
-                this.renderStoreItems(response.items);
-            } else {
-                throw new Error(response.error || 'Failed to load store items');
-            }
-        } catch (error) {
-            console.error('Error loading store items:', error);
-            this.showNotification('Error', 'Failed to load store items', 'error');
-        }
-    }
-    
-    renderStoreItems(storeItems) {
-        const tbody = document.getElementById('storeItemsBody');
-        
-        if (!storeItems || storeItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No store items found</td></tr>';
-            return;
-        }
-        
-        tbody.innerHTML = storeItems.map(item => `
-            <tr>
-                <td><code>${item.id}</code></td>
-                <td><span class="badge bg-secondary">${item.category}</span></td>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.price}</td>
-                <td>
-                    <span class="badge ${item.currency === 'coins' ? 'bg-warning' : 'bg-info'}">
-                        <i class="fas fa-${item.currency === 'coins' ? 'coins' : 'gem'}"></i>
-                        ${item.currency}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-danger" onclick="adminPanel.removeStoreItem('${item.id}', '${item.category}')">
-                        <i class="fas fa-trash"></i> Remove
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-    
-    async addStoreItem() {
-        const itemId = document.getElementById('storeItemId').value.trim();
-        const category = document.getElementById('storeItemCategory').value;
-        const name = document.getElementById('storeItemName').value.trim();
-        const price = parseInt(document.getElementById('storeItemPrice').value);
-        const currency = document.getElementById('storeItemCurrency').value;
-        
-        if (!itemId || !category || !name || !price || !currency) {
-            this.showNotification('Error', 'Please fill in all fields', 'error');
-            return;
-        }
-        
-        if (price <= 0) {
-            this.showNotification('Error', 'Price must be positive', 'error');
-            return;
-        }
-        
-        try {
-            const response = await this.fetchWithAuth('/admin/store-items', {
-                method: 'POST',
-                body: JSON.stringify({ itemId, category, name, price, currency })
-            });
-            
-            if (response.success) {
-                this.showNotification('Success', response.message, 'success');
-                this.loadStoreItems(); // Refresh the list
-                
-                // Clear form
-                document.getElementById('storeItemId').value = '';
-                document.getElementById('storeItemCategory').value = '';
-                document.getElementById('storeItemName').value = '';
-                document.getElementById('storeItemPrice').value = '';
-                document.getElementById('storeItemCurrency').value = 'coins';
-                
-                // Emit socket event to update store in real-time
-                this.emitStoreUpdate();
-            } else {
-                this.showNotification('Error', response.error || 'Failed to add store item', 'error');
-            }
-            
-        } catch (error) {
-            console.error('Error adding store item:', error);
-            this.showNotification('Error', 'Failed to add store item', 'error');
-        }
-    }
-    
-    async removeStoreItem(itemId, category) {
-        if (!confirm('Are you sure you want to remove this item from the store?')) {
-            return;
-        }
-        
-        try {
-            const response = await this.fetchWithAuth('/admin/store-items', {
-                method: 'DELETE',
-                body: JSON.stringify({ itemId, category })
-            });
-            
-            if (response.success) {
-                this.showNotification('Success', response.message, 'success');
-                this.loadStoreItems(); // Refresh the list
-                
-                // Emit socket event to update store in real-time
-                this.emitStoreUpdate();
-            } else {
-                this.showNotification('Error', response.error || 'Failed to remove store item', 'error');
-            }
-            
-        } catch (error) {
-            console.error('Error removing store item:', error);
-            this.showNotification('Error', 'Failed to remove store item', 'error');
-        }
-    }
-    
-    // New method to emit store update to connected clients
-    emitStoreUpdate() {
-        // Create a simple WebSocket connection to emit the update
-        const ws = new WebSocket(`ws://${window.location.host}`);
-        ws.onopen = () => {
-            ws.send(JSON.stringify({
-                type: 'adminStoreUpdate',
-                action: 'refresh'
-            }));
-            ws.close();
-        };
-        
-        // Also try to emit via fetch to server
-        fetch('/admin/emit-store-update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-admin-token': this.adminToken
-            }
-        }).catch(err => console.log('Store update emission failed:', err));
-    }
 
     async loadData() {
         await Promise.all([
             this.loadOnlinePlayers(),
             this.loadUsers(),
-            this.loadItemsMetadata(),
-            this.loadStoreItems()
+            this.loadItemsMetadata()
         ]);
         await this.loadCurrentAdminInvisibleState();
     }
@@ -411,11 +272,6 @@ class AdminPanel {
                 this.stopAutoRefresh();
                 this.showNotification('Info', 'Auto refresh disabled', 'info');
             }
-        });
-        
-        // Store management
-        document.getElementById('addStoreItemBtn').addEventListener('click', () => {
-            this.addStoreItem();
         });
     }
 

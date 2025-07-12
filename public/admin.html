@@ -309,7 +309,7 @@
         </div>
 
         <!-- Items Management Section -->
-        <div class="row mb-4">
+        <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm">
                     <div class="card-header bg-warning text-dark">
@@ -338,87 +338,6 @@
                             <div class="col-12 text-center">
                                 <i class="fas fa-spinner fa-spin"></i> Loading items...
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Store Management Section -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-shopping-cart"></i>
-                            Store Management
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Add Store Item Form -->
-                        <div class="row mb-3">
-                            <div class="col-md-2">
-                                <label for="storeItemId" class="form-label">Item ID</label>
-                                <input type="text" class="form-control" id="storeItemId" placeholder="ID">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="storeItemCategory" class="form-label">Category</label>
-                                <select class="form-select" id="storeItemCategory">
-                                    <option value="">Select...</option>
-                                    <option value="ht">Hats (ht)</option>
-                                    <option value="ps">Shirts (ps)</option>
-                                    <option value="st">Pants (st)</option>
-                                    <option value="gs">Gloves (gs)</option>
-                                    <option value="nk">Necklaces (nk)</option>
-                                    <option value="hd">Hair (hd)</option>
-                                    <option value="sk">Shoes (sk)</option>
-                                    <option value="hr">Hair (hr)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="storeItemName" class="form-label">Item Name</label>
-                                <input type="text" class="form-control" id="storeItemName" placeholder="Item name">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="storeItemPrice" class="form-label">Price</label>
-                                <input type="number" class="form-control" id="storeItemPrice" placeholder="Price" min="1">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="storeItemCurrency" class="form-label">Currency</label>
-                                <select class="form-select" id="storeItemCurrency">
-                                    <option value="coins">Coins</option>
-                                    <option value="diamonds">Diamonds</option>
-                                </select>
-                            </div>
-                            <div class="col-md-1">
-                                <label class="form-label">&nbsp;</label>
-                                <button class="btn btn-success w-100" id="addStoreItemBtn">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Store Items List -->
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="storeItemsTable">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Category</th>
-                                        <th>Name</th>
-                                        <th>Price</th>
-                                        <th>Currency</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="storeItemsBody">
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted">
-                                            <i class="fas fa-spinner fa-spin"></i> Loading store items...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
