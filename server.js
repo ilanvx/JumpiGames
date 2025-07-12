@@ -55,6 +55,9 @@ app.use('/store', storeRoutes);
 app.get('/admin/store-items', async (req, res) => {
     try {
         const items = await StoreItem.find().sort({ createdAt: -1 });
+        console.log('Loading store items:', items.length, 'items found'); // Debug log
+        console.log('Store items IDs:', items.map(item => item.id)); // Debug log
+        console.log('Store items details:', items.map(item => ({ id: item.id, name: item.name, category: item.category }))); // Debug log
         res.json({ items: items });
     } catch (error) {
         console.error('Error loading store items:', error);
@@ -71,37 +74,31 @@ app.post('/admin/store-items', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
         
-        // Check if item already exists
-        const existingItem = await StoreItem.findOne({ id: id.toString() });
-        let item;
+        // Generate unique ID by combining category and id with timestamp
+        const uniqueId = `${category}_${id}_${Date.now()}`;
+        console.log('Creating store item with unique ID:', uniqueId); // Debug log
         
-        if (existingItem) {
-            // Update existing item
-            existingItem.name = name;
-            existingItem.category = category;
-            existingItem.price = parseInt(price);
-            existingItem.currency = currency;
-            item = await existingItem.save();
-        } else {
-            // Create new item
-            item = new StoreItem({
-                id: id.toString(),
-                name,
-                category,
-                price: parseInt(price),
-                currency
-            });
-            await item.save();
-        }
+        // Create new item with unique ID
+        const item = new StoreItem({
+            id: uniqueId,
+            name,
+            category,
+            price: parseInt(price),
+            currency
+        });
+        await item.save();
+        console.log('Store item saved successfully:', item.id); // Debug log
         
         // Broadcast to all connected clients
         const allItems = await StoreItem.find().sort({ createdAt: -1 });
+        console.log('Broadcasting store items update:', allItems.length, 'items'); // Debug log
+        console.log('All store items IDs:', allItems.map(item => item.id)); // Debug log
         io.emit('storeItemsUpdated', { items: allItems });
         
         res.json({ success: true, item: item });
     } catch (error) {
-        console.error('Error adding/updating store item:', error);
-        res.status(500).json({ error: 'Failed to add/update store item' });
+        console.error('Error adding store item:', error);
+        res.status(500).json({ error: 'Failed to add store item' });
     }
 });
 
@@ -109,14 +106,21 @@ app.post('/admin/store-items', async (req, res) => {
 app.delete('/admin/store-items/:id', async (req, res) => {
     try {
         const itemId = req.params.id;
+        console.log('Removing store item with ID:', itemId); // Debug log
+        
         const deletedItem = await StoreItem.findOneAndDelete({ id: itemId });
         
         if (!deletedItem) {
+            console.log('Item not found for deletion:', itemId); // Debug log
             return res.status(404).json({ error: 'Item not found' });
         }
         
+        console.log('Item deleted successfully:', deletedItem.id); // Debug log
+        
         // Broadcast to all connected clients
         const allItems = await StoreItem.find().sort({ createdAt: -1 });
+        console.log('Remaining items after deletion:', allItems.length); // Debug log
+        console.log('Remaining items IDs:', allItems.map(item => item.id)); // Debug log
         io.emit('storeItemsUpdated', { items: allItems });
         
         res.json({ success: true });
@@ -891,8 +895,10 @@ io.on('connection', async (socket) => {
        return;
      }
      
-     // Find the item in store database
-     const item = await StoreItem.findOne({ id: itemId });
+     // Find the item in store database by matching the original ID
+     const item = await StoreItem.findOne({ 
+       id: { $regex: new RegExp(`^${category}_${itemId}_`) }
+     });
      if (!item) {
        socket.emit('purchaseResult', { success: false, message: 'פריט לא נמצא בחנות' });
        return;
@@ -905,18 +911,21 @@ io.on('connection', async (socket) => {
        player.diamonds -= price;
      }
      
+     // Extract original item ID from unique ID
+     const originalItemId = parseInt(item.id.split('_')[1]);
+     
      // Add item to user inventory
      if (!player.inventory[item.category]) {
        player.inventory[item.category] = [];
      }
-     player.inventory[item.category].push(item.id);
+     player.inventory[item.category].push(originalItemId);
      
      // Update database
      await User.findOneAndUpdate(
        { username: player.username },
        { 
          $inc: { [currency]: -price },
-         $push: { [`inventory.${item.category}`]: item.id }
+         $push: { [`inventory.${item.category}`]: originalItemId }
        }
      );
      

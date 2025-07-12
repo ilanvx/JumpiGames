@@ -87,6 +87,7 @@ class AdminPanel {
         try {
             const response = await fetch('/admin/store-items');
             const data = await response.json();
+            console.log('Loaded store items:', data.items); // Debug log
             this.renderStoreItems(data.items || []);
         } catch (error) {
             console.error('Error loading store items:', error);
@@ -547,29 +548,37 @@ class AdminPanel {
         const tbody = document.getElementById('storeItemsBody');
         if (!tbody) return;
         
+        console.log('Rendering store items:', items.length, 'items'); // Debug log
+        
         if (items.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No store items found</td></tr>';
             return;
         }
         
-        tbody.innerHTML = items.map(item => `
-            <tr>
-                <td><strong>${item.name}</strong></td>
-                <td><span class="badge bg-info">${this.getCategoryDisplayName(item.category)}</span></td>
-                <td><code>${item.id}</code></td>
-                <td><strong>${item.price}</strong></td>
-                <td>
-                    <span class="badge ${item.currency === 'coins' ? 'bg-warning' : 'bg-primary'}">
-                        ${item.currency === 'coins' ? '🪙 Coins' : '💎 Diamonds'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-danger" onclick="adminPanel.removeStoreItem('${item.id}')">
-                        <i class="fas fa-trash"></i> Remove
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = items.map(item => {
+            // Extract original ID from unique ID (format: category_id_timestamp)
+            const originalId = item.id.split('_')[1] || item.id;
+            console.log('Processing item:', item.id, '-> original ID:', originalId); // Debug log
+            
+            return `
+                <tr>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span class="badge bg-info">${this.getCategoryDisplayName(item.category)}</span></td>
+                    <td><code>${originalId}</code></td>
+                    <td><strong>${item.price}</strong></td>
+                    <td>
+                        <span class="badge ${item.currency === 'coins' ? 'bg-warning' : 'bg-primary'}">
+                            ${item.currency === 'coins' ? '🪙 Coins' : '💎 Diamonds'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="adminPanel.removeStoreItem('${item.id}')">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     async addStoreItem() {
@@ -583,6 +592,8 @@ class AdminPanel {
             this.showNotification('Error', 'Please fill in all fields', 'error');
             return;
         }
+        
+        console.log('Adding store item:', { name, category, id, price, currency }); // Debug log
         
         try {
             const response = await fetch('/admin/store-items', {
@@ -600,6 +611,8 @@ class AdminPanel {
             });
             
             const data = await response.json();
+            console.log('Server response:', data); // Debug log
+            
             if (data.success) {
                 this.showNotification('Success', 'Item added to store successfully', 'success');
                 this.loadStoreItems(); // Reload the list
@@ -622,12 +635,16 @@ class AdminPanel {
             return;
         }
         
+        console.log('Removing store item with ID:', itemId); // Debug log
+        
         try {
             const response = await fetch(`/admin/store-items/${itemId}`, {
                 method: 'DELETE'
             });
             
             const data = await response.json();
+            console.log('Remove response:', data); // Debug log
+            
             if (data.success) {
                 this.showNotification('Success', 'Item removed from store successfully', 'success');
                 this.loadStoreItems(); // Reload the list
