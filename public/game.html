@@ -1984,10 +1984,10 @@
                 <div class="store-categories" style="flex: 1;">
                     <h6 style="margin: 0 0 15px 0; color: #333; font-size: 1rem;">קטגוריות</h6>
                     <div class="store-category-tabs" style="display: flex; flex-direction: column; gap: 10px;">
-                        <button class="store-currency-btn active" data-currency="coins" onclick="switchStoreCurrency('coins')" style="display: flex; align-items: center; justify-content: center; padding: 12px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: white; font-weight: 500; font-size: 1.5rem;">
+                        <button class="store-currency-btn active" data-currency="coins" style="display: flex; align-items: center; justify-content: center; padding: 12px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: white; font-weight: 500; font-size: 1.5rem;">
                             <i class="fas fa-coins" style="font-size: 1.5rem; color: #f39c12;"></i>
                         </button>
-                        <button class="store-currency-btn" data-currency="diamonds" onclick="switchStoreCurrency('diamonds')" style="display: flex; align-items: center; justify-content: center; padding: 12px 15px; background: rgba(255,255,255,0.8); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #333; font-weight: 500; font-size: 1.5rem;">
+                        <button class="store-currency-btn" data-currency="diamonds" style="display: flex; align-items: center; justify-content: center; padding: 12px 15px; background: rgba(255,255,255,0.8); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #333; font-weight: 500; font-size: 1.5rem;">
                             <span style="font-size: 1.5rem;">💎</span>
                         </button>
                     </div>
@@ -2817,6 +2817,18 @@
                 updateStoreCharacterPreview();
                 renderStoreCategoryTabs();
                 
+                // Add event listeners to currency buttons
+                document.querySelectorAll('.store-currency-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const currency = btn.dataset.currency;
+                        if (currency) {
+                            switchStoreCurrency(currency);
+                        }
+                    });
+                });
+                
                 // Show notification
                 window.showNotification('חנות נפתחה', 'info', 2000);
             }
@@ -2893,10 +2905,10 @@
                             <span style="font-weight: 600; color: #333; font-size: 0.9rem;">${item.price}</span>
                         </div>
                         <div style="display: flex; gap: 6px;">
-                            <button class="store-measure-btn" onclick="measureStoreItem('${item.id}')" style="flex: 1; padding: 6px; background: rgba(120,144,255,0.1); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: #667eea; transition: all 0.2s;">
+                            <button class="store-measure-btn" data-item-id="${item.id}" style="flex: 1; padding: 6px; background: rgba(120,144,255,0.1); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: #667eea; transition: all 0.2s;">
                                 מדידה
                             </button>
-                            <button class="store-buy-btn" onclick="buyStoreItem('${item.id}')" style="flex: 1; padding: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: white; transition: all 0.2s;">
+                            <button class="store-buy-btn" data-item-id="${item.id}" style="flex: 1; padding: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; color: white; transition: all 0.2s;">
                                 קנייה
                             </button>
                         </div>
@@ -2910,15 +2922,27 @@
                 if (paginationContainer) {
                     paginationContainer.innerHTML = `
                         <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px;">
-                            <button onclick="changeStorePage(${currentStorePage - 1})" ${currentStorePage === 0 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === 0 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === 0 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === 0 ? '#999' : '#667eea'}; font-size: 0.9rem;">
+                            <button class="store-pagination-btn" data-page="${currentStorePage - 1}" ${currentStorePage === 0 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === 0 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === 0 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === 0 ? '#999' : '#667eea'}; font-size: 0.9rem;">
                                 <i class="fas fa-chevron-right"></i> הקודם
                             </button>
                             <span style="color: #666; font-size: 0.9rem;">עמוד ${currentStorePage + 1} מתוך ${totalPages}</span>
-                            <button onclick="changeStorePage(${currentStorePage + 1})" ${currentStorePage === totalPages - 1 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === totalPages - 1 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === totalPages - 1 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === totalPages - 1 ? '#999' : '#667eea'}; font-size: 0.9rem;">
+                            <button class="store-pagination-btn" data-page="${currentStorePage + 1}" ${currentStorePage === totalPages - 1 ? 'disabled' : ''} style="padding: 8px 12px; background: ${currentStorePage === totalPages - 1 ? '#ccc' : 'rgba(120,144,255,0.1)'}; border: none; border-radius: 6px; cursor: ${currentStorePage === totalPages - 1 ? 'not-allowed' : 'pointer'}; color: ${currentStorePage === totalPages - 1 ? '#999' : '#667eea'}; font-size: 0.9rem;">
                                 הבא <i class="fas fa-chevron-left"></i>
                             </button>
                         </div>
                     `;
+                    
+                    // Add event listeners to pagination buttons
+                    paginationContainer.querySelectorAll('.store-pagination-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const newPage = parseInt(btn.dataset.page);
+                            if (!isNaN(newPage)) {
+                                changeStorePage(newPage);
+                            }
+                        });
+                    });
                 }
             } else {
                 const paginationContainer = document.getElementById('storePaginationContainer');
@@ -2938,6 +2962,29 @@
                         icon.style.color = '#f39c12';
                         span.appendChild(icon);
                     }
+                });
+                
+                // Add event listeners to measure and buy buttons
+                container.querySelectorAll('.store-measure-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const itemId = btn.dataset.itemId;
+                        if (itemId) {
+                            measureStoreItem(itemId);
+                        }
+                    });
+                });
+                
+                container.querySelectorAll('.store-buy-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const itemId = btn.dataset.itemId;
+                        if (itemId) {
+                            buyStoreItem(itemId);
+                        }
+                    });
                 });
             }, 0);
         }
@@ -3306,7 +3353,7 @@
                 toggleStore();
             }
             
-            // Close store when clicking outside (but not on pagination buttons, category tabs, store items, store buttons, currency buttons, or category tab buttons)
+            // Close store when clicking outside (but not on pagination buttons, category tabs, store items, store buttons, currency buttons, category tab buttons, or pagination buttons)
             const storePanel = document.getElementById('storePanel');
             if (storePanel && storePanel.style.display !== 'none') {
                 if (!e.target.closest('#storePanel') && !e.target.closest('#storeBtn') && 
@@ -3316,7 +3363,8 @@
                     !e.target.closest('.store-measure-btn') &&
                     !e.target.closest('.store-buy-btn') &&
                     !e.target.closest('.store-currency-btn') &&
-                    !e.target.closest('.store-category-tab-main')) {
+                    !e.target.closest('.store-category-tab-main') &&
+                    !e.target.closest('.store-pagination-btn')) {
                     toggleStore();
                 }
             }
