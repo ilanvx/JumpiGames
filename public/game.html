@@ -4145,6 +4145,15 @@
                             case 'flower':
                                 drawCustomEmoji(tempCtx, 'flower', emojiSize);
                                 break;
+                            case 'very-happy':
+                                drawCustomEmoji(tempCtx, 'very-happy', emojiSize);
+                                break;
+                            case 'devil':
+                                drawCustomEmoji(tempCtx, 'devil', emojiSize);
+                                break;
+                            case 'crying':
+                                drawCustomEmoji(tempCtx, 'crying', emojiSize);
+                                break;
                             default:
                                 // Fallback to text for old emojis
                                 window.ctx.font = '2.2rem serif';
@@ -4154,7 +4163,7 @@
                         }
                         
                         // Draw the emoji to main canvas
-                        if (['happy', 'sad', 'angry', 'laugh', 'heart', 'star', 'diamond', 'flower'].includes(p.currentEmoji)) {
+                        if (['happy', 'sad', 'angry', 'laugh', 'heart', 'star', 'diamond', 'flower', 'very-happy', 'devil', 'crying'].includes(p.currentEmoji)) {
                             window.ctx.drawImage(tempCanvas, emojiX, emojiY);
                         } else {
                             // For old emojis, don't draw temp canvas
