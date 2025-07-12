@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const User = require('./models/User'); // Ensure this path is correct and User model is well-defined
+const StoreItem = require('./models/StoreItem'); // Add StoreItem model
 const adminRoutes = require('./adminRoutes');
 const storeRoutes = require('./storeRoutes');
 const { getAllItemsMetadata, getItemMetadata } = require('./itemsLoader');
@@ -50,58 +51,79 @@ app.use('/admin', adminRoutes);
 app.use('/store', storeRoutes);
 
 // Store items management
-let storeItems = [];
-
 // Load store items from admin panel
-app.get('/admin/store-items', (req, res) => {
-    res.json({ items: storeItems });
+app.get('/admin/store-items', async (req, res) => {
+    try {
+        const items = await StoreItem.find().sort({ createdAt: -1 });
+        res.json({ items: items });
+    } catch (error) {
+        console.error('Error loading store items:', error);
+        res.status(500).json({ error: 'Failed to load store items' });
+    }
 });
 
 // Add item to store (admin only)
-app.post('/admin/store-items', (req, res) => {
-    const { name, category, id, price, currency } = req.body;
-    
-    if (!name || !category || !id || !price || !currency) {
-        return res.status(400).json({ error: 'Missing required fields' });
+app.post('/admin/store-items', async (req, res) => {
+    try {
+        const { name, category, id, price, currency } = req.body;
+        
+        if (!name || !category || !id || !price || !currency) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        // Check if item already exists
+        const existingItem = await StoreItem.findOne({ id: id.toString() });
+        let item;
+        
+        if (existingItem) {
+            // Update existing item
+            existingItem.name = name;
+            existingItem.category = category;
+            existingItem.price = parseInt(price);
+            existingItem.currency = currency;
+            item = await existingItem.save();
+        } else {
+            // Create new item
+            item = new StoreItem({
+                id: id.toString(),
+                name,
+                category,
+                price: parseInt(price),
+                currency
+            });
+            await item.save();
+        }
+        
+        // Broadcast to all connected clients
+        const allItems = await StoreItem.find().sort({ createdAt: -1 });
+        io.emit('storeItemsUpdated', { items: allItems });
+        
+        res.json({ success: true, item: item });
+    } catch (error) {
+        console.error('Error adding/updating store item:', error);
+        res.status(500).json({ error: 'Failed to add/update store item' });
     }
-    
-    const newItem = {
-        id: id.toString(),
-        name,
-        category,
-        price: parseInt(price),
-        currency
-    };
-    
-    // Check if item already exists
-    const existingIndex = storeItems.findIndex(item => item.id === newItem.id);
-    if (existingIndex !== -1) {
-        storeItems[existingIndex] = newItem;
-    } else {
-        storeItems.push(newItem);
-    }
-    
-    // Broadcast to all connected clients
-    io.emit('storeItemsUpdated', { items: storeItems });
-    
-    res.json({ success: true, item: newItem });
 });
 
 // Remove item from store (admin only)
-app.delete('/admin/store-items/:id', (req, res) => {
-    const itemId = req.params.id;
-    const itemIndex = storeItems.findIndex(item => item.id === itemId);
-    
-    if (itemIndex === -1) {
-        return res.status(404).json({ error: 'Item not found' });
+app.delete('/admin/store-items/:id', async (req, res) => {
+    try {
+        const itemId = req.params.id;
+        const deletedItem = await StoreItem.findOneAndDelete({ id: itemId });
+        
+        if (!deletedItem) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+        
+        // Broadcast to all connected clients
+        const allItems = await StoreItem.find().sort({ createdAt: -1 });
+        io.emit('storeItemsUpdated', { items: allItems });
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error removing store item:', error);
+        res.status(500).json({ error: 'Failed to remove store item' });
     }
-    
-    storeItems.splice(itemIndex, 1);
-    
-    // Broadcast to all connected clients
-    io.emit('storeItemsUpdated', { items: storeItems });
-    
-    res.json({ success: true });
 });
 
 io.use((socket, next) => {
@@ -869,8 +891,8 @@ io.on('connection', async (socket) => {
        return;
      }
      
-     // Find the item in store
-     const item = storeItems.find(i => i.id === itemId);
+     // Find the item in store database
+     const item = await StoreItem.findOne({ id: itemId });
      if (!item) {
        socket.emit('purchaseResult', { success: false, message: 'פריט לא נמצא בחנות' });
        return;

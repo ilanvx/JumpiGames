@@ -1985,7 +1985,7 @@
                     <h6 style="margin: 0 0 15px 0; color: #333; font-size: 1rem;">קטגוריות</h6>
                     <div class="store-category-tabs" style="display: flex; flex-direction: column; gap: 10px;">
                         <button class="store-category-btn active" data-category="coins" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(120,144,255,0.1); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #333; font-weight: 500;">
-                            <span style="font-size: 1.2rem;">🪙</span>
+                            <i class="fas fa-coins" style="font-size: 1.2rem; color: #f39c12;"></i>
                             <span>מטבעות</span>
                         </button>
                         <button class="store-category-btn" data-category="diamonds" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(255,255,255,0.5); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #666; font-weight: 500;">
@@ -2812,7 +2812,7 @@
         }
         
         function loadStoreItems() {
-            // Load store items from admin panel data
+            // Load store items from database
             fetch('/admin/store-items')
                 .then(response => response.json())
                 .then(data => {
@@ -2939,7 +2939,7 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Clone equipped
+            // Clone equipped items
             let equipped = { ...currentUser.equipped };
             if (measuringItem) {
                 const item = storeItems.find(i => i.id === measuringItem);
@@ -2947,25 +2947,65 @@
                     equipped[item.category] = item.id;
                 }
             }
-            // Draw character with equipped (including המדידה)
+            
+            // Draw character with equipped items
             drawCharacterPreviewWithEquipped(canvas, currentUser, equipped);
         }
         
         function drawCharacterPreviewWithEquipped(canvas, player, equipped) {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // בסיס
-            ctx.fillStyle = '#ffdbac';
-            ctx.fillRect(50, 80, 10, 20);
-            ctx.fillRect(45, 100, 20, 30);
-            // פריטים
+            
+            // Draw base character
+            ctx.fillStyle = '#ffdbac'; // Skin color
+            ctx.fillRect(50, 80, 10, 20); // Head
+            ctx.fillRect(45, 100, 20, 30); // Body
+            
+            // Draw equipped items in correct order
             if (equipped) {
-                Object.keys(equipped).forEach(category => {
+                // Define drawing order for items
+                const drawOrder = ['hr', 'hd', 'ht', 'gs', 'nk', 'st', 'ps', 'sk'];
+                
+                drawOrder.forEach(category => {
                     const itemId = equipped[category];
                     if (itemId) {
                         const img = new Image();
                         img.onload = () => {
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            // Draw with proper positioning based on category
+                            let offsetX = 0, offsetY = 0, scale = 1;
+                            
+                            switch(category) {
+                                case 'ht': // Hats
+                                    offsetX = 0; offsetY = -5; scale = 0.9;
+                                    break;
+                                case 'ps': // Pants
+                                    offsetX = 0; offsetY = 15; scale = 0.9;
+                                    break;
+                                case 'st': // Shirts
+                                    offsetX = 0; offsetY = 5; scale = 0.9;
+                                    break;
+                                case 'gs': // Glasses
+                                    offsetX = 0; offsetY = 0; scale = 0.8;
+                                    break;
+                                case 'nk': // Necklaces
+                                    offsetX = 0; offsetY = 10; scale = 0.8;
+                                    break;
+                                case 'hd': // Hair
+                                    offsetX = 0; offsetY = -5; scale = 0.9;
+                                    break;
+                                case 'sk': // Shoes
+                                    offsetX = 0; offsetY = 25; scale = 0.8;
+                                    break;
+                                case 'hr': // Hair
+                                    offsetX = 0; offsetY = -5; scale = 0.9;
+                                    break;
+                            }
+                            
+                            ctx.save();
+                            ctx.translate(canvas.width/2 + offsetX, canvas.height/2 + offsetY);
+                            ctx.scale(scale, scale);
+                            ctx.drawImage(img, -img.width/2, -img.height/2, img.width, img.height);
+                            ctx.restore();
                         };
                         img.src = `/items/${category}/${itemId}/front.png`;
                     }
