@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.userway.org/widget.js" data-account="UGVjn51mMS"></script>
   <style>
     body {
       background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
@@ -96,6 +97,11 @@
     .logout-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+    }
+
+    .back-to-game-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
     }
 
     .sidebar-toggle {
@@ -190,6 +196,22 @@
       font-size: 3.5rem;
       margin-bottom: 15px;
       color: #4ecdc4;
+      text-align: center;
+    }
+    
+    .game-icon img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 2px solid #4a90e2;
+      transition: all 0.3s ease;
+    }
+    
+    .game-card:hover .game-icon img {
+      border-color: #00ffff;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
     }
 
     .game-title {
@@ -243,7 +265,71 @@
       margin-top: 8px;
     }
 
-    /* Sidebar */
+    /* Game Modal */
+    .game-modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+    }
+
+    .game-modal-content {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      margin: 2% auto;
+      padding: 20px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      position: relative;
+      border: 2px solid #4a90e2;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .game-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #4a90e2;
+    }
+
+    .game-modal-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #4ecdc4;
+    }
+
+    .close-modal {
+      background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-modal:hover {
+      transform: scale(1.05);
+    }
+
+    .game-iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    /* Sidebar - Hidden by default */
     .sidebar {
       width: 300px;
       background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
@@ -255,11 +341,15 @@
       position: sticky;
       top: 100px;
       transition: all 0.3s ease;
-      transform: translateX(0);
+      transform: translateX(100%);
+      opacity: 0;
+      visibility: hidden;
     }
 
-    .sidebar.collapsed {
-      transform: translateX(100%);
+    .sidebar.visible {
+      transform: translateX(0);
+      opacity: 1;
+      visibility: visible;
     }
 
     .sidebar-card {
@@ -458,6 +548,9 @@
       </div>
       
       <div class="toolbar-right">
+        <button class="back-to-game-btn" onclick="backToGame()" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3); margin-right: 15px;">
+          <i class="fas fa-arrow-left"></i> חזרה למשחק
+        </button>
         <button class="sidebar-toggle" onclick="toggleSidebar()">
           <i class="fas fa-users"></i> חברים
         </button>
@@ -489,50 +582,22 @@
         </h1>
         
         <div class="games-row">
-          <div class="game-card" onclick="playGame('tictactoe')">
+          <div class="game-card" onclick="playGame('floppybird')">
             <div class="game-icon">
-              <i class="fas fa-th"></i>
+              <img src="/floppybird/image.png" alt="Floppy Bird" style="width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
             </div>
-            <div class="game-title">איקס עיגול</div>
+            <div class="game-title">Floppy Bird</div>
             <div class="game-description">
-              משחק קלאסי נגד בוט חכם! נסה ליצור שורה של שלושה סימנים כדי לנצח.
+              משחק קלאסי! עזור לציפור לעוף דרך הצינורות. כל נקודה = 2 מטבעות!
             </div>
-            <div class="game-reward">🏆 פרס: 10 מטבעות</div>
-            <div class="game-status">✅ זמין - נגד בוט</div>
-            <button class="play-btn">
-              <i class="fas fa-play"></i> שחק עכשיו
-            </button>
-          </div>
-
-          <div class="game-card" onclick="playGame('connectfour')">
-            <div class="game-icon">
-              <i class="fas fa-circle"></i>
-            </div>
-            <div class="game-title">ארבע בשורה</div>
-            <div class="game-description">
-              נסה לחבר ארבעה עיגולים בשורה, בטור או באלכסון! משחק אסטרטגיה נגד בוט.
-            </div>
-            <div class="game-reward">🏆 פרס: 15 מטבעות</div>
-            <div class="game-status">✅ זמין - נגד בוט</div>
-            <button class="play-btn">
-              <i class="fas fa-play"></i> שחק עכשיו
-            </button>
-          </div>
-
-          <div class="game-card" onclick="playGame('memory')">
-            <div class="game-icon">
-              <i class="fas fa-brain"></i>
-            </div>
-            <div class="game-title">משחק הזיכרון</div>
-            <div class="game-description">
-              מצא זוגות של כרטיסים זהים! תרגל את הזיכרון שלך וקבל פרסים.
-            </div>
-            <div class="game-reward">🏆 פרס: 25-60 מטבעות</div>
+            <div class="game-reward">🏆 פרס: 2 מטבעות לכל נקודה</div>
             <div class="game-status">✅ זמין - משחק יחיד</div>
             <button class="play-btn">
               <i class="fas fa-play"></i> שחק עכשיו
             </button>
           </div>
+
+
         </div>
       </div>
     </div>
@@ -591,8 +656,22 @@
     </div>
   </div>
 
+  <!-- Game Modal -->
+  <div id="gameModal" class="game-modal">
+    <div class="game-modal-content">
+      <div class="game-modal-header">
+        <div class="game-modal-title" id="modalGameTitle">משחק</div>
+        <button class="close-modal" onclick="closeGameModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <iframe id="gameIframe" class="game-iframe" src=""></iframe>
+    </div>
+  </div>
+
   <script>
     let userData = null;
+    let currentGame = null;
 
     // Check authentication on page load
     async function checkAuth() {
@@ -638,9 +717,13 @@
       window.location.href = '/logout';
     }
 
+    function backToGame() {
+      window.location.href = '/game';
+    }
+
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('collapsed');
+      sidebar.classList.toggle('visible');
     }
 
     function playGame(gameType) {
@@ -649,15 +732,62 @@
         return;
       }
 
-      // Redirect to actual games
-      if (gameType === 'tictactoe') {
-        window.location.href = '/games/tictactoe';
-      } else if (gameType === 'connectfour') {
-        window.location.href = '/games/connectfour';
-      } else if (gameType === 'memory') {
-        window.location.href = '/games/memory';
+      currentGame = gameType;
+      
+      if (gameType === 'floppybird') {
+        openGameModal('Floppy Bird', '/floppybird/');
+
       } else {
         alert(`משחק ${gameType} ייפתח בקרוב!`);
+      }
+    }
+
+    function openGameModal(title, gameUrl) {
+      document.getElementById('modalGameTitle').textContent = title;
+      document.getElementById('gameIframe').src = gameUrl;
+      document.getElementById('gameModal').style.display = 'block';
+      
+      // Listen for game completion messages
+      window.addEventListener('message', handleGameMessage);
+      
+      // Add iframe load event
+      document.getElementById('gameIframe').onload = function() {
+        console.log('Game iframe loaded');
+        // Try to send a test message to the iframe
+        try {
+          this.contentWindow.postMessage({type: 'test'}, '*');
+        } catch(e) {
+          console.log('Could not send message to iframe:', e);
+        }
+      };
+    }
+
+    function closeGameModal() {
+      document.getElementById('gameModal').style.display = 'none';
+      document.getElementById('gameIframe').src = '';
+      currentGame = null;
+      
+      // Remove message listener
+      window.removeEventListener('message', handleGameMessage);
+    }
+
+    function handleGameMessage(event) {
+      // Handle messages from the game iframe
+      if (event.data && event.data.type === 'gameComplete') {
+        if (currentGame === 'floppybird') {
+          const score = event.data.score;
+          const coinsEarned = score * 2; // 2 coins per point
+          
+          // Validate score (prevent cheating)
+          if (score > 1000) {
+            alert('ניקוד לא חוקי!');
+            return;
+          }
+          
+          // Award coins
+          awardCoins(currentGame, coinsEarned, score);
+          closeGameModal();
+        }
       }
     }
 
@@ -702,7 +832,7 @@
       });
     }
 
-    async function awardCoins(gameType, amount) {
+    async function awardCoins(gameType, amount, score) {
       try {
         const response = await fetch('/api/arcade/award-coins', {
           method: 'POST',
@@ -712,7 +842,8 @@
           credentials: 'include',
           body: JSON.stringify({
             gameType: gameType,
-            amount: amount
+            amount: amount,
+            score: score
           })
         });
 
@@ -720,7 +851,16 @@
           const result = await response.json();
           userData.coins = result.newCoins;
           document.getElementById('coins').textContent = result.newCoins;
-          alert(`כל הכבוד! הרווחת ${amount} מטבעות!`);
+          
+          // Update total coins earned
+          const totalCoins = parseInt(document.getElementById('totalCoins').textContent) + amount;
+          document.getElementById('totalCoins').textContent = totalCoins;
+          
+          // Update games played
+          const gamesPlayed = parseInt(document.getElementById('gamesPlayed').textContent) + 1;
+          document.getElementById('gamesPlayed').textContent = gamesPlayed;
+          
+          alert(`כל הכבוד! הרווחת ${amount} מטבעות! (ניקוד: ${score})`);
         }
       } catch (error) {
         console.error('Error awarding coins:', error);

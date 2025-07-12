@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Jumpi - עולם וירטואלי</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
     <style>
         body {
             margin: 0;
@@ -15,7 +16,7 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            padding-top: 10px;
+            padding-top: 80px; /* Add space for toolbar */
         }
 
         /* Game Container */
@@ -24,17 +25,14 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            height: calc(100vh - 90px);
+            height: calc(100vh - 80px);
             padding: 10px;
             box-sizing: border-box;
         }
 
-        /* Toolbar */
+        /* Ensure standard toolbar is above modern toolbar */
         .toolbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            z-index: 1001 !important;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             backdrop-filter: blur(20px);
             padding: 15px 30px;
@@ -42,9 +40,13 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             height: 80px;
             box-sizing: border-box;
+            direction: rtl;
         }
 
         .toolbar-logo {
@@ -52,11 +54,13 @@
             font-weight: bold;
             color: white;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            direction: rtl;
         }
 
         .toolbar-links {
             display: flex;
             gap: 30px;
+            direction: rtl;
         }
 
         .toolbar-link {
@@ -80,13 +84,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
-        }
-
-        .user-info {
-            color: white;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            direction: rtl;
         }
 
         .logout-btn {
@@ -106,6 +104,62 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
+
+        /* Hide logout button in toolbar */
+        .toolbar .logout-btn {
+            display: none;
+        }
+
+        /* Responsive Design for Toolbar */
+        @media (max-width: 768px) {
+            .toolbar {
+                height: 60px;
+                padding: 10px 20px;
+                direction: rtl;
+            }
+
+            .toolbar-logo {
+                font-size: 1.4rem;
+                direction: rtl;
+            }
+
+            .toolbar-links {
+                gap: 15px;
+                direction: rtl;
+            }
+
+            .toolbar-link {
+                font-size: 0.8rem;
+            }
+
+            .toolbar-user {
+                gap: 10px;
+                direction: rtl;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .toolbar {
+                padding: 8px 15px;
+                direction: rtl;
+            }
+
+            .toolbar-logo {
+                font-size: 1.2rem;
+                direction: rtl;
+            }
+
+            .toolbar-links {
+                gap: 10px;
+                direction: rtl;
+            }
+
+            .toolbar-link {
+                font-size: 0.7rem;
+            }
+        }
+
+
 
         #gameCanvas {
             max-width: 100%;
@@ -132,36 +186,6 @@
                 padding-top: 5px;
             }
 
-            .toolbar {
-                height: 60px;
-                padding: 10px 20px;
-            }
-
-            .toolbar-logo {
-                font-size: 1.4rem;
-            }
-
-            .toolbar-links {
-                gap: 15px;
-            }
-
-            .toolbar-link {
-                font-size: 0.8rem;
-            }
-
-            .toolbar-user {
-                gap: 10px;
-            }
-
-            .user-info {
-                font-size: 0.8rem;
-            }
-
-            .logout-btn {
-                padding: 6px 12px;
-                font-size: 0.7rem;
-            }
-
             #gameCanvas {
                 width: 95vw;
                 height: 75vh;
@@ -169,28 +193,12 @@
             }
 
             .game-container {
-                height: calc(100vh - 70px);
+                height: calc(100vh - 60px);
                 padding: 5px;
             }
         }
 
         @media (max-width: 480px) {
-            .toolbar {
-                padding: 8px 15px;
-            }
-
-            .toolbar-logo {
-                font-size: 1.2rem;
-            }
-
-            .toolbar-links {
-                gap: 10px;
-            }
-
-            .toolbar-link {
-                font-size: 0.7rem;
-            }
-
             #gameCanvas {
                 width: 98vw;
                 height: 80vh;
@@ -201,11 +209,6 @@
         @media (max-height: 600px) {
             body {
                 padding-top: 5px;
-            }
-
-            .toolbar {
-                height: 50px;
-                padding: 8px 20px;
             }
         }
         
@@ -228,24 +231,10 @@
             display: block;
         }
 
-            .game-container {
-                height: calc(100vh - 60px);
-                padding: 5px;
-            }
-
-            #gameCanvas {
-                height: 85vh;
-            }
-        }
-
         /* Landscape orientation for mobile */
         @media (max-width: 768px) and (orientation: landscape) {
             body {
                 padding-top: 5px;
-            }
-
-            .toolbar {
-                height: 50px;
             }
 
             .game-container {
@@ -1756,20 +1745,20 @@
     </style>
 </head>
 <body>
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <div class="toolbar-logo">Jumpi</div>
-        <div class="toolbar-links">
-            <a class="toolbar-link" href="/store">חנות</a>
-            <a class="toolbar-link" href="/blog">בלוג</a>
-            <a class="toolbar-link" href="/contact">צור קשר</a>
-            <a class="toolbar-link" href="/terms">תקנון</a>
-            <a class="toolbar-link" href="/privacy">מדיניות פרטיות</a>
-        </div>
-        <div class="toolbar-user">
-            <button class="logout-btn" onclick="logout()">התנתק</button>
-        </div>
-    </div>
+    <!-- Standard Toolbar -->
+    <script src="/components/Toolbar.js"></script>
+    <script>
+        // Initialize standard toolbar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing toolbar...');
+            try {
+                new Toolbar();
+                console.log('Toolbar initialized successfully');
+            } catch (error) {
+                console.error('Error initializing toolbar:', error);
+            }
+        });
+    </script>
 
     <div class="game-container">
         <canvas id="gameCanvas" width="1200" height="680"></canvas>
@@ -1793,6 +1782,9 @@
                 </button>
                 <button class="toolbar-btn" id="emotesBtn" title="Emotes">
                     <i class="fas fa-smile"></i>
+                </button>
+                <button class="toolbar-btn" id="gameExitBtn" title="יציאה מהמשחק">
+                    <i class="fas fa-gamepad"></i>
                 </button>
             </div>
             
@@ -1911,6 +1903,25 @@
         </div>
     </div>
     <div id="notification-container"></div>
+    
+    <!-- Game Exit Modal -->
+    <div id="gameExitModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; backdrop-filter: blur(5px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 30px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+            <div style="margin-bottom: 20px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 15px;"></i>
+                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 1.3rem;">אזהרה!</h3>
+                <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">פעולה זו תוציא אותך מהמשחק ותעביר אותך לעמוד המשחקים. האם אתה בטוח?</p>
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="confirmExitBtn" style="background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease;">
+                    <i class="fas fa-check"></i> אישור
+                </button>
+                <button id="cancelExitBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease;">
+                    <i class="fas fa-times"></i> ביטול
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Friends Panel -->
     <div id="friendsPanel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1500; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 8px 32px rgba(120,144,255,0.18); border: 1.5px solid rgba(255,255,255,0.22); backdrop-filter: blur(18px); min-width: 400px; max-width: 600px; max-height: 80vh;">
         <div class="friends-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid rgba(120,144,255,0.1);">
@@ -2607,6 +2618,30 @@
                     }
                 });
             }
+            
+            // Game Exit button
+            const gameExitBtn = document.getElementById('gameExitBtn');
+            if (gameExitBtn) {
+                gameExitBtn.addEventListener('click', () => {
+                    showGameExitModal();
+                });
+            }
+            
+            // Game Exit Modal buttons
+            const confirmExitBtn = document.getElementById('confirmExitBtn');
+            const cancelExitBtn = document.getElementById('cancelExitBtn');
+            
+            if (confirmExitBtn) {
+                confirmExitBtn.addEventListener('click', () => {
+                    window.location.href = '/arcade';
+                });
+            }
+            
+            if (cancelExitBtn) {
+                cancelExitBtn.addEventListener('click', () => {
+                    hideGameExitModal();
+                });
+            }
         }
         
         // Client-side chat filtering
@@ -2640,6 +2675,21 @@
                 window.socket.emit('chat', message);
                 chatInput.value = '';
                 window.currentInput = '';
+            }
+        }
+        
+        // ==================== Game Exit Modal Functions ====================
+        function showGameExitModal() {
+            const modal = document.getElementById('gameExitModal');
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+        
+        function hideGameExitModal() {
+            const modal = document.getElementById('gameExitModal');
+            if (modal) {
+                modal.style.display = 'none';
             }
         }
         

@@ -2093,19 +2093,45 @@ function getAllRooms() {
 
 // Arcade API routes
 app.get('/api/arcade/connected-users', (req, res) => {
-  // For now, return a mock list of connected users
-  // In a real app, this would track actual connected users
-  const mockUsers = [
-    { username: 'JumpiBot', status: 'online' },
-    { username: 'GameMaster', status: 'online' },
-    { username: 'ArcadeFan', status: 'online' }
-  ];
-  res.json(mockUsers);
+  try {
+    // Get actual connected users from the players object
+    const connectedUsers = [];
+    
+    // Add real connected players
+    Object.values(players).forEach(player => {
+      if (player.username && !player.isAFK) {
+        connectedUsers.push({
+          username: player.username,
+          status: 'online',
+          room: playerRooms[player.id] || 'unknown'
+        });
+      }
+    });
+    
+    // Add some bot users for atmosphere
+    const botUsers = [
+      { username: 'JumpiBot', status: 'online', room: 'arcade' },
+      { username: 'GameMaster', status: 'online', room: 'arcade' }
+    ];
+    
+    // Combine real users and bots, limit to 20 total
+    const allUsers = [...connectedUsers, ...botUsers].slice(0, 20);
+    
+    res.json(allUsers);
+  } catch (error) {
+    console.error('Error getting connected users:', error);
+    // Fallback to mock data
+    const mockUsers = [
+      { username: 'JumpiBot', status: 'online' },
+      { username: 'GameMaster', status: 'online' }
+    ];
+    res.json(mockUsers);
+  }
 });
 
 app.post('/api/arcade/award-coins', async (req, res) => {
   try {
-    const { gameType, amount } = req.body;
+    const { gameType, amount, score } = req.body;
     
     if (!req.session.userId) {
       return res.status(401).json({ error: 'לא מחובר' });
@@ -2116,20 +2142,32 @@ app.post('/api/arcade/award-coins', async (req, res) => {
       return res.status(404).json({ error: 'משתמש לא נמצא' });
     }
 
-    // Validate amount based on game type
+    // Validate amount and score based on game type
     let maxAmount = 0;
+    let maxScore = 0;
+    
     switch (gameType) {
-      case 'tictactoe':
-        maxAmount = 10;
-        break;
+
       case 'connectfour':
         maxAmount = 15;
+        maxScore = 1;
         break;
       case 'memory':
-        maxAmount = 60; // Updated to support higher rewards
+        maxAmount = 60;
+        maxScore = 30;
+        break;
+      case 'floppybird':
+        maxAmount = 2000; // 2 coins per point, max 1000 points
+        maxScore = 1000;
         break;
       default:
         maxAmount = 10;
+        maxScore = 1;
+    }
+
+    // Validate score if provided
+    if (score !== undefined && score > maxScore) {
+      return res.status(400).json({ error: 'ניקוד לא חוקי' });
     }
 
     const finalAmount = Math.min(amount, maxAmount);
@@ -2139,7 +2177,8 @@ app.post('/api/arcade/award-coins', async (req, res) => {
     res.json({ 
       success: true, 
       newCoins: user.coins, 
-      awarded: finalAmount 
+      awarded: finalAmount,
+      score: score || 0
     });
   } catch (error) {
     console.error('Error awarding coins:', error);
