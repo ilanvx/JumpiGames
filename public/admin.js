@@ -86,12 +86,41 @@ class AdminPanel {
     async loadStoreItems() {
         try {
             const response = await fetch('/admin/store-items');
+            if (response.status === 401) {
+                this.showNotification('Error', 'Authentication required. Please log in.', 'error');
+                this.hideStoreManagement();
+                return;
+            }
+            if (response.status === 403) {
+                this.showNotification('Error', 'Admin access required. Only administrators can manage store items.', 'error');
+                this.hideStoreManagement();
+                return;
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             const data = await response.json();
             console.log('Loaded store items:', data.items); // Debug log
             this.renderStoreItems(data.items || []);
         } catch (error) {
             console.error('Error loading store items:', error);
             this.showNotification('Error', 'Failed to load store items', 'error');
+            this.hideStoreManagement();
+        }
+    }
+
+    hideStoreManagement() {
+        // Find the store management section by looking for the card with "Store Management" in the header
+        const storeCards = document.querySelectorAll('.card');
+        for (const card of storeCards) {
+            const header = card.querySelector('.card-header');
+            if (header && header.textContent.includes('Store Management')) {
+                const row = card.closest('.row');
+                if (row) {
+                    row.style.display = 'none';
+                }
+                break;
+            }
         }
     }
 
@@ -99,9 +128,16 @@ class AdminPanel {
         await Promise.all([
             this.loadOnlinePlayers(),
             this.loadUsers(),
-            this.loadItemsMetadata(),
-            this.loadStoreItems()
+            this.loadItemsMetadata()
         ]);
+        
+        // Try to load store items, but don't fail if not admin
+        try {
+            await this.loadStoreItems();
+        } catch (error) {
+            console.log('Store items not loaded - user may not be admin');
+        }
+        
         await this.loadCurrentAdminInvisibleState();
     }
 
@@ -610,6 +646,18 @@ class AdminPanel {
                 })
             });
             
+            if (response.status === 401) {
+                this.showNotification('Error', 'Authentication required. Please log in.', 'error');
+                return;
+            }
+            if (response.status === 403) {
+                this.showNotification('Error', 'Admin access required. Only administrators can add store items.', 'error');
+                return;
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
             console.log('Server response:', data); // Debug log
             
@@ -641,6 +689,18 @@ class AdminPanel {
             const response = await fetch(`/admin/store-items/${itemId}`, {
                 method: 'DELETE'
             });
+            
+            if (response.status === 401) {
+                this.showNotification('Error', 'Authentication required. Please log in.', 'error');
+                return;
+            }
+            if (response.status === 403) {
+                this.showNotification('Error', 'Admin access required. Only administrators can remove store items.', 'error');
+                return;
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
             const data = await response.json();
             console.log('Remove response:', data); // Debug log

@@ -50,9 +50,31 @@ app.use('/admin', adminRoutes);
 // Mount store routes
 app.use('/store', storeRoutes);
 
+// Admin authentication middleware for store management
+const requireAdmin = async (req, res, next) => {
+    try {
+        // Get username from session
+        const username = req.session?.username;
+        if (!username) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+        
+        // Check if user exists and is admin (case-insensitive)
+        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+        if (!user || !user.isAdmin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        next();
+    } catch (error) {
+        console.error('Error checking admin status:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 // Store items management
-// Load store items from admin panel
-app.get('/admin/store-items', async (req, res) => {
+// Load store items from admin panel (admin only)
+app.get('/admin/store-items', requireAdmin, async (req, res) => {
     try {
         const items = await StoreItem.find().sort({ createdAt: -1 });
         console.log('Loading store items:', items.length, 'items found'); // Debug log
@@ -66,7 +88,7 @@ app.get('/admin/store-items', async (req, res) => {
 });
 
 // Add item to store (admin only)
-app.post('/admin/store-items', async (req, res) => {
+app.post('/admin/store-items', requireAdmin, async (req, res) => {
     try {
         const { name, category, id, price, currency } = req.body;
         
@@ -103,7 +125,7 @@ app.post('/admin/store-items', async (req, res) => {
 });
 
 // Remove item from store (admin only)
-app.delete('/admin/store-items/:id', async (req, res) => {
+app.delete('/admin/store-items/:id', requireAdmin, async (req, res) => {
     try {
         const itemId = req.params.id;
         console.log('Removing store item with ID:', itemId); // Debug log
