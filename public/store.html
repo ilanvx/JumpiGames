@@ -107,6 +107,9 @@
     .user-avatar {
       font-size: 2.5em;
       margin-left: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .user-details {
       flex: 1;
@@ -130,6 +133,10 @@
     }
     .balance-icon {
       font-size: 1.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
     }
     .balance-label {
       color: #666;
@@ -254,6 +261,7 @@
   </style>
 </head>
 <body>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/components/Toolbar.js"></script>
   <script>
     // Initialize toolbar
@@ -271,17 +279,17 @@
     <div id="userInfo" class="user-info" style="display: none;">
       <div class="user-card">
         <div class="user-header">
-          <div class="user-avatar">👤</div>
+          <div class="user-avatar"><i class="fas fa-user-circle" style="color: #1976d2; font-size: 1.2em;"></i></div>
           <div class="user-details">
             <div class="user-name" id="userName">שם המשתמש</div>
             <div class="user-balance">
               <span class="balance-item">
-                <span class="balance-icon">🪙</span>
+                <span class="balance-icon"><i class="fas fa-coins" style="color: #f39c12; font-size: 1.1em;"></i></span>
                 <span class="balance-label">מטבעות:</span>
                 <span class="balance-amount" id="userCoins">0</span>
               </span>
               <span class="balance-item">
-                <span class="balance-icon">💎</span>
+                <span class="balance-icon"><i class="fas fa-gem" style="color: #9b59b6; font-size: 1.1em;"></i></span>
                 <span class="balance-label">יהלומים:</span>
                 <span class="balance-amount" id="userDiamonds">0</span>
               </span>
