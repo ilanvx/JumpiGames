@@ -1292,26 +1292,7 @@ io.on('connection', async (socket) => {
  // ==================== Store System ====================
  
  // Store items database (in memory for now, can be moved to database later)
- let storeItems = [
-     // Coins items
-     { id: '1', category: 'ht', name: 'כובע בסיסי', price: 50, currency: 'coins' },
-     { id: '2', category: 'ht', name: 'כובע מתקדם', price: 100, currency: 'coins' },
-     { id: '3', category: 'ht', name: 'כובע פרימיום', price: 200, currency: 'coins' },
-     { id: '1', category: 'ps', name: 'חולצה בסיסית', price: 75, currency: 'coins' },
-     { id: '2', category: 'ps', name: 'חולצה מתקדמת', price: 150, currency: 'coins' },
-     { id: '3', category: 'ps', name: 'חולצה פרימיום', price: 300, currency: 'coins' },
-     { id: '1', category: 'st', name: 'מכנסיים בסיסיים', price: 60, currency: 'coins' },
-     { id: '2', category: 'st', name: 'מכנסיים מתקדמים', price: 120, currency: 'coins' },
-     { id: '3', category: 'st', name: 'מכנסיים פרימיום', price: 250, currency: 'coins' },
-     
-     // Diamonds items
-     { id: '4', category: 'ht', name: 'כובע נדיר', price: 10, currency: 'diamonds' },
-     { id: '5', category: 'ht', name: 'כובע אגדי', price: 25, currency: 'diamonds' },
-     { id: '4', category: 'ps', name: 'חולצה נדירה', price: 15, currency: 'diamonds' },
-     { id: '5', category: 'ps', name: 'חולצה אגדית', price: 35, currency: 'diamonds' },
-     { id: '4', category: 'st', name: 'מכנסיים נדירים', price: 12, currency: 'diamonds' },
-     { id: '5', category: 'st', name: 'מכנסיים אגדיים', price: 30, currency: 'diamonds' }
- ];
+ let storeItems = [];
  
  // Get store items
  socket.on('getStoreItems', () => {
@@ -1350,14 +1331,8 @@ io.on('connection', async (socket) => {
          return;
      }
      
-     // Check if player already has this item
-     if (currentPlayer.inventory[category] && currentPlayer.inventory[category].includes(itemId)) {
-         socket.emit('purchaseResult', { 
-             success: false, 
-             message: 'כבר יש לך פריט זה' 
-         });
-         return;
-     }
+           // Allow purchasing items even if player already has them
+      // (removed the restriction)
      
      try {
          // Update player's currency
