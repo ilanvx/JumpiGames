@@ -21,6 +21,9 @@ const server = http.createServer(app);
 const io = new Server(server);
 app.set('io', io);
 
+// Make io globally accessible for admin routes
+global.io = io;
+
 // Define ITEM_CATEGORIES_SERVER_KEYS based on your client-side ITEM_CATEGORIES
 // This helps ensure consistency in data structures.
 const ITEM_CATEGORIES_SERVER_KEYS = ["ht", "ps", "st", "gs", "nk", "hd", "sk", "hr"];

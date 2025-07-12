@@ -159,6 +159,9 @@ class AdminPanel {
                 document.getElementById('storeItemName').value = '';
                 document.getElementById('storeItemPrice').value = '';
                 document.getElementById('storeItemCurrency').value = 'coins';
+                
+                // Emit socket event to update store in real-time
+                this.emitStoreUpdate();
             } else {
                 this.showNotification('Error', response.error || 'Failed to add store item', 'error');
             }
@@ -183,6 +186,9 @@ class AdminPanel {
             if (response.success) {
                 this.showNotification('Success', response.message, 'success');
                 this.loadStoreItems(); // Refresh the list
+                
+                // Emit socket event to update store in real-time
+                this.emitStoreUpdate();
             } else {
                 this.showNotification('Error', response.error || 'Failed to remove store item', 'error');
             }
@@ -191,6 +197,28 @@ class AdminPanel {
             console.error('Error removing store item:', error);
             this.showNotification('Error', 'Failed to remove store item', 'error');
         }
+    }
+    
+    // New method to emit store update to connected clients
+    emitStoreUpdate() {
+        // Create a simple WebSocket connection to emit the update
+        const ws = new WebSocket(`ws://${window.location.host}`);
+        ws.onopen = () => {
+            ws.send(JSON.stringify({
+                type: 'adminStoreUpdate',
+                action: 'refresh'
+            }));
+            ws.close();
+        };
+        
+        // Also try to emit via fetch to server
+        fetch('/admin/emit-store-update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': this.adminToken
+            }
+        }).catch(err => console.log('Store update emission failed:', err));
     }
 
     async loadData() {

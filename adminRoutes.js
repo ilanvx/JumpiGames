@@ -317,6 +317,22 @@ router.post('/add-diamonds', requireAdmin, async (req, res) => {
     }
 });
 
+// POST /admin/emit-store-update: Emit store update to all connected clients
+router.post('/emit-store-update', requireAdmin, (req, res) => {
+    try {
+        // Emit to all connected clients via Socket.IO
+        if (global.io) {
+            global.io.emit('storeItemsUpdated', global.storeItems || []);
+            console.log('Store update emitted to all clients');
+        }
+        
+        res.json({ success: true, message: 'Store update emitted successfully' });
+    } catch (error) {
+        console.error('Error emitting store update:', error);
+        res.status(500).json({ error: 'Failed to emit store update' });
+    }
+});
+
 // Helper function to load item offsets
 function loadItemOffsets() {
     const offsetsPath = path.join(__dirname, 'config', 'itemOffsets.json');
