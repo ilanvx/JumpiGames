@@ -10,52 +10,97 @@
   line-height: 24px;
   vertical-align: middle;
   margin: 0 2px;
+  position: relative;
 }
 
 /* Unicode-based emojis */
-.emoji-happy {
+.emoji-happy::before {
   content: '😊';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-sad {
+.emoji-sad::before {
   content: '🙁';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-angry {
+.emoji-angry::before {
   content: '😠';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-laugh {
+.emoji-laugh::before {
   content: '😂';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-heart {
+.emoji-heart::before {
   content: '❤️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-star {
+.emoji-star::before {
   content: '⭐';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-diamond {
+.emoji-diamond::before {
   content: '💎';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-flower {
+.emoji-flower::before {
   content: '🌸';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* New emojis */
-.emoji-very-happy {
+.emoji-very-happy::before {
   content: '😄';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-devil {
+.emoji-devil::before {
   content: '😈';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.emoji-crying {
+.emoji-crying::before {
   content: '😢';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* Emoji Button Styles */
