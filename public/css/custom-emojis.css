@@ -13,36 +13,49 @@
 }
 
 /* Unicode-based emojis */
-.emoji-happy::before {
+.emoji-happy {
   content: '😊';
 }
 
-.emoji-sad::before {
+.emoji-sad {
   content: '🙁';
 }
 
-.emoji-angry::before {
+.emoji-angry {
   content: '😠';
 }
 
-.emoji-laugh::before {
+.emoji-laugh {
   content: '😂';
 }
 
-.emoji-heart::before {
+.emoji-heart {
   content: '❤️';
 }
 
-.emoji-star::before {
+.emoji-star {
   content: '⭐';
 }
 
-.emoji-diamond::before {
+.emoji-diamond {
   content: '💎';
 }
 
-.emoji-flower::before {
+.emoji-flower {
   content: '🌸';
+}
+
+/* New emojis */
+.emoji-very-happy {
+  content: '😄';
+}
+
+.emoji-devil {
+  content: '😈';
+}
+
+.emoji-crying {
+  content: '😢';
 }
 
 /* Emoji Button Styles */
