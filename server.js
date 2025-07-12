@@ -877,7 +877,7 @@ io.on('connection', async (socket) => {
  // Store purchase handling
  socket.on('purchaseItem', async (data) => {
    try {
-     const { itemId, currency, price } = data;
+     const { itemId, category, currency, price } = data;
      const player = players[socket.id];
      
      if (!player) {

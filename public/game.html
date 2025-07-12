@@ -3306,10 +3306,17 @@
                 toggleStore();
             }
             
-            // Close store when clicking outside
+            // Close store when clicking outside (but not on pagination buttons, category tabs, store items, store buttons, currency buttons, or category tab buttons)
             const storePanel = document.getElementById('storePanel');
             if (storePanel && storePanel.style.display !== 'none') {
-                if (!e.target.closest('#storePanel') && !e.target.closest('#storeBtn')) {
+                if (!e.target.closest('#storePanel') && !e.target.closest('#storeBtn') && 
+                    !e.target.closest('#storePaginationContainer') && 
+                    !e.target.closest('#storeCategoryTabsMain') &&
+                    !e.target.closest('.store-item-card') &&
+                    !e.target.closest('.store-measure-btn') &&
+                    !e.target.closest('.store-buy-btn') &&
+                    !e.target.closest('.store-currency-btn') &&
+                    !e.target.closest('.store-category-tab-main')) {
                     toggleStore();
                 }
             }
