@@ -49,6 +49,61 @@ app.use('/admin', adminRoutes);
 // Mount store routes
 app.use('/store', storeRoutes);
 
+// Store items management
+let storeItems = [];
+
+// Load store items from admin panel
+app.get('/admin/store-items', (req, res) => {
+    res.json({ items: storeItems });
+});
+
+// Add item to store (admin only)
+app.post('/admin/store-items', (req, res) => {
+    const { name, category, id, price, currency } = req.body;
+    
+    if (!name || !category || !id || !price || !currency) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const newItem = {
+        id: id.toString(),
+        name,
+        category,
+        price: parseInt(price),
+        currency
+    };
+    
+    // Check if item already exists
+    const existingIndex = storeItems.findIndex(item => item.id === newItem.id);
+    if (existingIndex !== -1) {
+        storeItems[existingIndex] = newItem;
+    } else {
+        storeItems.push(newItem);
+    }
+    
+    // Broadcast to all connected clients
+    io.emit('storeItemsUpdated', { items: storeItems });
+    
+    res.json({ success: true, item: newItem });
+});
+
+// Remove item from store (admin only)
+app.delete('/admin/store-items/:id', (req, res) => {
+    const itemId = req.params.id;
+    const itemIndex = storeItems.findIndex(item => item.id === itemId);
+    
+    if (itemIndex === -1) {
+        return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    storeItems.splice(itemIndex, 1);
+    
+    // Broadcast to all connected clients
+    io.emit('storeItemsUpdated', { items: storeItems });
+    
+    res.json({ success: true });
+});
+
 io.use((socket, next) => {
  sessionMiddleware(socket.request, {}, next);
 });
@@ -791,6 +846,77 @@ io.on('connection', async (socket) => {
    // Remove from in-trade list if needed
    playersInTrade.delete(socket.id);
    io.emit('playersInTrade', Array.from(playersInTrade));
+ });
+
+ // Store purchase handling
+ socket.on('purchaseItem', async (data) => {
+   try {
+     const { itemId, currency, price } = data;
+     const player = players[socket.id];
+     
+     if (!player) {
+       socket.emit('purchaseResult', { success: false, message: 'שגיאה - משתמש לא נמצא' });
+       return;
+     }
+     
+     // Check if user has enough currency
+     const userBalance = currency === 'coins' ? player.coins : player.diamonds;
+     if (userBalance < price) {
+       socket.emit('purchaseResult', { 
+         success: false, 
+         message: `אין לך מספיק ${currency === 'coins' ? 'מטבעות' : 'יהלומים'}` 
+       });
+       return;
+     }
+     
+     // Find the item in store
+     const item = storeItems.find(i => i.id === itemId);
+     if (!item) {
+       socket.emit('purchaseResult', { success: false, message: 'פריט לא נמצא בחנות' });
+       return;
+     }
+     
+     // Update user balance
+     if (currency === 'coins') {
+       player.coins -= price;
+     } else {
+       player.diamonds -= price;
+     }
+     
+     // Add item to user inventory
+     if (!player.inventory[item.category]) {
+       player.inventory[item.category] = [];
+     }
+     player.inventory[item.category].push(item.id);
+     
+     // Update database
+     await User.findOneAndUpdate(
+       { username: player.username },
+       { 
+         $inc: { [currency]: -price },
+         $push: { [`inventory.${item.category}`]: item.id }
+       }
+     );
+     
+     // Emit success to player
+     socket.emit('purchaseResult', { 
+       success: true, 
+       message: `רכישה מוצלחת! ${item.name} נוסף לסל החפצים שלך`,
+       newBalance: currency === 'coins' ? player.coins : player.diamonds
+     });
+     
+     // Update store display for all players
+     io.emit('playerDataUpdated', { 
+       playerId: socket.id, 
+       coins: player.coins, 
+       diamonds: player.diamonds,
+       inventory: player.inventory
+     });
+     
+   } catch (error) {
+     console.error('Purchase error:', error);
+     socket.emit('purchaseResult', { success: false, message: 'שגיאה בעיבוד הרכישה' });
+   }
  });
 
  // --- Trading Events ---

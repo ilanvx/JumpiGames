@@ -83,11 +83,23 @@ class AdminPanel {
         }
     }
 
+    async loadStoreItems() {
+        try {
+            const response = await fetch('/admin/store-items');
+            const data = await response.json();
+            this.renderStoreItems(data.items || []);
+        } catch (error) {
+            console.error('Error loading store items:', error);
+            this.showNotification('Error', 'Failed to load store items', 'error');
+        }
+    }
+
     async loadData() {
         await Promise.all([
             this.loadOnlinePlayers(),
             this.loadUsers(),
-            this.loadItemsMetadata()
+            this.loadItemsMetadata(),
+            this.loadStoreItems()
         ]);
         await this.loadCurrentAdminInvisibleState();
     }
@@ -273,6 +285,12 @@ class AdminPanel {
                 this.showNotification('Info', 'Auto refresh disabled', 'info');
             }
         });
+        
+        // Store management
+        const addStoreItemBtn = document.getElementById('addStoreItemBtn');
+        if (addStoreItemBtn) {
+            addStoreItemBtn.addEventListener('click', () => this.addStoreItem());
+        }
     }
 
     startAutoRefresh() {
@@ -522,6 +540,103 @@ class AdminPanel {
         } catch (e) {
             // fallback: just show button as Enable
             this.renderInvisibleButton(false);
+        }
+    }
+
+    renderStoreItems(items) {
+        const tbody = document.getElementById('storeItemsBody');
+        if (!tbody) return;
+        
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No store items found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = items.map(item => `
+            <tr>
+                <td><strong>${item.name}</strong></td>
+                <td><span class="badge bg-info">${this.getCategoryDisplayName(item.category)}</span></td>
+                <td><code>${item.id}</code></td>
+                <td><strong>${item.price}</strong></td>
+                <td>
+                    <span class="badge ${item.currency === 'coins' ? 'bg-warning' : 'bg-primary'}">
+                        ${item.currency === 'coins' ? '🪙 Coins' : '💎 Diamonds'}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-danger" onclick="adminPanel.removeStoreItem('${item.id}')">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async addStoreItem() {
+        const name = document.getElementById('storeItemName')?.value.trim();
+        const category = document.getElementById('storeItemCategory')?.value;
+        const id = document.getElementById('storeItemId')?.value;
+        const price = document.getElementById('storeItemPrice')?.value;
+        const currency = document.getElementById('storeItemCurrency')?.value;
+        
+        if (!name || !category || !id || !price || !currency) {
+            this.showNotification('Error', 'Please fill in all fields', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/admin/store-items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name,
+                    category,
+                    id,
+                    price: parseInt(price),
+                    currency
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                this.showNotification('Success', 'Item added to store successfully', 'success');
+                this.loadStoreItems(); // Reload the list
+                // Clear form
+                document.getElementById('storeItemName').value = '';
+                document.getElementById('storeItemCategory').value = '';
+                document.getElementById('storeItemId').value = '';
+                document.getElementById('storeItemPrice').value = '';
+            } else {
+                this.showNotification('Error', data.error || 'Failed to add item', 'error');
+            }
+        } catch (error) {
+            console.error('Error adding store item:', error);
+            this.showNotification('Error', 'Failed to add item to store', 'error');
+        }
+    }
+
+    async removeStoreItem(itemId) {
+        if (!confirm('Are you sure you want to remove this item from the store?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/admin/store-items/${itemId}`, {
+                method: 'DELETE'
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                this.showNotification('Success', 'Item removed from store successfully', 'success');
+                this.loadStoreItems(); // Reload the list
+            } else {
+                this.showNotification('Error', data.error || 'Failed to remove item', 'error');
+            }
+        } catch (error) {
+            console.error('Error removing store item:', error);
+            this.showNotification('Error', 'Failed to remove item from store', 'error');
         }
     }
 }

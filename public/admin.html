@@ -308,6 +308,97 @@
             </div>
         </div>
 
+        <!-- Store Management Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shopping-cart"></i>
+                            Store Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Add Store Item Form -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="mb-3">Add Item to Store</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label for="storeItemName" class="form-label">Item Name</label>
+                                        <input type="text" class="form-control" id="storeItemName" placeholder="Item name">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="storeItemCategory" class="form-label">Category</label>
+                                        <select class="form-select" id="storeItemCategory">
+                                            <option value="">Select...</option>
+                                            <option value="ht">Hats</option>
+                                            <option value="ps">Pants</option>
+                                            <option value="st">Shirts</option>
+                                            <option value="gs">Glasses</option>
+                                            <option value="nk">Necklaces</option>
+                                            <option value="hd">Hair</option>
+                                            <option value="sk">Shoes</option>
+                                            <option value="hr">Hair</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="storeItemId" class="form-label">Item ID</label>
+                                        <input type="number" class="form-control" id="storeItemId" placeholder="ID">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="storeItemPrice" class="form-label">Price</label>
+                                        <input type="number" class="form-control" id="storeItemPrice" placeholder="Price">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="storeItemCurrency" class="form-label">Currency</label>
+                                        <select class="form-select" id="storeItemCurrency">
+                                            <option value="coins">🪙 Coins</option>
+                                            <option value="diamonds">💎 Diamonds</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button class="btn btn-success w-100" id="addStoreItemBtn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Store Items -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="mb-3">Current Store Items</h6>
+                                <div id="storeItemsList" class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Category</th>
+                                                <th>ID</th>
+                                                <th>Price</th>
+                                                <th>Currency</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="storeItemsBody">
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted">
+                                                    <i class="fas fa-spinner fa-spin"></i> Loading store items...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Items Management Section -->
         <div class="row">
             <div class="col-12">
