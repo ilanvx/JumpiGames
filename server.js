@@ -87,6 +87,18 @@ app.get('/admin/store-items', requireAdmin, async (req, res) => {
     }
 });
 
+// Public API to view store items (no admin required)
+app.get('/api/store-items', async (req, res) => {
+    try {
+        const items = await StoreItem.find().sort({ createdAt: -1 });
+        console.log('Public store items request:', items.length, 'items found');
+        res.json({ items: items });
+    } catch (error) {
+        console.error('Error loading public store items:', error);
+        res.status(500).json({ error: 'Failed to load store items' });
+    }
+});
+
 // Add item to store (admin only)
 app.post('/admin/store-items', requireAdmin, async (req, res) => {
     try {

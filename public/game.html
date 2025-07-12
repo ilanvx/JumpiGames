@@ -2835,8 +2835,8 @@
         }
         
         function loadStoreItems() {
-            // Load store items from database
-            fetch('/admin/store-items')
+            // Load store items from database using public API
+            fetch('/api/store-items')
                 .then(response => response.json())
                 .then(data => {
                     storeItems = data.items || [];
