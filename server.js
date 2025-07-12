@@ -915,12 +915,40 @@ io.on('connection', async (socket) => {
      }
      
      // Extract original item ID from unique ID
-     const originalItemId = parseInt(item.id.split('_')[1]);
+     console.log('Extracting original ID from:', item.id); // Debug log
+     
+     if (!item.id) {
+         console.error('Item has no ID:', item);
+         socket.emit('purchaseResult', { success: false, message: 'שגיאה בעיבוד הרכישה - פריט לא תקין' });
+         return;
+     }
+     
+     const idParts = item.id.split('_');
+     console.log('ID parts:', idParts); // Debug log
+     
+     let originalItemId;
+     if (idParts.length >= 2) {
+         // New format: category_id_timestamp
+         originalItemId = parseInt(idParts[1]);
+     } else {
+         // Old format: just the ID
+         originalItemId = parseInt(item.id);
+     }
+     
+     console.log('Original item ID:', originalItemId); // Debug log
      
      // Add item to user inventory
      if (!player.inventory[item.category]) {
        player.inventory[item.category] = [];
      }
+     
+     // Validate originalItemId before adding to inventory
+     if (isNaN(originalItemId) || originalItemId === null) {
+       console.error('Invalid original item ID:', originalItemId, 'for item:', item.id);
+       socket.emit('purchaseResult', { success: false, message: 'שגיאה בעיבוד הרכישה - מזהה פריט לא תקין' });
+       return;
+     }
+     
      player.inventory[item.category].push(originalItemId);
      
      // Update database
