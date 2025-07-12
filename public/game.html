@@ -1984,13 +1984,11 @@
                 <div class="store-categories" style="flex: 1;">
                     <h6 style="margin: 0 0 15px 0; color: #333; font-size: 1rem;">קטגוריות</h6>
                     <div class="store-category-tabs" style="display: flex; flex-direction: column; gap: 10px;">
-                        <button class="store-category-btn active" data-category="coins" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(120,144,255,0.1); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #333; font-weight: 500;">
-                            <i class="fas fa-coins" style="font-size: 1.2rem; color: #f39c12;"></i>
-                            <span>מטבעות</span>
+                        <button class="store-category-btn active" data-category="coins" style="display: flex; align-items: center; justify-content: center; padding: 12px 15px; background: rgba(120,144,255,0.1); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #333; font-weight: 500; font-size: 1.5rem;">
+                            <i class="fas fa-coins" style="font-size: 1.5rem; color: #f39c12;"></i>
                         </button>
-                        <button class="store-category-btn" data-category="diamonds" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(255,255,255,0.5); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #666; font-weight: 500;">
-                            <span style="font-size: 1.2rem;">💎</span>
-                            <span>יהלומים</span>
+                        <button class="store-category-btn" data-category="diamonds" style="display: flex; align-items: center; justify-content: center; padding: 12px 15px; background: rgba(255,255,255,0.5); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #666; font-weight: 500; font-size: 1.5rem;">
+                            <span style="font-size: 1.5rem;">💎</span>
                         </button>
                     </div>
                 </div>
@@ -2939,6 +2937,10 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Center the character in the canvas (same as inventory)
+            const charX = (canvas.width - 55) / 2; // 55 is half the character width
+            const charY = (canvas.height - 70) / 2; // 70 is half the character height
+            
             // Clone equipped items
             let equipped = { ...currentUser.equipped };
             if (measuringItem) {
@@ -2948,68 +2950,90 @@
                 }
             }
             
-            // Draw character with equipped items
-            drawCharacterPreviewWithEquipped(canvas, currentUser, equipped);
+            // Draw character with equipped items using the same logic as inventory
+            drawStoreCharacterWithEquipped(canvas, currentUser, equipped, charX, charY);
         }
         
-        function drawCharacterPreviewWithEquipped(canvas, player, equipped) {
+        function drawStoreCharacterWithEquipped(canvas, player, equipped, charX, charY) {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw base character
-            ctx.fillStyle = '#ffdbac'; // Skin color
-            ctx.fillRect(50, 80, 10, 20); // Head
-            ctx.fillRect(45, 100, 20, 30); // Body
+            // Define the correct drawing order for equipped items (same as inventory)
+            const ITEM_DRAW_ORDER = ["hd", "sk", "ps", "st", "nk", "hr", "gs", "ht"];
             
-            // Draw equipped items in correct order
-            if (equipped) {
-                // Define drawing order for items
-                const drawOrder = ['hr', 'hd', 'ht', 'gs', 'nk', 'st', 'ps', 'sk'];
-                
-                drawOrder.forEach(category => {
-                    const itemId = equipped[category];
-                    if (itemId) {
-                        const img = new Image();
-                        img.onload = () => {
-                            // Draw with proper positioning based on category
-                            let offsetX = 0, offsetY = 0, scale = 1;
-                            
-                            switch(category) {
-                                case 'ht': // Hats
-                                    offsetX = 0; offsetY = -5; scale = 0.9;
-                                    break;
-                                case 'ps': // Pants
-                                    offsetX = 0; offsetY = 15; scale = 0.9;
-                                    break;
-                                case 'st': // Shirts
-                                    offsetX = 0; offsetY = 5; scale = 0.9;
-                                    break;
-                                case 'gs': // Glasses
-                                    offsetX = 0; offsetY = 0; scale = 0.8;
-                                    break;
-                                case 'nk': // Necklaces
-                                    offsetX = 0; offsetY = 10; scale = 0.8;
-                                    break;
-                                case 'hd': // Hair
-                                    offsetX = 0; offsetY = -5; scale = 0.9;
-                                    break;
-                                case 'sk': // Shoes
-                                    offsetX = 0; offsetY = 25; scale = 0.8;
-                                    break;
-                                case 'hr': // Hair
-                                    offsetX = 0; offsetY = -5; scale = 0.9;
-                                    break;
-                            }
-                            
-                            ctx.save();
-                            ctx.translate(canvas.width/2 + offsetX, canvas.height/2 + offsetY);
-                            ctx.scale(scale, scale);
-                            ctx.drawImage(img, -img.width/2, -img.height/2, img.width, img.height);
-                            ctx.restore();
-                        };
-                        img.src = `/items/${category}/${itemId}/front.png`;
-                    }
-                });
+            // For preview, always use 'front' direction (or 'down' for base sprite)
+            const previewDirection = 'front';
+            const baseDirection = 'down';
+            
+            // Helper to get offset/size for an item (same as inventory)
+            function getItemOffset(cat, itemId) {
+                let offset = { x: 0, y: 0, width: 1, height: 1 };
+                if (window.itemOffsets && window.itemOffsets[cat] && window.itemOffsets[cat][itemId] && window.itemOffsets[cat][itemId][previewDirection]) {
+                    offset = { ...offset, ...window.itemOffsets[cat][itemId][previewDirection] };
+                } else if (window.itemsMetadata && window.itemsMetadata[cat] && window.itemsMetadata[cat][itemId] && window.itemsMetadata[cat][itemId].offsets && window.itemsMetadata[cat][itemId].offsets[previewDirection]) {
+                    offset = { ...offset, ...window.itemsMetadata[cat][itemId].offsets[previewDirection] };
+                } else {
+                    // Optionally show a warning if missing
+                    // console.warn(`Missing offset metadata for ${cat}:${itemId} (${previewDirection})`);
+                }
+                // Default width/height if not set
+                offset.width = offset.width || 1;
+                offset.height = offset.height || 1;
+                offset.x = offset.x || 0;
+                offset.y = offset.y || 0;
+                return offset;
+            }
+            
+            // 1. Draw skateboard (sk) below everything
+            if (equipped.sk) {
+                const itemId = equipped.sk;
+                const img = new Image();
+                img.onload = function() {
+                    const offset = getItemOffset('sk', itemId);
+                    ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                    drawRest();
+                };
+                img.onerror = function() { drawRest(); };
+                img.src = `/items/sk/${itemId}/front.png`;
+            } else {
+                drawRest();
+            }
+            
+            function drawRest() {
+                // 2. Draw skin color (hd) as base, or default character
+                if (equipped.hd) {
+                    const itemId = equipped.hd;
+                    const img = new Image();
+                    img.onload = function() {
+                        const offset = getItemOffset('hd', itemId);
+                        ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                        drawEquipped();
+                    };
+                    img.onerror = function() { drawDefaultBase(); };
+                    img.src = `/items/hd/${itemId}/front.png`;
+                } else {
+                    drawDefaultBase();
+                }
+            }
+            function drawDefaultBase() {
+                // Draw default character sprite
+                const img = window.characterImages[baseDirection] || window.characterImages['down'];
+                ctx.drawImage(img, charX, charY, 55, 70);
+                drawEquipped();
+            }
+            function drawEquipped() {
+                // 3. Draw all other equipped items in order (except sk, hd)
+                for (const cat of ["ps", "st", "nk", "hr", "gs", "ht"]) {
+                    const itemId = equipped[cat];
+                    if (!itemId) continue;
+                    const img = new Image();
+                    img.onload = function() {
+                        const offset = getItemOffset(cat, itemId);
+                        ctx.drawImage(img, charX + offset.x, charY + offset.y, 55 * offset.width, 70 * offset.height);
+                    };
+                    img.onerror = function() {};
+                    img.src = `/items/${cat}/${itemId}/front.png`;
+                }
             }
         }
         
